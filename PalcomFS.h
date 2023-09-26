@@ -7,6 +7,9 @@ const char *pfs_file_keysPrivate = "/keys/pri.key";
 const char *pfs_dir_public = "/public";
 const char *pfs_file_publicLog= "/public/msgLog";
 const char *pfs_dir_requests = "/requests";
+const char *pfs_public_msg_log = "/public/msgLog";
+const char *pfs_public_msg_dir = "/public";
+const char *pfs_file_cryptSend  = "/cryptSend.enc";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};

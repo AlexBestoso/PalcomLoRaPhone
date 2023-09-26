@@ -34,6 +34,37 @@ class PalcomFS{
     }
   }
 
+  void rm(const char *target){
+    if(!SD.exists(target))
+      return;
+      File root = SD.open(target);
+      if(root.isDirectory()){
+        while(true){
+          File node = root.openNextFile();
+          if(!node)
+            break;
+          string name;
+          name = target;
+          name += "/";
+          name += node.name();
+          if(node.isDirectory()){
+            this->rm(name.c_str());
+            node.close();
+            if(!SD.rmdir(name.c_str()))
+              Serial.printf("Failed to remove directory %s\n", name.c_str());
+          }else{
+            node.close();
+            SD.remove(name.c_str());
+          }
+        }
+        root.close();
+        if(!SD.rmdir(target))
+          Serial.printf("Failed to remove directory %s\n", (const char *)target);
+      }else{
+        root.close();
+        SD.remove(target);
+      }
+  }
   const char *getFilenameByPos(int id, const char *targetDir){
     if(SD.exists(targetDir)){
       int buttonCount = 0;

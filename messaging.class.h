@@ -184,90 +184,35 @@ private:
     bool renamed = false;
     string newName = "";
     
-    if(SD.exists(pfs_dir_friends)){
-      int friendCount = 0;
-      File root = SD.open(pfs_dir_friends);
-      while(true){
-        if(friendCount > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(friendCount == selectedFriend){
-          sprintf((char *)fileData, "%s/%s", pfs_dir_friends, node.name());
-          string original = (const char *)fileData;
+    PalcomTextarea pText;
+    pText.loadGlobal(3);
+    sprintf((char *)fileData, "%s/%s", pfs_dir_friends, pText.getText());
 
-          PalcomTextarea pText;
-          pText.loadGlobal(3);
-          sprintf((char *)fileData, "%s/%s", pfs_dir_friends, pText.getText());
-          string newFile = (const char *)fileData;
+    PalcomFS pfs;
+    const char *friendDirName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    if(friendDirName){
+      sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, friendDirName);
 
-          if(newFile != original){
-            newName = pText.getText();
-            size_t fileSize = node.size();
-            node.read(fileData, fileSize);
-            node.close();
-            node = SD.open(newFile.c_str(), FILE_WRITE);
-            node.write(fileData, fileSize);
-            node.close();
-            SD.remove(original.c_str());
-            newPacketReceived = true;
-            renamed = true;
-            break;
-          }
-          node.close();
-          break;
-        }
-        node.close(); 
-      }
-      root.close();
-    }
-
-    if(renamed){
-      File root = SD.open(pfs_dir_friends);
-      int index = 0;
-      while(true){
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        string test = node.name();
-        if(test == newName){
-          selectedFriend = index;
-          node.close();
-          break;
-        }
-        node.close();
-        index++;
-      }
-      root.close();
+      File nameFile = SD.open((char *)compBuffer, FILE_WRITE, O_TRUNC);
+      nameFile.write((const uint8_t*)pText.getText(), strlen(pText.getText()));
+      nameFile.close();
+      newPacketReceived = true;
     }
   }
 
   static void Messaging_handleDeleteContact(lv_event_t *e){
     if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       return;
-    if(SD.exists(pfs_dir_friends)){
-      int friendCount = 0;
-      File root = SD.open(pfs_dir_friends);
-      while(true){
-        if(friendCount > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(friendCount == selectedFriend){
-          sprintf((char *)fileData, "%s/%s", pfs_dir_friends, node.name());
-          SD.remove((const char *)fileData);
-          selectedFriend = -1;
-          activeTab = 1;
-          newPacketReceived = true;
-          node.close();
-          break;
-        }
-        node.close();
-      }
-      root.close();
+      PalcomFS pfs;
+    const char *friendDirName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    if(friendDirName){
+      sprintf((char *)compBuffer, "%s/%s", pfs_dir_friends, friendDirName);
+      pfs.rm((const char *)compBuffer);
+      selectedFriend = -1;
+      activeTab = 1;
+      newPacketReceived = true;
     }
+    
   }
   static void Messaging_handleGeneralSend(lv_event_t *e) {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED)
@@ -456,10 +401,22 @@ private:
         File node = root.openNextFile();
         if(!node)
           break;
+        
         pButton.create(tabMenu.getTab(1));
         pButton.setSize(100, 30);
         pLabel.create(pButton.getObj());
-        pLabel.setText(node.name());
+        sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, node.name());
+        File nameFile = SD.open(compBuffer);
+        if(!nameFile){
+          pLabel.setText("My Frien");
+        }else{
+          for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+            fileData[i] = 0;
+          }
+          nameFile.read(fileData, nameFile.size());
+          nameFile.close();
+          pLabel.setText((const char *)fileData);
+        }
         pLabel.center();
         pButton.setLabel(pLabel);
         firendBuffer[buttonCount] = buttonCount;
@@ -635,25 +592,19 @@ private:
     pTextarea.setOneLine(true);
     pTextarea.setAlignment(LV_ALIGN_TOP_MID, 15, 4);
     lv_task_handler();
-    if(SD.exists(pfs_dir_friends)){
-      File root = SD.open(pfs_dir_friends);
-      int index = 0;
-      while(true){
-        if(index > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(index == selectedFriend){
-          pTextarea.setText(node.name());
-          node.close();
-          break;
-        }
-        node.close();
-        index++;
-        lv_task_handler(); 
-      }
-      root.close();
+
+    PalcomFS pfs;
+    const char *friendDirName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    if(!friendDirName){
+      pTextarea.setText("My Frien");
+    }else{
+      sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, friendDirName);
+      for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
+        fileData[i] = 0;
+      File nameFile = SD.open((char *)compBuffer, FILE_READ);
+      nameFile.read(fileData, nameFile.size());
+      nameFile.close();
+      pTextarea.setText((const char *)fileData);
     }
     lv_task_handler();
 

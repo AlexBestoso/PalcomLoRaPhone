@@ -71,11 +71,11 @@ class PalcomRadio{
       if(radioPacket == NULL){
         return;
       }
-      if(!SD.exists("/requests")){
-        SD.mkdir("/requests");
+      if(!SD.exists(pfs_dir_tmp)){
+        SD.mkdir(pfs_dir_tmp);
       }
       size_t msgSize = 0;
-      sprintf(tmpName, "/requests/tmp.%d", radioPacket[0].p_id);
+      sprintf(tmpName, "%s/tmp.%d", pfs_dir_tmp, radioPacket[0].p_id);
       if(radioPacket[0].p_count > 1){
         appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false);
         return;
@@ -88,7 +88,7 @@ class PalcomRadio{
       }
 
       getSha256Hash(compBuffer, msgSize, shaHash);
-      sprintf(tmpName, "/requests/%s", shaHash);
+      sprintf(tmpName, "%s/%s", pfs_dir_requests, shaHash);
       if(SD.exists(tmpName)){
         return;
       }
@@ -103,13 +103,13 @@ class PalcomRadio{
       if(radioPacket == NULL){
         return;
       }
-      if(!SD.exists("/tmp")){
-        SD.mkdir("/tmp");
+      if(!SD.exists(pfs_dir_tmp)){
+        SD.mkdir(pfs_dir_tmp);
       }
 
       // Handle Multi framed packet
       size_t msgSize = 0;
-      sprintf(tmpName, "/tmp/enc.%d", radioPacket[0].p_id);
+      sprintf(tmpName, "%s/enc.%d", pfs_dir_tmp, radioPacket[0].p_id);
       if(radioPacket[0].p_count > 1){
         appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, (!SD.exists(tmpName)) ? true : false, false);
         return;
@@ -122,23 +122,22 @@ class PalcomRadio{
       }
 
       // Write packet to msgLog
-      const char * msgLog = "/public/msgLog";
-      if(!SD.exists(msgLog)){
+      if(!SD.exists(pfs_file_publicLog)){
         if(msgSize > 0) // Multi frame packet
-          appendToFile(msgLog, (uint8_t *)compBuffer, msgSize, false, false);
+          appendToFile(pfs_file_publicLog, (uint8_t *)compBuffer, msgSize, false, false);
         else
-          appendToFile(msgLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
+          appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
       }else{
-        File msgFile = SD.open(msgLog, FILE_READ);
+        File msgFile = SD.open(pfs_file_publicLog, FILE_READ);
         size_t msgFileSize = msgFile.size();
         msgFile.close();
         if(msgFileSize > 100000)
-          SD.remove(msgLog);
+          SD.remove(pfs_file_publicLog);
 
         if(msgSize > 0)
-          appendToFile(msgLog, (uint8_t *)compBuffer, msgSize, false, false);
+          appendToFile(pfs_file_publicLog, (uint8_t *)compBuffer, msgSize, false, false);
         else
-          appendToFile(msgLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
+          appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
       }
     }
 
@@ -146,13 +145,13 @@ class PalcomRadio{
       if(radioPacket == NULL){
         return;
       }
-      if(!SD.exists("/public")){
-        SD.mkdir("/public");
+      if(!SD.exists(pfs_dir_public)){
+        SD.mkdir(pfs_dir_public);
       }
 
       // Handle Multi framed packet
       size_t msgSize = 0;
-      sprintf(tmpName, "/public/tmp.%d", radioPacket[0].p_id);
+      sprintf(tmpName, "%s/tmp.%d", pfs_dir_tmp, radioPacket[0].p_id);
       if(radioPacket[0].p_count > 1){
         appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, (!SD.exists(tmpName)) ? true : false, false);
         return;
@@ -165,23 +164,22 @@ class PalcomRadio{
       }
 
       // Write packet to msgLog
-      const char * msgLog = "/public/msgLog";
-      if(!SD.exists(msgLog)){
+      if(!SD.exists(pfs_file_publicLog)){
         if(msgSize > 0) // Multi frame packet
-          appendToFile(msgLog, (uint8_t *)compBuffer, msgSize, false, false);
+          appendToFile(pfs_file_publicLog, (uint8_t *)compBuffer, msgSize, false, false);
         else
-          appendToFile(msgLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
+          appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
       }else{
-        File msgFile = SD.open(msgLog, FILE_READ);
+        File msgFile = SD.open(pfs_file_publicLog, FILE_READ);
         size_t msgFileSize = msgFile.size();
         msgFile.close();
         if(msgFileSize > 100000)
-          SD.remove(msgLog);
+          SD.remove(pfs_file_publicLog);
 
         if(msgSize > 0)
-          appendToFile(msgLog, (uint8_t *)compBuffer, msgSize, false, false);
+          appendToFile(pfs_file_publicLog, (uint8_t *)compBuffer, msgSize, false, false);
         else
-          appendToFile(msgLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
+          appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
       }
     }
 

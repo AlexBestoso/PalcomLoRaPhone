@@ -34,6 +34,31 @@ class PalcomFS{
     }
   }
 
+  const char *getFilenameByPos(int id, const char *targetDir){
+    if(SD.exists(targetDir)){
+      int buttonCount = 0;
+      File root = SD.open(targetDir);
+      while(true){
+        if(buttonCount > 25)
+          break;
+        File node = root.openNextFile();
+        if(!node)
+          break;
+        if(buttonCount == id){
+          const char *ret = node.name();
+          node.close();
+          root.close();
+         
+          return ret;
+        }
+
+        node.close(); 
+      }
+      root.close();
+    }
+    return NULL;
+  }
+
   int rootKeysExist(void){
     if(SD.exists(pfs_file_keysPublic) && SD.exists(pfs_file_keysPrivate))
       return 1;

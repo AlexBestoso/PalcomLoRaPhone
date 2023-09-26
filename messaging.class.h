@@ -316,42 +316,49 @@ private:
   static void Messaging_handleApproveKey(lv_event_t *e){
     if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       return;
-    if(SD.exists(pfs_dir_requests)){
-      int buttonCount = 0;
-      File root = SD.open(pfs_dir_requests);
-      while(true){
-        if(buttonCount > 25)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(buttonCount == selectedHash){
-          sprintf((char *)compBuffer, "%s/%s", pfs_dir_requests, node.name());
-          size_t keySize = node.size();
-          node.read(fileData, keySize);
 
-          if(!SD.exists(pfs_dir_friends)){
-            SD.mkdir(pfs_dir_friends);
-          }
-          string n = compBuffer;
-          sprintf((char *)compBuffer, "%s/%s", pfs_dir_friends, node.name());
-          node.close();
-          SD.remove(n.c_str());
-
-          node = SD.open((const char *)compBuffer, FILE_WRITE);
-          node.write(fileData, keySize);
-          node.close();
-          break;
-        }
-
-        node.close(); 
-      }
-      root.close();
+    PalcomFS pfs;
+    const char *targetKeyName = pfs.getFilenameByPos(selectedHash, pfs_dir_requests);
+    if(targetKeyName == NULL){
+      return;
     }
+    // Read key data     
+    sprintf((char*)compBuffer, "%s/%s", pfs_dir_requests, targetKeyName);
+    File node = SD.open(compBuffer);      
+    size_t keySize = node.size();
+    node.read(fileData, keySize);
+    node.close();
+    SD.remove(compBuffer);
+
+    // Make sure root friends dir exists
+    if(!SD.exists(pfs_dir_friends)){
+      SD.mkdir(pfs_dir_friends);
+    }
+
+    // Make the directory for your new friend.
+    sprintf((char *)compBuffer, "%s/%s", pfs_dir_friends, targetKeyName);
+    if(!SD.exists(compBuffer)){
+      SD.mkdir(compBuffer);
+    }
+
+    //Write key
+    string n = compBuffer;
+    sprintf((char *)compBuffer, "%s/%s", compBuffer, "key");
+    node = SD.open((const char *)compBuffer, FILE_WRITE);
+    node.write(fileData, keySize);
+    node.close();
+
+    // Write Name File
+    sprintf((char *)compBuffer, "%s/%s", n.c_str(), "name");
+    node = SD.open((const char *)compBuffer, FILE_WRITE);
+    node.printf("My Fren");
+    node.close();
+
     activeTab = 2;
     selectedHash = -1;
     newPacketReceived = true;
   }
+
   static void Messaging_handleDenyKey(lv_event_t *e){
     if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       return;

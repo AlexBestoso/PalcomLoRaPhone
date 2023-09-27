@@ -132,6 +132,12 @@ class PalcomLoginScreen : public PalcomScreen{
       submit.setSimpleCallback(Login_handleSubmit);
     }
 
+    void resetPage(){
+      this->globalDestroy();
+      this->destroy();
+      buildRequired = true;
+    }
+
     bool run(void){
       if(buildRequired){
         buildRequired = false;

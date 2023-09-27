@@ -639,5 +639,7 @@ class PalcomSetup{
     ret = setupRadio();
     Serial.print("Radio:"); Serial.println(ret);
 
+    generatePublicHash(true);
+
   }
 }palcomSetup;

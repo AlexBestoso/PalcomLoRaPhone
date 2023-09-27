@@ -6,6 +6,19 @@ int selectedHash = -1;
 int selectedFriend = -1;
 int activeTab = 0;
 char friendHash[33];
+void getFriendHash(void){
+    PalcomFS pfs;
+    const char *friendHashFileName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    sprintf((char *)fileData, "%s/%s/hash", pfs_dir_friends, friendHashFileName);
+    File friendHashFile = SD.open((const char *)fileData, FILE_READ);
+    size_t keySize = friendHashFile.size();
+    for(int i=0; i<33; i++)
+      compBuffer[i] = 0;
+    friendHashFile.read((uint8_t *)compBuffer, keySize);
+    friendHashFile.close();
+    for(int i=0; i<33; i++)
+      friendHash[i] = compBuffer[i];
+}
 
 class PalcomMessaging: public PalcomScreen{
 private:
@@ -16,6 +29,7 @@ private:
   lv_obj_t *tabThree = NULL;
   lv_obj_t *tabFour = NULL;
   size_t lastPublicSize = 0;
+  size_t lastEncryptedSize = 0;
   float msgCheckTimer = millis();
 
   
@@ -28,6 +42,21 @@ private:
       return 0;
 
     File msgFile = SD.open(pfs_public_msg_log, FILE_READ);
+    size_t msgFileSize = msgFile.size();
+    msgFile.close();
+    return msgFileSize;
+  }
+  
+  size_t getEncryptedMsgSize() {
+    PalcomFS pfs;
+    const char *friendDirName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    sprintf((char *)compBuffer, "%s/%s/msgLog", pfs_dir_friends, friendDirName);
+    msgCheckTimer = millis();
+    
+    if (!SD.exists(compBuffer))
+      return 0;
+    
+    File msgFile = SD.open(compBuffer, FILE_READ);
     size_t msgFileSize = msgFile.size();
     msgFile.close();
     return msgFileSize;
@@ -55,30 +84,7 @@ private:
     }
   }
 
-  void getFriendHash(void){
-     if(SD.exists(pfs_dir_friends)){
-      int friendCount = 0;
-      File root = SD.open(pfs_dir_friends);
-      while(true){
-        if(friendCount > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(friendCount == selectedFriend){
-          sprintf((char *)fileData, "%s/%s", pfs_dir_friends, node.name());
-          size_t keySize = node.size();
-          node.read((uint8_t *)compBuffer, keySize);
-          node.close();
-
-          getSha256Hash((char *)compBuffer, (const size_t)keySize, friendHash);
-          break;
-        }
-        node.close(); 
-      }
-      root.close();
-    }
-  }
+  
 
   void getPublicMsgData(void) {
     string ret = "";
@@ -92,6 +98,24 @@ private:
       msgFile.close();
     } else {
       lastPublicSize = 0;
+    }
+  }
+
+  void getEncryptedMsgData(void) {
+    string ret = "";
+    PalcomFS pfs;
+    const char *friendDirName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
+    sprintf((char *)compBuffer, "%s/%s/msgLog", pfs_dir_friends, friendDirName);
+    if (SD.exists(compBuffer)) {
+      File msgFile = SD.open(compBuffer, FILE_READ);
+      size_t msgFileSize = msgFile.size();
+      for (int i = 0; i < 100000; i++)
+        fileData[i] = 0;
+      lastEncryptedSize = msgFileSize;
+      msgFile.read(fileData, msgFileSize);
+      msgFile.close();
+    } else {
+      lastEncryptedSize = 0;
     }
   }
 
@@ -116,32 +140,10 @@ private:
   static void Messaging_handleEncryptedSend(lv_event_t *e){
     if (lv_event_get_code(e) != LV_EVENT_CLICKED || selectedFriend == -1)
         return;
+    Serial.printf("Sending it.\n");
+    PalcomFS pfs;
+    const char *friendDirectory = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
     
-    //char  friendHash = "";
-    string friendFile = "";
-    if(SD.exists(pfs_dir_friends)){
-      int friendCount = 0;
-      File root = SD.open(pfs_dir_friends);
-      while(true){
-        if(friendCount > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        if(friendCount == selectedFriend){
-          sprintf((char *)fileData, "%s/%s", pfs_dir_friends, node.name());
-          friendFile = (const char *)fileData;
-          size_t keySize = node.size();
-          node.read((uint8_t *)compBuffer, keySize);
-          node.close();
-
-          getSha256Hash((char *)compBuffer, (const size_t)keySize, friendHash);
-          break;
-        }
-        node.close(); 
-      }
-      root.close();
-    }
 
     PalcomTextarea pTextarea;
     pTextarea.loadGlobal(2);
@@ -155,18 +157,36 @@ private:
       SD.remove(pfs_file_cryptSend);
     }
 
-    rsaEncrypt(friendFile.c_str(), (const unsigned char *)msg.c_str(), msg.length(), pfs_file_cryptSend);
+    //getFriendHash();// This resets filedata
+    if(!pfs.getPublicHash(friendHash))
+      return;
+    
+    //for(int i=0;i<33; i++){
+     // Serial.printf("%c ^ %c = ", friendHash[i], fileData[i]);
+    //  friendHash[i] = fileData[i];
+   //   Serial.printf("%c\n", friendHash[i]);
+    //}
+    Serial.printf("Sending the hash : %s\n", friendHash);
+    sprintf((char *)compBuffer, "%s/%s/key", pfs_dir_friends, friendDirectory);
+    Serial.printf("Reading key file : %s\n", (const char *)compBuffer);
+    if(!rsaEncrypt(compBuffer, (const unsigned char *)msg.c_str(), msg.length(), pfs_file_cryptSend)){
+      Serial.printf("Encryption Failed.\n");
+    }
     File encryptedData = SD.open(pfs_file_cryptSend, FILE_READ);
     size_t ctextSize = encryptedData.size();
     encryptedData.read(fileData, ctextSize);
     encryptedData.close();
+    
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
+      compBuffer[i] = 0;
     for(int i=0; i<33; i++){
       compBuffer[i] = friendHash[i];
     }
     for(int i=0; i<ctextSize; i++){
       compBuffer[i+33] = fileData[i];
     }
-    palcomRadio.sendEncryptedMessage((const char *)compBuffer, 33+ctextSize);
+
+    palcomRadio.sendEncryptedMessage((const uint8_t *)compBuffer, 33+ctextSize);
     pTextarea.setText("");
   }
 
@@ -267,6 +287,10 @@ private:
     if(targetKeyName == NULL){
       return;
     }
+
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+      fileData[i] = 0;
+    }
     // Read key data     
     sprintf((char*)compBuffer, "%s/%s", pfs_dir_requests, targetKeyName);
     File node = SD.open(compBuffer);      
@@ -285,16 +309,21 @@ private:
     if(!SD.exists(compBuffer)){
       SD.mkdir(compBuffer);
     }
+    // Write Hash
+    sprintf((char *)compBuffer, "%s/%s/hash", pfs_dir_friends, targetKeyName);
+    Serial.printf("Writing hash to file : %s\n", compBuffer);
+    node = SD.open((const char *)compBuffer, FILE_WRITE);
+    node.write((uint8_t *)targetKeyName, 33);
+    node.close();
 
     //Write key
-    string n = compBuffer;
-    sprintf((char *)compBuffer, "%s/%s", compBuffer, "key");
+    sprintf((char *)compBuffer, "%s/%s/key", pfs_dir_friends, targetKeyName);
     node = SD.open((const char *)compBuffer, FILE_WRITE);
     node.write(fileData, keySize);
     node.close();
 
     // Write Name File
-    sprintf((char *)compBuffer, "%s/%s", n.c_str(), "name");
+    sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, targetKeyName);
     node = SD.open((const char *)compBuffer, FILE_WRITE);
     node.printf("My Fren");
     node.close();
@@ -521,6 +550,7 @@ private:
   }
 
   void friendView(){
+    Serial.printf("In friend view.\n");
     lv_obj_t *screen = this->getScreen();
     if(screen == NULL){
       this->globalDestroy();
@@ -546,8 +576,9 @@ private:
     pTextarea.setCursorClickPos(false);
     pTextarea.setTextSelection(false);
     pTextarea.setSize(LV_HOR_RES - 10, (LV_VER_RES / 3) + 20);
-    getPublicMsgData();
-    if (lastPublicSize <= 0)
+    getEncryptedMsgData();
+    Serial.printf("Data fetch successful\n");
+    if (lastEncryptedSize <= 0)
       pTextarea.setText("");
     else
       pTextarea.setText((const char *)fileData);
@@ -679,16 +710,27 @@ public:
 
     if (Messaging_pageContext <= 0) {
       if ((millis() - msgCheckTimer) > ((1000 * 60)) || newPacketReceived) {
-        if (getPublicMsgSize() != lastPublicSize || newPacketReceived) {
-          this->globalDestroy();
-          this->destroy();
-          lv_task_handler();
-          buildRequired = true;
+        if(selectedFriend != -1){
+          if (getEncryptedMsgSize() != lastPublicSize || newPacketReceived) {
+           this->globalDestroy();
+           this->destroy();
+           lv_task_handler();
+           buildRequired = true;
+          }
+        }else{
+          if (getPublicMsgSize() != lastPublicSize || newPacketReceived) {
+           this->globalDestroy();
+           this->destroy();
+           lv_task_handler();
+           buildRequired = true;
+          }
         }
         newPacketReceived = false;
         msgCheckTimer = millis();
       }
     }
+
+    
     if(Messaging_pageContext == 1){
       resetPage();
       return 1;

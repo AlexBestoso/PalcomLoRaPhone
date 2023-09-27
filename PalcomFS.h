@@ -3,6 +3,7 @@ const char *pfs_dir_friends = "/friends";
 const char *pfs_file_friendsList = "/friends/friends.list";
 const char *pfs_dir_keys = "/keys";
 const char *pfs_file_keysPublic = "/keys/pub.key";
+const char *pfs_file_publicHash = "/keys/pub.hash";
 const char *pfs_file_keysPrivate = "/keys/pri.key";
 const char *pfs_dir_public = "/public";
 const char *pfs_file_publicLog= "/public/msgLog";
@@ -10,6 +11,7 @@ const char *pfs_dir_requests = "/requests";
 const char *pfs_public_msg_log = "/public/msgLog";
 const char *pfs_public_msg_dir = "/public";
 const char *pfs_file_cryptSend  = "/cryptSend.enc";
+const char *pfs_file_cryptRecv  = "/cryptRecv.enc";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};
@@ -88,6 +90,28 @@ class PalcomFS{
       root.close();
     }
     return NULL;
+  }
+
+  bool getPublicHash(void){
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+      fileData[i] = 0;
+    }
+    File hash = SD.open(pfs_file_publicHash, FILE_READ);
+    if(!hash)
+      return false;
+
+      hash.read(fileData, hash.size());
+      hash.close();
+      return true;
+  }
+  bool getPublicHash(char *ret){
+    File hash = SD.open(pfs_file_publicHash, FILE_READ);
+    if(!hash)
+      return false;
+
+      hash.read((uint8_t *)ret, hash.size());
+      hash.close();
+      return true;
   }
 
   int rootKeysExist(void){

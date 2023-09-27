@@ -11,8 +11,59 @@
 #define RSA_KEY_SIZE_BYTES RSA_KEY_SIZE/8
 
 #define KEYS_DIR "/myKeys"
-#define PUBLIC_KEY_LOC "/myKeys/pub.key"
-#define PRIVATE_KEY_LOC "/myKeys/pri.key"
+byte shaResult[32];
+void getSha256Hash(char *payload, const size_t payloadLength, char* ret){
+  
+  mbedtls_md_context_t ctx;
+  mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
+  
+  
+  mbedtls_md_init(&ctx);
+  mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
+  mbedtls_md_starts(&ctx);
+  mbedtls_md_update(&ctx, (const unsigned char *) payload, payloadLength);
+  mbedtls_md_finish(&ctx, shaResult);
+  mbedtls_md_free(&ctx);
+  string grabber = "";
+  for(int i= 0; i< sizeof(shaResult); i++){
+      char str[3];
+ 
+      sprintf(str, "%02x", (int)shaResult[i]);
+      // TODO: Replace this grabber line to prevent memory fragmentation.
+      grabber += str;
+  }
+  for(int i=0; i<32; i++){
+    ret[i] = grabber[i];
+  }
+  ret[32] = 0x00;
+}
+
+void generatePublicHash(bool regen=false){
+  if(!SD.exists(pfs_file_keysPublic)){
+    return;
+  }
+
+  if(SD.exists(pfs_file_publicHash)){
+    if(!regen)
+      return;
+    SD.remove(pfs_file_publicHash);
+  }
+  
+  for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+    fileData[i] = 0;
+  }
+  
+  File keyF = SD.open(pfs_file_keysPublic, FILE_READ);
+  keyF.read(fileData, keyF.size());
+  size_t keySize = keyF.size();
+  keyF.close();
+
+  getSha256Hash((char *)fileData, 33, (char *)shaResult);
+
+  File hashF = SD.open(pfs_file_publicHash, FILE_WRITE);
+  hashF.write((const uint8_t *)shaResult, 33);
+  hashF.close();
+}
 
 bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
   int ret;
@@ -29,7 +80,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
   for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
     fileData[i] = 0x00;
 
-  keyFile = SD.open(PRIVATE_KEY_LOC, FILE_READ);
+  keyFile = SD.open(pfs_file_keysPrivate, FILE_READ);
   if(!keyFile)
     return false;
   size_t fileSize = keyFile.size();
@@ -574,32 +625,7 @@ bool generateKeyPair(bool regenerate){
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
     pfs.close();
-    return true;
-}
 
-void getSha256Hash(char *payload, const size_t payloadLength, char* ret){
-  byte shaResult[32];
-  
-  mbedtls_md_context_t ctx;
-  mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
-  
-  
-  mbedtls_md_init(&ctx);
-  mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
-  mbedtls_md_starts(&ctx);
-  mbedtls_md_update(&ctx, (const unsigned char *) payload, payloadLength);
-  mbedtls_md_finish(&ctx, shaResult);
-  mbedtls_md_free(&ctx);
-  string grabber = "";
-  for(int i= 0; i< sizeof(shaResult); i++){
-      char str[3];
- 
-      sprintf(str, "%02x", (int)shaResult[i]);
-      // TODO: Replace this grabber line to prevent memory fragmentation.
-      grabber += str;
-  }
-  for(int i=0; i<32; i++){
-    ret[i] = grabber[i];
-  }
-  ret[32] = 0x00;
+    generatePublicHash(true);
+    return true;
 }

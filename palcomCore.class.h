@@ -13,6 +13,7 @@ class PalcomCore{
     void _resetAllPages(int maintain=0){
       viewContext = maintain;
       palcomMessaging.resetPage();
+      loginScreen.resetPage();
     }
 
     void _processRecv(){

@@ -33,7 +33,7 @@ class PalcomMainMenu : public PalcomScreen{
     this->setFullScreen();
     this->setScreenScrollDirection(LV_DIR_VER);
     
-    const lv_img_dsc_t *img_src[1] = {&tiddies_scaled};
+    const lv_img_dsc_t *img_src[1] = {&palcomLogo};
     this->setBgImage(img_src);
 
     PalcomLabel pLabel;

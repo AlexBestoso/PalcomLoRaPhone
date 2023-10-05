@@ -44,7 +44,7 @@ using namespace ace_button;
 #define VAD_BUFFER_LENGTH               (VAD_FRAME_LENGTH_MS * VAD_SAMPLE_RATE_HZ / 1000)
 #define I2S_CH                          I2S_NUM_1
 
-LV_IMG_DECLARE(tiddies_scaled);
+LV_IMG_DECLARE(palcomLogo)
 LV_IMG_DECLARE(image1);
 LV_IMG_DECLARE(image2);
 LV_IMG_DECLARE(image3);
@@ -389,6 +389,7 @@ void initBoard(){
 
 void setup(){
     palcomCore.initSystem();
+    palcomCore.debug();
 }
 
 

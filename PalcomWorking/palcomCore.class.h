@@ -3,17 +3,20 @@
 #include "mainmenu.class.h"
 #include "messaging.class.h"
 #include "loginScreen.h"
+#include "settingsmenu.class.h"
 
 class PalcomCore{
   private:
-    int viewContext = 0;
+    int viewContext = -1;
     lv_obj_t *parent;
     PalcomLoginScreen loginScreen;    
 
     void _resetAllPages(int maintain=0){
       viewContext = maintain;
       palcomMessaging.resetPage();
+      settingsMenu.resetPage();
       loginScreen.resetPage();
+      palcomSetup.resetPage();
     }
 
     void _processRecv(){
@@ -41,13 +44,18 @@ class PalcomCore{
       }
     }
 
+    void _settingsMenu(void){
+      viewContext = settingsMenu.run();
+      if(viewContext != 2){
+        _resetAllPages(viewContext);
+      }
+    }
+
   public:
     void initSystem(){
-      palcomSetup.systemInit();
-      parent = lv_scr_act();
-      if (!SD.exists(F("/login.hash"))){
-        palcomSetup.systemSetup(parent);
-      }
+      viewContext = palcomSetup.run();
+      if(viewContext != -1){
+        _resetAllPages(viewContext);
     }
 
     void screenSleep(){
@@ -64,7 +72,7 @@ class PalcomCore{
         Sleep_interactionCtx = 2;
         Sleep_timer = millis();
         Sleep_brightness = 0;
-        viewContext = 0;
+        viewContext = (viewContext == -1) ? -1 : 0;
         analogWrite(BOARD_TFT_BACKLIGHT, 0);
         _resetAllPages();
       }
@@ -74,10 +82,14 @@ class PalcomCore{
       this->screenSleep();
       this->_processRecv();
       switch(viewContext){
+        case -1:
+          initSystem();
+          break;
         case 3:
           this->_messageMenu();
           break;
         case 2:
+          this->_settingsMenu();
           break;
         case 1:
           this->_mainMenu();

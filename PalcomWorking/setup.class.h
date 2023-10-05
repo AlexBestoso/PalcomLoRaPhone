@@ -19,7 +19,9 @@ static void Setup_setTxFlag(void){
   transmissionFlag = false;
 }
 
-class PalcomSetup{
+int systemSetup_contextControl = 0;
+
+class PalcomSetup : public PalcomScreen{
   private:
     /*
      * Standard class functions.
@@ -419,13 +421,23 @@ class PalcomSetup{
 
     static void Setup_handleSubmit(lv_event_t *e){
       if(lv_event_get_code(e) == LV_EVENT_RELEASED){
-        string username = lv_textarea_get_text(Setup_usernameTxt);
-        string password = lv_textarea_get_text(Setup_passwordTxt);
+        Serial.printf("Processing setup button press\n");
+        PalcomTextarea login_user;
+        PalcomTextarea login_pass;
+        login_user.loadGlobal(1);
+        login_pass.loadGlobal(2);
+        string username = login_user.getText();
+        string password = login_pass.getText();
+
+        Serial.printf("Loaded username and password.\n");
         
         if(username == "" || password == ""){
           Setup_setupControl = 2;
+          Serial.printf("No user or password.\n");
           return;
         }
+
+        Serial.printf("Processing hash.\n");
         char pass_hash[33];
         getSha256Hash((char*)password.c_str(), password.length(), pass_hash);
         for(int i=0; i<100000; i++)
@@ -451,195 +463,274 @@ class PalcomSetup{
       
         hashFile.printf("%s", (const char *)fileData);
         hashFile.close();
+
+        
         Setup_setupControl = 1;
       }
     }
     
-    lv_obj_t *setup_cont = NULL;
+    void initPins(){
+      Serial.begin(115200);
 
-  public:
-    
-    bool systemSetup(lv_obj_t *parent){ 
-      if (SD.exists(F("/login.hash"))) {
-        return true;
+      //! The board peripheral power control pin needs to be set to HIGH when using the peripheral
+      pinMode(BOARD_POWERON, OUTPUT);
+      digitalWrite(BOARD_POWERON, HIGH);
+
+      //! Set CS on all SPI buses to high level during initialization
+      pinMode(BOARD_SDCARD_CS, OUTPUT);
+      pinMode(RADIO_CS_PIN, OUTPUT);
+      pinMode(BOARD_TFT_CS, OUTPUT);
+
+      digitalWrite(BOARD_SDCARD_CS, HIGH);
+      digitalWrite(RADIO_CS_PIN, HIGH);
+      digitalWrite(BOARD_TFT_CS, HIGH);
+
+      pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
+      SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI); //SD
+
+      pinMode(BOARD_BOOT_PIN, INPUT_PULLUP);
+      pinMode(BOARD_TBOX_G02, INPUT_PULLUP);
+      pinMode(BOARD_TBOX_G01, INPUT_PULLUP);
+      pinMode(BOARD_TBOX_G04, INPUT_PULLUP);
+      pinMode(BOARD_TBOX_G03, INPUT_PULLUP);
+
+      //Wakeup touch chip
+      pinMode(BOARD_TOUCH_INT, OUTPUT);
+      digitalWrite(BOARD_TOUCH_INT, HIGH);
+    }
+
+    void initButton(){
+      button.init();
+      ButtonConfig *buttonConfig = button.getButtonConfig();
+      buttonConfig->setEventHandler(Setup_handleAceEvent);
+      buttonConfig->setFeature(ButtonConfig::kFeatureClick);
+      buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
+    }
+
+    void initSemaphore(){
+      //Add mutex to allow multitasking access
+      xSemaphore = xSemaphoreCreateBinary();
+      assert(xSemaphore);
+      xSemaphoreGive( xSemaphore );
+    }
+
+    void initScreen(){
+      tft.begin();
+      tft.setRotation( 1 );
+      tft.fillScreen(TFT_BLACK);
+      Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+      setupLvgl();
+    }
+
+    void displaySplash(){
+      lv_obj_t *screen = this->getScreen();
+      if(screen == NULL){
+        this->globalDestroy();
+        this->create();
+        screen = this->getScreen();
       }
-      setup_cont = lv_obj_create(parent);
-      lv_obj_set_size(setup_cont, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
-      lv_obj_set_scroll_dir(setup_cont, LV_DIR_VER);
-      // Section title
-      lv_obj_t *label;
-      label = lv_label_create(setup_cont);
-      lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-      lv_obj_set_width(label, 320);
-      if(Setup_setupControl == 0)
-        lv_label_set_text(label, "Please setup your account!");
-      else
-        lv_label_set_text(label, "Please setup your account! || user and password required");
-      lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
+      this->setFullScreen();
+      this->setScreenScrollDirection(LV_DIR_VER);
+      
+      const lv_img_dsc_t *img_src[1] = {&palcomLogo};
+      this->setBgImage(img_src);
+      lv_task_handler();
+    }
 
-      // Username section
-      label = lv_label_create(setup_cont);
-      lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-      lv_obj_set_width(label, 320);
-      lv_label_set_text(label, "Username: ");
-      lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 35);
+    void finalInit(){
+      // Set touch int input
+      pinMode(BOARD_TOUCH_INT, INPUT); delay(20);
+
+      // Two touch screens, the difference between them is the device address,
+      // use ScanDevices to get the existing I2C address
+      scanDevices(&Wire);
+
+      touch = new TouchLib(Wire, BOARD_I2C_SDA, BOARD_I2C_SCL, touchAddress);
+      touch->init();
+
+      Wire.beginTransmission(touchAddress);
+      bool ret = Wire.endTransmission() == 0;
+      touchDected = ret;
+
+      kbDected = checkKb();
+
+      setupLvgl();
+
+      ret = setupSD();
+      ret = setupRadio();
+
+      generatePublicHash(true);
+
+    }
+
+    void keygenView(){
+      Serial.printf("Generating keys.\n");
+        lv_obj_t *screen = this->getScreen();
+        if(screen == NULL){
+          this->globalDestroy();
+          this->create();
+          screen = this->getScreen();
+        }
+        this->setFullScreen();
+        this->setScreenScrollDirection(LV_DIR_VER);
+
+        PalcomLabel pLabel;
+        pLabel.create(screen);
+        pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+        pLabel.setWidth(320);
+        pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 10);
+        pLabel.setText("Generating key pair");
+        for(int i=0; i<100; i++){
+         lv_task_handler(); delay(5);
+        }
+        generateKeyPair(true);
+        Setup_setupControl = 1;
+    }
+
+    lv_obj_t *setup_cont = NULL;
+    bool initalized = false;
+  public:
+    bool buildRequired = true;
     
-      static lv_style_t ta_bg_style;
-      lv_style_init(&ta_bg_style);
-      lv_style_set_text_color(&ta_bg_style, lv_color_white());
-      lv_style_set_bg_opa(&ta_bg_style, LV_OPA_100);
+    void generateObjects(void){
+      if(!initalized){
+        initPins();
+        initButton();
+        initSemaphore();
+        initScreen();
+        displaySplash();
+        finalInit();
+        Serial.printf("Initalized!\n");
+        initalized = true;
+        return;
+      }
 
-      Setup_usernameTxt = lv_textarea_create(setup_cont);
-      lv_textarea_set_cursor_click_pos(Setup_usernameTxt, false);
-      lv_textarea_set_text_selection(Setup_usernameTxt, false);
-      lv_obj_set_size(Setup_usernameTxt, 175, 23);
-      lv_textarea_set_text(Setup_usernameTxt, "");
-      lv_textarea_set_max_length(Setup_usernameTxt, 18);
-      lv_textarea_set_one_line(Setup_usernameTxt, true);
-      lv_obj_align(Setup_usernameTxt, LV_ALIGN_TOP_MID, 20, 30);
+      if(SD.exists(F("/login.hash")))
+        return;
+      
+      Serial.printf("Building setup page.\n");
+      lv_obj_t *screen = this->getScreen();
+      if(screen == NULL){
+        this->globalDestroy();
+        this->create();
+        screen = this->getScreen();
+      }
+      this->setFullScreen();
+      this->setScreenScrollDirection(LV_DIR_VER);
 
-      lv_obj_add_style(Setup_usernameTxt, &ta_bg_style, LV_PART_ANY);
+      PalcomLabel pLabel;
+      pLabel.create(screen);
+      pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      pLabel.setWidth(320);
+      pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 10);
+      if(Setup_setupControl == 0){
+        pLabel.setText("Please setup your account!");
+      }else{
+        pLabel.setText("Please setup your account! || user and password required");
+      }
 
-      // Password Section
-      label = lv_label_create(setup_cont);
-      lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-      lv_obj_set_width(label, 320);
-      lv_label_set_text(label, "Password: ");
-      lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 70+10);
+      pLabel.create(screen);
+      pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      pLabel.setWidth(320);
+      pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 35);
+      pLabel.setText("Username");
 
-      Setup_passwordTxt = lv_textarea_create(setup_cont);
-      lv_textarea_set_cursor_click_pos(Setup_passwordTxt, false);
-      lv_textarea_set_text_selection(Setup_passwordTxt, false);
-      lv_obj_set_size(Setup_passwordTxt, 175, 23);
-      lv_textarea_set_text(Setup_passwordTxt, "");
-      lv_textarea_set_max_length(Setup_passwordTxt, 18);
-      lv_textarea_set_one_line(Setup_passwordTxt, true);
-      lv_textarea_set_password_mode(Setup_passwordTxt, true);
-      lv_obj_align(Setup_passwordTxt, LV_ALIGN_TOP_MID, 20, 60+10);
-      lv_obj_add_style(Setup_passwordTxt, &ta_bg_style, LV_PART_ANY);
+      pLabel.create(screen);
+      pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      pLabel.setWidth(320);
+      pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 80);
+      pLabel.setText("Password: ");
 
-      // submit button
-      lv_obj_t *submitButton = lv_btn_create(setup_cont);
-      lv_obj_set_size(submitButton, LV_PCT(100), LV_PCT(40));//LV_PCT(LV_HOR_RES), LV_PCT(40));
-      lv_obj_t *submitButton_label = lv_label_create(submitButton);
-      lv_label_set_text(submitButton_label, "Setup");
-      lv_obj_center(submitButton_label);
-      lv_obj_add_event_cb(submitButton, Setup_handleSubmit, LV_EVENT_ALL, 0);
-      lv_obj_align_to(submitButton, submitButton_label, LV_ALIGN_OUT_BOTTOM_MID, -5,  70);
+      PalcomTextarea username;
+      username.createGlobal(screen, 1);
+      username.setCursorClickPos(false);
+      username.setTextSelection(false);
+      username.setSize(175, 23);
+      username.setText("");
+      username.setMaxLength(18);
+      username.setOneLine(true);
+      username.setAlignment(LV_ALIGN_TOP_MID, 20, 30);
+
+      PalcomTextarea password;
+      password.createGlobal(screen, 2);
+      password.setCursorClickPos(false);
+      password.setTextSelection(false);
+      password.setSize(175, 23);
+      password.setText("");
+      password.setMaxLength(18);
+      password.setOneLine(true);
+      password.setPasswordMode(true);
+      password.setAlignment(LV_ALIGN_TOP_MID, 20, 70);
+
+      PalcomButton submit;
+      submit.create(screen);
+      submit.setSize(100, 40);
+      pLabel.create(submit.getObj());
+      pLabel.setText("Setup");
+      pLabel.center();
+      submit.setLabel(pLabel);
+      submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 65);
+      submit.setSimpleCallback(Setup_handleSubmit);
 
       Setup_setupControl = 0;
       while(Setup_setupControl != 1){
         lv_task_handler(); delay(5);
         if(Setup_setupControl == 2){
-          return false;
+          this->globalDestroy();
+          this->destroy();
+          buildRequired = true;
+          return;
         }
       }
-    
-      setup_cont = lv_obj_create(parent);
-      lv_obj_set_size(setup_cont, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
-      lv_obj_set_scroll_dir(setup_cont, LV_DIR_VER);
-      // Section title
-      label = lv_label_create(setup_cont);
-      lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-      lv_obj_set_width(label, 320);
-      lv_label_set_text(label, "Generating Encryption Keys.");
-      lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
-      for(int i=0; i<100; i++){
-         lv_task_handler(); delay(5);
-      }
-      
-      generateKeyPair(true);
-      
-      setup_cont = lv_obj_create(parent);
-      lv_obj_set_size(setup_cont, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
-      lv_obj_set_scroll_dir(setup_cont, LV_DIR_VER);
-      // Section title
-      label = lv_label_create(setup_cont);
-      lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-      lv_obj_set_width(label, 320);
-      lv_label_set_text(label, "Generation successful! Tap the screen.");
-      lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 10);
-      for(int i=0; i<100; i++){
-         lv_task_handler(); delay(5);
-      }
-      return true;
+          
+      this->globalDestroy();
+      this->destroy();
+      lv_task_handler();
+      keygenView();
+
+      generatePublicHash(true);
     }
+    void resetPage(){
+        buildRequired = true;
+       // initalized = false;
+        systemSetup_contextControl = 0;
+        this->globalDestroy();
+        this->destroy();
+    }
+
+    int run(){
+      if(buildRequired){
+        buildRequired = false;
+        systemSetup_contextControl = 0;
+        this->load();
+      }
+      lv_task_handler();
+      
+      if(systemSetup_contextControl == 1){
+        //keygenView();
+        resetPage();
+        return 0;
+      }
+
+      if(SD.exists(F("/login.hash"))) {
+        resetPage();
+        return 0;
+      }
+
+      if(systemSetup_contextControl == 2){
+        resetPage();
+        keygenView();
+        resetPage();
+        systemSetup_contextControl = 2;
+      }
+
+
+      return -1;
+    }
+    
 
   void resetLvgl(){
     setupLvgl();
   }
-  void systemInit(){
-     bool ret = 0;
-
-    Serial.begin(115200);
-    Serial.println("Palcom LoRa Phone");
-
-    //! The board peripheral power control pin needs to be set to HIGH when using the peripheral
-    pinMode(BOARD_POWERON, OUTPUT);
-    digitalWrite(BOARD_POWERON, HIGH);
-
-    //! Set CS on all SPI buses to high level during initialization
-    pinMode(BOARD_SDCARD_CS, OUTPUT);
-    pinMode(RADIO_CS_PIN, OUTPUT);
-    pinMode(BOARD_TFT_CS, OUTPUT);
-
-    digitalWrite(BOARD_SDCARD_CS, HIGH);
-    digitalWrite(RADIO_CS_PIN, HIGH);
-    digitalWrite(BOARD_TFT_CS, HIGH);
-
-    pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
-    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI); //SD
-
-    pinMode(BOARD_BOOT_PIN, INPUT_PULLUP);
-    pinMode(BOARD_TBOX_G02, INPUT_PULLUP);
-    pinMode(BOARD_TBOX_G01, INPUT_PULLUP);
-    pinMode(BOARD_TBOX_G04, INPUT_PULLUP);
-    pinMode(BOARD_TBOX_G03, INPUT_PULLUP);
-
-    //Wakeup touch chip
-    pinMode(BOARD_TOUCH_INT, OUTPUT);
-    digitalWrite(BOARD_TOUCH_INT, HIGH);
-
-    button.init();
-    ButtonConfig *buttonConfig = button.getButtonConfig();
-    buttonConfig->setEventHandler(Setup_handleAceEvent);
-    buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-    buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-
-    //Add mutex to allow multitasking access
-    xSemaphore = xSemaphoreCreateBinary();
-    assert(xSemaphore);
-    xSemaphoreGive( xSemaphore );
-
-    tft.begin();
-    tft.setRotation( 1 );
-    tft.fillScreen(TFT_BLACK);
-    Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
-
-    // Set touch int input
-    pinMode(BOARD_TOUCH_INT, INPUT); delay(20);
-
-    // Two touch screens, the difference between them is the device address,
-    // use ScanDevices to get the existing I2C address
-    scanDevices(&Wire);
-
-    touch = new TouchLib(Wire, BOARD_I2C_SDA, BOARD_I2C_SCL, touchAddress);
-    touch->init();
-
-    Wire.beginTransmission(touchAddress);
-    ret = Wire.endTransmission() == 0;
-    touchDected = ret;
-
-    kbDected = checkKb();
-
-    setupLvgl();
-
-    ret = setupSD();
-    Serial.print("SDCard:"); Serial.println(ret);
-    ret = setupRadio();
-    Serial.print("Radio:"); Serial.println(ret);
-
-    generatePublicHash(true);
-
-  }
+  
 }palcomSetup;

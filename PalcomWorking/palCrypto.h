@@ -6,6 +6,8 @@
 #include "mbedtls/x509.h"
 #include "mbedtls/rsa.h"
 
+#include "base64.h"
+
 #define RSA_KEY_SIZE 4096
 #define RSA_EXPONENT 65537
 #define RSA_KEY_SIZE_BYTES RSA_KEY_SIZE/8

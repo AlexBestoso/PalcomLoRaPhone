@@ -15,6 +15,8 @@
  *                  PSRAM:"OPI PSRAM"
  *                  Upload Mode:"UART0/Hardware CDC"
  *                  USB Mode:"Hardware CDC and JTAG"
+ *
+ *      https://lvgl.io/tools/imageconverter
  */
 #include <Arduino.h>
 #include <SPI.h>
@@ -97,9 +99,14 @@ lv_obj_t    *hw_ta;
 lv_obj_t    *radio_ta;
 lv_obj_t    *tv ;
 SemaphoreHandle_t xSemaphore = NULL;
+#define GLOBAL_GUI_OBJECT_COUNT 10
+lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
 // Palcom includes
-#include "palcomScreen.h"
+#include "palCrypto.h"
+#include "tools/tools.h"
+#include "objects/objects.h"
+#include "screens/screens.h"
 #include "palcomCore.class.h"
 
 bool setupCoder()
@@ -389,7 +396,7 @@ void initBoard(){
 
 void setup(){
     palcomCore.initSystem();
-    palcomCore.debug();
+    //palcomCore.debug();
 }
 
 

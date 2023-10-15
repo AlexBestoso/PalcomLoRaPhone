@@ -1,10 +1,4 @@
-#define GLOBAL_GUI_OBJECT_COUNT 10
-lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
-#include "palcomLabel.h"
-#include "palcomTextarea.h"
-#include "palcomButton.h"
-#include "palcomTabMenu.h"
 class PalcomScreen{
   private:
     lv_obj_t *screen = NULL;

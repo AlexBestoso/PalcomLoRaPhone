@@ -4,12 +4,16 @@ class PalcomTabMenu{
     lv_obj_t *menu = NULL;
     int objectId = -1;
     lv_obj_t *tabs[TAB_MENU_TAB_MAX] = {NULL};
+
   public:
+	int x = LV_DIR_TOP;
+	int y = 50;
+
     lv_obj_t *getObj(){
       return menu;
     }
     void create(lv_obj_t *parent){
-      this->menu = lv_tabview_create(parent, LV_DIR_TOP, 50);
+      this->menu = lv_tabview_create(parent, x, y);
     }
 
     void createGlobal(lv_obj_t *parent, uint id){
@@ -17,7 +21,7 @@ class PalcomTabMenu{
         return;
       }
       objectId = id;
-      globalGuiObjects[id] = lv_tabview_create(parent, LV_DIR_TOP, 50);
+      globalGuiObjects[id] = lv_tabview_create(parent, x, y);
       this->menu = globalGuiObjects[id];
     }
 

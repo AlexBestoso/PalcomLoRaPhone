@@ -191,6 +191,30 @@ class PalcomRadio{
       }
     }
 
+    int doneProcessing(){
+    	size_t msgSize = 0;
+      	sprintf(tmpName, "%s/tmp.%d", pfs_dir_tmp, radioPacket[0].p_id);
+      	if(radioPacket[0].p_count > 1){
+        	appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false);
+        	return -1;
+      	}else if(SD.exists(tmpName)){
+        	msgSize = appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false);
+        	File tmpFile = SD.open(tmpName, FILE_READ);
+        	tmpFile.read((uint8_t *)compBuffer, msgSize);
+        	tmpFile.close();
+        	SD.remove(tmpName);
+		compBuffer[msgSize] = '\n';msgSize++;
+		compBuffer[msgSize] = '\t';msgSize++;
+		compBuffer[msgSize] = ' ';msgSize++;
+		compBuffer[msgSize] = '1';msgSize++;
+		compBuffer[msgSize] = '\n';msgSize++;
+		return msgSize;
+      	}
+	sprintf(compBuffer, "%s\n\t 1\n", radioPacket[0].p_content);
+	msgSize = 5 + radioPacket[0].p_size;
+	return msgSize;
+    }
+
     void processPublicMessage(void){
       if(radioPacket == NULL){
         return;
@@ -199,19 +223,17 @@ class PalcomRadio{
         SD.mkdir(pfs_dir_public);
       }
 
+
       // Handle Multi framed packet
-      size_t msgSize = 0;
-      sprintf(tmpName, "%s/tmp.%d", pfs_dir_tmp, radioPacket[0].p_id);
-      if(radioPacket[0].p_count > 1){
-        appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, (!SD.exists(tmpName)) ? true : false, false);
-        return;
-      }else if(SD.exists(tmpName)){
-        msgSize = appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, true);
-        File tmpFile = SD.open(tmpName, FILE_READ);
-        tmpFile.read((uint8_t *)compBuffer, msgSize);
-        tmpFile.close();
-        SD.remove(tmpName);
-      }
+      int err = doneProcessing();
+      if(err <= -1)
+	      return;
+      size_t msgSize = (size_t)err;
+      
+	Serial.printf("Storing received message (%ld): \n", msgSize);
+      	for(int i=0; i<msgSize; i++){
+		Serial.printf("%c", compBuffer[i]);
+	}Serial.printf("\n");
 
       // Write packet to msgLog
       if(!SD.exists(pfs_file_publicLog)){
@@ -438,4 +460,14 @@ class PalcomRadio{
       xSemaphoreGive( xSemaphore );
     }
   }
+
+  	void appendGeneralMessage(string msg){
+	  	if(!SD.exists(pfs_dir_public)){
+        		SD.mkdir(pfs_dir_public);
+		}
+	  	if(msg.length() > 0){
+		 	Serial.printf("Appending %s to %s\n", msg.c_str(), pfs_file_publicLog);
+ 			appendToFile(pfs_file_publicLog, (uint8_t *)msg.c_str(), msg.length(), false, false); 
+	  	}
+  	}
 }palcomRadio;

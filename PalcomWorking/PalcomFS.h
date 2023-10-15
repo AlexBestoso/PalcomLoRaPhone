@@ -5,6 +5,7 @@ const char *pfs_dir_keys = "/keys";
 const char *pfs_file_keysPublic = "/keys/pub.key";
 const char *pfs_file_publicHash = "/keys/pub.hash";
 const char *pfs_file_keysPrivate = "/keys/pri.key";
+const char *pfs_file_callsign = "/keys/callsign";
 const char *pfs_dir_public = "/public";
 const char *pfs_file_publicLog= "/public/msgLog";
 const char *pfs_dir_requests = "/requests";
@@ -15,6 +16,7 @@ const char *pfs_file_cryptRecv  = "/cryptRecv.enc";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};
+char compBuffer[__GLOBAL_BUFFER_SIZE] = {0};
 
 class PalcomFS{
   private:
@@ -22,6 +24,15 @@ class PalcomFS{
   
   public:
   File fd;
+
+  size_t getPublicMessages(){
+    clearFileBuffer();
+    fd = SD.open(pfs_file_publicLog, FILE_READ);
+    fd.read(fileData, fd.size());
+    size_t ret = fd.size();
+    fd.close();
+    return ret;
+  }
 
   void deleteRootKeyPair(void){
     if(SD.exists(pfs_file_keysPublic))
@@ -66,6 +77,29 @@ class PalcomFS{
         root.close();
         SD.remove(target);
       }
+  }
+
+  const char *getCallsign(){
+    File target = SD.open(pfs_file_callsign, FILE_READ);
+    if(!target){
+      return NULL;
+    }
+    
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
+      fileData[i] = 0;
+    target.read(fileData, target.size());
+    target.close();
+    return (const char *)fileData;
+  }
+
+  void setCallsign(const char *val){
+    File target = SD.open(pfs_file_callsign, FILE_WRITE, O_TRUNC);
+    if(!target){
+      return;
+    }
+
+    target.write((const uint8_t *)val, strlen(val));
+    target.close();
   }
   const char *getFilenameByPos(int id, const char *targetDir){
     if(SD.exists(targetDir)){

@@ -5,9 +5,6 @@ int Sleep_interactionCtx = 0;
 int Sleep_maxBrightness = 256;
 int Sleep_brightness = 0;
 float Sleep_timer = millis();
-char compBuffer[__GLOBAL_BUFFER_SIZE] = {0};
-
-#include "palCrypto.h"
 
 static void Setup_setRxFlag(void){
   rxFlag = true;
@@ -192,6 +189,10 @@ class PalcomSetup : public PalcomScreen{
     static void disp_flush( lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p ){
         uint32_t w = ( area->x2 - area->x1 + 1 );
         uint32_t h = ( area->y2 - area->y1 + 1 );
+	if(xSemaphore == NULL){
+		Serial.printf("Semaphore is null\n");
+		return;
+	}
         if ( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ) {
             tft.startWrite();
             tft.setAddrWindow( area->x1, area->y1, w, h );
@@ -584,7 +585,7 @@ class PalcomSetup : public PalcomScreen{
          lv_task_handler(); delay(5);
         }
         generateKeyPair(true);
-        Setup_setupControl = 1;
+        	Setup_setupControl = 1;
     }
 
     lv_obj_t *setup_cont = NULL;
@@ -602,13 +603,13 @@ class PalcomSetup : public PalcomScreen{
         finalInit();
         Serial.printf("Initalized!\n");
         initalized = true;
+	buildRequired = true;
         return;
       }
 
       if(SD.exists(F("/login.hash")))
         return;
       
-      Serial.printf("Building setup page.\n");
       lv_obj_t *screen = this->getScreen();
       if(screen == NULL){
         this->globalDestroy();
@@ -689,6 +690,9 @@ class PalcomSetup : public PalcomScreen{
       keygenView();
 
       generatePublicHash(true);
+
+      PalcomFS pfs;
+      pfs.setCallsign("Anon");
     }
     void resetPage(){
         buildRequired = true;
@@ -703,6 +707,7 @@ class PalcomSetup : public PalcomScreen{
         buildRequired = false;
         systemSetup_contextControl = 0;
         this->load();
+	Serial.printf("Page has been built.\n");
       }
       lv_task_handler();
       
@@ -723,7 +728,6 @@ class PalcomSetup : public PalcomScreen{
         resetPage();
         systemSetup_contextControl = 2;
       }
-
 
       return -1;
     }

@@ -1,10 +1,3 @@
-#include "setup.class.h"
-#include "radio.class.h"
-#include "mainmenu.class.h"
-#include "messaging.class.h"
-#include "loginScreen.h"
-#include "settingsmenu.class.h"
-
 class PalcomCore{
   private:
     int viewContext = -1;
@@ -54,7 +47,6 @@ class PalcomCore{
   public:
     void initSystem(){
       viewContext = palcomSetup.run();
-      if(viewContext != -1){
         _resetAllPages(viewContext);
     }
 

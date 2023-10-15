@@ -1,0 +1,6 @@
+class JsonTool{
+	private:
+
+	public:
+	 
+};

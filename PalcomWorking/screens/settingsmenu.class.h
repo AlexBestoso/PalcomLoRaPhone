@@ -14,6 +14,16 @@ class PalcomSettingsMenu : public PalcomScreen{
       PalcomFS pfs;
       pfs.rm("/");
     }
+    static void Settingsmenu_setCallsign(lv_event_t *e){
+      if(lv_event_get_code(e) != LV_EVENT_CLICKED)
+        return;
+      
+      PalcomFS pfs;
+      PalcomTextarea callsign;
+      callsign.loadGlobal(1);
+
+      pfs.setCallsign(callsign.getText());
+    }
     bool buildRequired = true;
   public:
     void generateObjects(void){
@@ -29,7 +39,7 @@ class PalcomSettingsMenu : public PalcomScreen{
       PalcomLabel pLabel;
       PalcomButton settings;
       settings.create(screen);
-      settings.setSize(40, 30);
+      settings.setSize(40, 25);
       pLabel.create(settings.getObj());
       pLabel.setText("back");
       pLabel.center();
@@ -39,13 +49,41 @@ class PalcomSettingsMenu : public PalcomScreen{
 
       // factory reset button
       settings.create(screen);
-      settings.setSize(40, 30);
+      settings.setSize(40, 25);
       pLabel.create(settings.getObj());
       pLabel.setText("reset");
       pLabel.center();
       settings.setLabel(pLabel);
       settings.setSimpleCallback(Settingsmenu_handleResetButton);
-      settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 10,  60);
+      settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 10,  100);
+
+      PalcomFS pfs;
+      // Callsign input
+      pLabel.create(screen);
+      pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      pLabel.setWidth(320);
+      pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 90);
+      pLabel.setText("Callsign: ");
+
+      // callsign Textarea
+      PalcomTextarea callsign;
+      callsign.createGlobal(screen, 1);
+      callsign.setCursorClickPos(false);
+      callsign.setTextSelection(false);
+      callsign.setSize(150, 23);
+      callsign.setText(pfs.getCallsign());
+      callsign.setMaxLength(18);
+      callsign.setOneLine(true);
+      callsign.setAlignment(LV_ALIGN_TOP_MID, 15, 83);
+
+      settings.create(screen);
+      settings.setSize(20, 12);
+      pLabel.create(settings.getObj());
+      pLabel.setText("Update");
+      pLabel.center();
+      settings.setLabel(pLabel);
+      settings.setSimpleCallback(Settingsmenu_setCallsign);
+      settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 250,  75);
     }
 
     void resetPage(void){

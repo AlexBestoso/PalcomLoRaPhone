@@ -122,54 +122,55 @@ class PalcomRadio{
       
       // Handle Multi framed packet
       size_t msgSize = 0;
+      Serial.printf("Frame Count : %d\n", radioPacket[0].p_count);
       sprintf(tmpName, "%s/enc.%d", pfs_dir_tmp, radioPacket[0].p_id);
       if(radioPacket[0].p_count > 1){
         appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false);
         return;
       }else if(SD.exists(tmpName)){
-        Serial.printf("BBBB\n");
         msgSize = appendToFile((const char *)tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false);
         for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
           fileData[i] = 0;
         File tmpFile = SD.open(tmpName, FILE_READ);
+	msgSize = tmpFile.size();
         tmpFile.read((uint8_t *)fileData, msgSize);
         tmpFile.close();
         SD.remove(tmpName);
       }
+//	int err = doneProcessing();
+//      	if(err <= -1)
+//        	return;
+//      size_t msgSize = (size_t)err;
 
       Serial.printf("C : File size : %ld\n", msgSize);
-     // if(!pfs.getPublicHash(shaHash))
-      //  return;
-
-      /*for(int i=0; i<33; i++){
+      for(int i=0; i<33; i++)
         shaHash[i] = fileData[i];
-      }*/
-      for(int i=0; i<33; i++){
-       // Serial.printf("%c ^ %c = ", shaHash[i], fileData[i]);
-        shaHash[i] = fileData[i];
-      //  Serial.printf("%c\n", shaHash[i]);
-      }
       Serial.printf("Recevied Friend Hash : %s\n", shaHash);
+
+      for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
+	      compBuffer[i];
+
       for(int i=33; i<msgSize; i++){
         compBuffer[i-33] = fileData[i];
       } 
+
       sprintf(tmpName, "/friends/%s", shaHash);
       if(!SD.exists(tmpName)){
         Serial.printf("Friend folder doesn't exist : %s\n", tmpName);
         return;
       }
-      Serial.printf("D\n");
-      sprintf(tmpName, "%s/msgLog", tmpName);
 
-      if(!rsaDecrypt((const unsigned char *)compBuffer, msgSize-33, pfs_file_cryptRecv)){
-        Serial.printf("Decryption failed.\n");
-        return;
-      }
-      Serial.printf("E\n");
-      File res = SD.open(pfs_file_cryptRecv, FILE_READ);
-      res.read((uint8_t *)compBuffer, res.size());
-      msgSize = res.size();
-      res.close();
+      	sprintf(tmpName, "%s/msgLog", tmpName);
+	Serial.printf("Received decrypting  message of size (%ld) to '%s'.\n", msgSize, pfs_file_cryptRecv);
+      	if(!rsaDecrypt((const unsigned char *)compBuffer, msgSize-33, pfs_file_cryptRecv)){
+      		Serial.printf("Decryption failed.\n");
+        	return;
+      	}
+      
+      	File res = SD.open(pfs_file_cryptRecv, FILE_READ);
+      	res.read((uint8_t *)compBuffer, res.size());
+      	msgSize = res.size();
+      	res.close();
 
       // Write packet to msgLog
       if(!SD.exists(tmpName)){
@@ -284,6 +285,7 @@ class PalcomRadio{
           sendRequired = true;
           if(emitSize == 255){
             emitBuffer[6] = emitSize-7;
+	    Serial.printf("Sending Message Frame.\n");
             sendMessage(emitBuffer, emitSize);
             delay(200);
             emitSize = 7;
@@ -294,6 +296,7 @@ class PalcomRadio{
 
         if(sendRequired){
           emitBuffer[6] = emitSize-7;
+	    Serial.printf("Sending Final Message Frame.\n");
           sendMessage(emitBuffer, emitSize);
         }
       }
@@ -304,28 +307,29 @@ class PalcomRadio{
     radioPacket = (palcom_packet_t*)emitBuffer;
   }
   
-  void sendEncryptedMessage(const uint8_t *msg, size_t msgSize){
-    uint8_t frameCount = 0;
-    for(int i=0; i<msgSize; i++){
-      frameCount++;
-      i=250*frameCount;
-    }
+	void sendEncryptedMessage(const uint8_t *msg, size_t msgSize){
+		Serial.printf("Sending Message of size %ld\n", msgSize);
+    		uint8_t frameCount = 0;
+    		for(int i=0; i<msgSize; i++){
+      			frameCount++;
+      			i=250*frameCount;
+    		}
 
-    resetRadioPacket();
-    for(int i=0; i<256; i++)
-      emitBuffer[i] = 0;
-    // ESP32 is little-endian
-    emitBuffer[0] = 0x00;
-    emitBuffer[1] = encryptedCode[2];
-    emitBuffer[2] = encryptedCode[1];
-    emitBuffer[3] = encryptedCode[0];
+    		resetRadioPacket();
+    		for(int i=0; i<256; i++)
+      		emitBuffer[i] = 0;
+    		// ESP32 is little-endian
+    		emitBuffer[0] = 0x00;
+    		emitBuffer[1] = encryptedCode[2];
+    		emitBuffer[2] = encryptedCode[1];
+    		emitBuffer[3] = encryptedCode[0];
     
-    emitBuffer[4] = (uint8_t)random(256);
-    emitBuffer[5] = frameCount;
-    emitBuffer[6] = (uint8_t)((msgSize > 250) ? 250 : msgSize);
-    Serial.printf("Encrypted Send : Frame count %d\n", emitBuffer[5]);
-    emitFrames((char*)msg, msgSize);
-  }
+    		emitBuffer[4] = (uint8_t)random(256);
+    		emitBuffer[5] = frameCount;
+    		emitBuffer[6] = (uint8_t)((msgSize > 250) ? 250 : msgSize);
+    		Serial.printf("Encrypted Send : Frame count %d\n", emitBuffer[5]);
+    		emitFrames((char*)msg, msgSize);
+  	}
 
   // TODO: Make it so that these functions don't use strings.
   void sendPublicMessage(string msg){
@@ -400,7 +404,7 @@ class PalcomRadio{
           int state = radio.readData(emitBuffer, numBytes);
           if (state == RADIOLIB_ERR_NONE && numBytes > 7 && numBytes <= 256) {
             int _code = parseCode(radioPacket[0].p_code);
-            Serial.printf("Processing Message.\n");
+            Serial.printf("Processing Message (%d).\n", radioPacket[0].p_count);
             switch(_code){
               case __RECV_CODE_PUBLIC:
                 newPacketReceived = true;

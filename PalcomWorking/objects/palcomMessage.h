@@ -74,6 +74,11 @@ class PalcomMessage{
 			pLabel.setText(msg);
 		}
 
+		void loadEncryptedMessages(int friendIndex){
+			createMessage(0, false, 0x888, "Joe:\nniggers.");
+			createMessage(1, true, 0x222, "Me:\n>:(");
+		}
+
 		void loadGeneralMessages(void){
 			for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
 				fileData[i] = 0;
@@ -118,8 +123,6 @@ class PalcomMessage{
                                 lv_task_handler();
 			}
 
-		//	createMessage(0, false, 0x888, "Joe:\nniggers.");
-		//	createMessage(1, true, 0x222, "Me:\n>:(");
 		}
 	
     		void createGlobal(lv_obj_t *parent, uint id){

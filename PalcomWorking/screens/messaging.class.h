@@ -6,6 +6,8 @@ int selectedHash = -1;
 int selectedFriend = -1;
 int activeTab = 0;
 char friendHash[33];
+char selectedFriendName[128];
+
 void getFriendHash(void){
     PalcomFS pfs;
     const char *friendHashFileName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
@@ -235,17 +237,25 @@ private:
     
   }
   static void Messaging_handleGeneralSend(lv_event_t *e) {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        return;
-    PalcomTextarea pTextarea;
-    pTextarea.loadGlobal(2);
-    string msg = pTextarea.getText();
-    if (msg.length() <= 0) {
-      Serial.printf("No message, not sending.\n");
-      return;
-    }
-    palcomRadio.sendPublicMessage(msg);
-    pTextarea.setText("");
+    	if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        	return;
+    	PalcomTextarea pTextarea;
+    	pTextarea.loadGlobal(2);
+    	PalcomFS pfs;
+    	string msg = pfs.getCallsign();
+	msg += ":\n";
+	msg += pTextarea.getText();
+	
+    	if (strlen(pTextarea.getText()) <= 0) {
+      		Serial.printf("No message, not sending.\n");
+      		return;
+    	}
+	Serial.printf("Sending message\n");
+    	palcomRadio.sendPublicMessage(msg);
+	msg += "\n\t 0\n";
+	Serial.printf("Appending message to log.\n");
+	palcomRadio.appendGeneralMessage(msg);
+    	pTextarea.setText("");
   }
 
   uint8_t hashBuffer[25];
@@ -283,16 +293,18 @@ private:
       return;
 
     PalcomFS pfs;
-    const char *targetKeyName = pfs.getFilenameByPos(selectedHash, pfs_dir_requests);
-    if(targetKeyName == NULL){
+    if(pfs.getFilenameByPos(selectedHash, pfs_dir_requests) == NULL){
       return;
     }
+
+    sprintf((char *)selectedFriendName, "%s", pfs.getFilenameByPos(selectedHash, pfs_dir_requests));
+
 
     for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
       fileData[i] = 0;
     }
     // Read key data     
-    sprintf((char*)compBuffer, "%s/%s", pfs_dir_requests, targetKeyName);
+    sprintf((char*)compBuffer, "%s/%s", pfs_dir_requests, selectedFriendName);
     File node = SD.open(compBuffer);      
     size_t keySize = node.size();
     node.read(fileData, keySize);
@@ -305,25 +317,26 @@ private:
     }
 
     // Make the directory for your new friend.
-    sprintf((char *)compBuffer, "%s/%s", pfs_dir_friends, targetKeyName);
+    sprintf((char *)compBuffer, "%s/%s", pfs_dir_friends, selectedFriendName);
     if(!SD.exists(compBuffer)){
       SD.mkdir(compBuffer);
     }
     // Write Hash
-    sprintf((char *)compBuffer, "%s/%s/hash", pfs_dir_friends, targetKeyName);
+    sprintf((char *)compBuffer, "%s/%s/hash", pfs_dir_friends, selectedFriendName);
     Serial.printf("Writing hash to file : %s\n", compBuffer);
     node = SD.open((const char *)compBuffer, FILE_WRITE);
-    node.write((uint8_t *)targetKeyName, 33);
+    node.write((uint8_t *)selectedFriendName, 33);
     node.close();
 
     //Write key
-    sprintf((char *)compBuffer, "%s/%s/key", pfs_dir_friends, targetKeyName);
+    sprintf((char *)compBuffer, "%s/%s/key", pfs_dir_friends, selectedFriendName);
+    Serial.printf("Writing key to file : %s\n", compBuffer);
     node = SD.open((const char *)compBuffer, FILE_WRITE);
     node.write(fileData, keySize);
     node.close();
 
     // Write Name File
-    sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, targetKeyName);
+    sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, selectedFriendName);
     node = SD.open((const char *)compBuffer, FILE_WRITE);
     node.printf("My Fren");
     node.close();
@@ -361,41 +374,38 @@ private:
     newPacketReceived = true;
   }
 
-  PalcomTabMenu tabMenu;
+  	PalcomTabMenu tabMenu;
 
-  void mainView(){
-    lv_obj_t *screen = this->getScreen();
-    if(screen == NULL){
-      this->globalDestroy();
-      this->create();
-      screen = this->getScreen();
-    }
-    this->setFullScreen();
-    this->setScreenScrollDirection(LV_DIR_VER);
-    PalcomLabel pLabel;
-    PalcomButton pButton;
-    PalcomTextarea pTextarea;
+  	void mainView(){
+    		lv_obj_t *screen = this->getScreen();
+    		if(screen == NULL){
+      			this->globalDestroy();
+      			this->create();
+      			screen = this->getScreen();
+    		}
+    		this->setFullScreen();
+    		this->setScreenScrollDirection(LV_DIR_VER);
+    		PalcomLabel pLabel;
+    		PalcomButton pButton;
+    		PalcomTextarea pTextarea;
+	
+    		tabMenu.y = 25;
+    		tabMenu.create(screen);
 
-    tabMenu.create(screen);
+    		tabMenu.addTab(0, "General");
+    		tabMenu.addTab(1, "Secure");
+    		tabMenu.addTab(2, "Key Share");
+    		tabMenu.addTab(3, "Menu");
+    		lv_task_handler();
 
-    tabMenu.addTab(0, "General");
-    tabMenu.addTab(1, "Secure");
-    tabMenu.addTab(2, "Key Share");
-    tabMenu.addTab(3, "Menu");
-    lv_task_handler();
-
-    pTextarea.createGlobal(tabMenu.getTab(0), 1);
-    pTextarea.setCursorClickPos(false);
-    pTextarea.setTextSelection(false);
-    pTextarea.setSize(LV_HOR_RES - 10, (LV_VER_RES / 3) + 20);
-    getPublicMsgData();
-    if (lastPublicSize <= 0)
-      pTextarea.setText("");
-    else
-      pTextarea.setText((const char *)fileData);
-    pTextarea.setAlignment(LV_ALIGN_TOP_MID, 0, 0);
-    //lv_obj_add_style(Messageing_generalRecvText, &bg_style, LV_PART_ANY);
-    lv_task_handler();
+		PalcomMessage pMessage;
+		pMessage.backgroundH = 120;
+		pMessage.messageW = 150;
+		pMessage.messageY = -40;
+		pMessage.messageX = 1;
+		pMessage.createGlobal(tabMenu.getTab(0), 1);
+		pMessage.loadGeneralMessages();
+    		lv_task_handler();
 
     string retainer = "";
     pTextarea.loadGlobal(2);
@@ -417,7 +427,7 @@ private:
     pLabel.center();
     pButton.setLabel(pLabel);
     pButton.setSimpleCallback(Messaging_handleGeneralSend);
-    pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 230, 125);
+    pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 230, 150);
     lv_task_handler();
     
     if(SD.exists(pfs_dir_friends)){
@@ -572,7 +582,17 @@ private:
     tabMenu.addTab(3, "Menu");
     lv_task_handler();
 
-    pTextarea.createGlobal(tabMenu.getTab(0), 1);
+
+    		PalcomMessage pMessage;
+                pMessage.backgroundH = 120;
+                pMessage.messageW = 150;
+                pMessage.messageY = -40;
+                pMessage.messageX = 1;
+                pMessage.createGlobal(tabMenu.getTab(0), 1);
+                pMessage.loadEncryptedMessages(selectedFriend);
+                lv_task_handler();
+
+    /*pTextarea.createGlobal(tabMenu.getTab(0), 1);
     pTextarea.setCursorClickPos(false);
     pTextarea.setTextSelection(false);
     pTextarea.setSize(LV_HOR_RES - 10, (LV_VER_RES / 3) + 20);
@@ -584,7 +604,7 @@ private:
       pTextarea.setText((const char *)fileData);
     pTextarea.setAlignment(LV_ALIGN_TOP_MID, 0, 0);
     //lv_obj_add_style(Messageing_generalRecvText, &bg_style, LV_PART_ANY);
-    lv_task_handler();
+    lv_task_handler();*/
 
     string retainer = "";
     pTextarea.loadGlobal(2);

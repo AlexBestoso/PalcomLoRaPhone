@@ -6,6 +6,8 @@
 #include "mbedtls/x509.h"
 #include "mbedtls/rsa.h"
 
+#include "base64.h"
+
 #define RSA_KEY_SIZE 4096
 #define RSA_EXPONENT 65537
 #define RSA_KEY_SIZE_BYTES RSA_KEY_SIZE/8
@@ -80,6 +82,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
   for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
     fileData[i] = 0x00;
 
+  Serial.printf("RSA DECRYPT : 0\n");
   keyFile = SD.open(pfs_file_keysPrivate, FILE_READ);
   if(!keyFile)
     return false;
@@ -113,6 +116,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
       return false;
   }
 
+
   keyPointer = (char *)&fileData[pointerOffset];
   if((ret = mbedtls_mpi_read_string( &N, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
@@ -128,6 +132,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &P, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -142,6 +147,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &Q, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -156,6 +162,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &D, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -170,6 +177,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &E, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -184,6 +192,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if((ret = mbedtls_mpi_read_string( &DP, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -198,6 +207,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &DQ, 16, (const char *)keyPointer ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -212,6 +222,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     keyPointer = (char *)&fileData[pointerOffset];
   }
   
+
   if( (ret = mbedtls_mpi_read_string( &QP, 16, (const char *)fileData ) ) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -223,6 +234,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     return false;
   }
 
+
   if(mbedtls_rsa_import(&rsa, &N, &P, &Q, &D, &E) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
@@ -233,6 +245,7 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     Serial.printf("Failed to import.\n");
     return false;
   }
+
 
  if((ret = mbedtls_rsa_complete(&rsa)) != 0){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
@@ -256,8 +269,13 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
     Serial.printf("Direct decryption error. : %d\n", ret);
+    char error_buf[200];
+    mbedtls_strerror( ret, error_buf, 200 );
+    Serial.printf("Last error was: -0x%04x - %s\n\n", (int) -ret, error_buf );
     return false;
   }
+
+  Serial.printf("RSA DECRYPT : 13 JIHAD !!!\n");
   outFile = SD.open(outLoc, FILE_WRITE);
   outFile.write(fileData, rsa.len);
   outFile.close();
@@ -274,6 +292,7 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
   if(bufSize <= 0 || !outLoc || !buf || !keyLoc){
     return false;
   }
+  
   int ret;
   mbedtls_rsa_context rsa;
   mbedtls_entropy_context entropy;
@@ -285,15 +304,18 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
   char *keyPointer;
   int pointerOffset = 0;
 
+  Serial.printf("RSA DEBUG: test key loc : '%s'\n", keyLoc);
   if(!SD.exists(keyLoc)){
     return false;
   }
+  Serial.printf("RSA DEBUG: test 2\n");
   for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
     fileData[i] = 0x00;
 
   keyFile = SD.open(keyLoc, FILE_READ);
   if(!keyFile)
     return false;
+  Serial.printf("RSA DEBUG: test 3\n");
   size_t fileSize = keyFile.size();
   // ToDo: Handle buffer overflows.
   keyFile.read(fileData, fileSize);
@@ -322,6 +344,8 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
       return false;
   }
 
+  Serial.printf("RSA DEBUG: test 4\n");
+
   pointerOffset = 0;
   keyPointer = (char *)&fileData[pointerOffset];
   if((ret = mbedtls_mpi_read_string( &N, 16, (const char *)keyPointer ) ) != 0){
@@ -335,6 +359,9 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
     pointerOffset = strlen(keyPointer)+1;
     keyPointer = (char *)&fileData[pointerOffset];
   }
+
+  Serial.printf("RSA DEBUG: test 5\n");
+
   if(( ret = mbedtls_mpi_read_string( &E, 16, (const char *)keyPointer ) ) != 0 ){  
     mbedtls_mpi_free( &N ); 
     mbedtls_mpi_free( &E ); 
@@ -344,6 +371,8 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
     return false;
   }
 
+  Serial.printf("RSA DEBUG: test 6\n");
+
   if(mbedtls_rsa_import(&rsa, &N, NULL, NULL, NULL, &E) != 0){
     mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &E );
@@ -352,6 +381,8 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
     mbedtls_entropy_free( &entropy );
     return false;
   }
+
+  Serial.printf("RSA DEBUG: test 7\n");
 
   for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
     fileData[i] = 0x00;
@@ -364,6 +395,8 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
     mbedtls_entropy_free( &entropy );
     return false;
   }
+
+  Serial.printf("RSA DEBUG: test 8\n");
   outFile = SD.open(outLoc, FILE_WRITE);
   outFile.write(fileData, rsa.len);
   outFile.close();

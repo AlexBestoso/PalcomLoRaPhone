@@ -13,14 +13,16 @@ const char *pfs_public_msg_log = "/public/msgLog";
 const char *pfs_public_msg_dir = "/public";
 const char *pfs_file_cryptSend  = "/cryptSend.enc";
 const char *pfs_file_cryptRecv  = "/cryptRecv.enc";
+const char *pfs_folder_sendQueue = "/sendQueue";
+const char *pfs_folder_recvQueue = "/recvQueue";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};
 char compBuffer[__GLOBAL_BUFFER_SIZE] = {0};
+char fileNameBuffer[128];
 
 class PalcomFS{
   private:
-  char *fileNameBuffer[128];
   
   public:
   File fd;
@@ -179,5 +181,41 @@ class PalcomFS{
   void clearFileBuffer(void){
     for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
       fileData[i] = 0;
-  } 
+  }
+
+  void addToFiledata(char *buf, size_t bufSize){
+    for(int i=0; i<bufSize && i<__GLOBAL_BUFFER_SIZE; i++){
+      if(i < bufSize){
+        fileData[i] = buf[i];
+      }else{
+        fileData[i] = 0;
+      }
+    }
+  }
+
+  bool popSendQueue(void){
+    lv_task_handler();
+    if(!SD.exists(pfs_folder_sendQueue)){
+      lv_task_handler();
+      return false;
+    }
+
+      
+    File root = SD.open(pfs_folder_sendQueue);
+    lv_task_handler();
+    File node = root.openNextFile();
+    lv_task_handler();
+    if(!node){
+      node.close();
+      root.close();
+      return false;
+    }
+
+    sprintf((char *)fileNameBuffer, "%s/%s", pfs_folder_sendQueue, node.name());
+    node.close();
+    root.close();
+    fd = SD.open((const char *)fileNameBuffer, FILE_READ);
+    lv_task_handler();
+    return true;
+  }
 };

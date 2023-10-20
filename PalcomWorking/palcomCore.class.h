@@ -16,6 +16,10 @@ class PalcomCore{
       palcomRadio.recvMessage();
     }
 
+    void _processSend(){
+      palcomRadio.sendQueue();
+    }
+
     void _login(void){
       if(loginScreen.run()){
         viewContext = 1;
@@ -70,9 +74,13 @@ class PalcomCore{
       }
     }
 
+    int sendTimer = 0;
     void contextSwitch(void){
+      sendTimer--;
       this->screenSleep();
-      this->_processRecv();
+      if(sendTimer > 0)
+        this->_processRecv();
+      
       switch(viewContext){
         case -1:
           initSystem();
@@ -90,6 +98,11 @@ class PalcomCore{
           this->_login();
           break;
       }
+      if(sendTimer <= 0){
+        this->_processSend();
+        sendTimer = 10000;
+      }
+      
     }
 
 }palcomCore;

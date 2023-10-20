@@ -236,27 +236,28 @@ private:
     }
     
   }
-  static void Messaging_handleGeneralSend(lv_event_t *e) {
-    	if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        	return;
-    	PalcomTextarea pTextarea;
-    	pTextarea.loadGlobal(2);
-    	PalcomFS pfs;
-    	string msg = pfs.getCallsign();
-	msg += ":\n";
-	msg += pTextarea.getText();
+  	static void Messaging_handleGeneralSend(lv_event_t *e) {
+    		if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        		return;
+    		PalcomTextarea pTextarea;
+    		pTextarea.loadGlobal(2);
+    		PalcomFS pfs;
+    		string msg = pfs.getCallsign();
+		msg += ":\n";
+		msg += pTextarea.getText();
 	
-    	if (strlen(pTextarea.getText()) <= 0) {
-      		Serial.printf("No message, not sending.\n");
-      		return;
-    	}
-	Serial.printf("Sending message\n");
-    	palcomRadio.sendPublicMessage(msg);
-	msg += "\n\t 0\n";
-	Serial.printf("Appending message to log.\n");
-	palcomRadio.appendGeneralMessage(msg);
-    	pTextarea.setText("");
-  }
+    		if (strlen(pTextarea.getText()) <= 0) {
+      			Serial.printf("No message, not sending.\n");
+      			return;
+    		}
+		Serial.printf("Sending message\n");
+    		//palcomRadio.sendPublicMessage(msg);
+		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
+		msg += "\n\t 0\n";
+		Serial.printf("Appending message to log.\n");
+		palcomRadio.appendGeneralMessage(msg);
+    		pTextarea.setText("");
+  	}
 
   uint8_t hashBuffer[25];
   uint8_t firendBuffer[256];

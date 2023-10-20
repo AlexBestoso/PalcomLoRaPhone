@@ -74,7 +74,8 @@ class PalcomCore{
       }
     }
 
-    int sendTimer = 0;
+    int sendTimerMax = 20000;
+    int sendTimer = sendTimerMax;
     void contextSwitch(void){
       sendTimer--;
       this->screenSleep();
@@ -100,7 +101,7 @@ class PalcomCore{
       }
       if(sendTimer <= 0){
         this->_processSend();
-        sendTimer = 10000;
+        sendTimer = sendTimerMax;
       }
       
     }

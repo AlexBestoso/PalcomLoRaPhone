@@ -103,7 +103,6 @@ class PalcomCore{
         this->_processSend();
         sendTimer = sendTimerMax;
       }
-      
     }
 
 }palcomCore;

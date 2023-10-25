@@ -239,7 +239,22 @@ private:
   	static void Messaging_handleGeneralSend(lv_event_t *e) {
     		if (lv_event_get_code(e) != LV_EVENT_CLICKED)
         		return;
-    		PalcomTextarea pTextarea;
+		// debug start
+		PalcomFS pfs;
+    		string msg = pfs.getCallsign();
+		for(int i=0; i<700; i++){
+			msg += "a";
+			if((i!=0) && (i%16) == 0){
+				msg += "\n";
+			}
+		}
+		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
+                Serial.printf("Appending message(%ld) to log.\n", msg.size());
+                msg += "\n\t 0\n";
+                palcomRadio.appendGeneralMessage(msg);
+
+		return; // debug end
+    		/*PalcomTextarea pTextarea;
     		pTextarea.loadGlobal(2);
     		PalcomFS pfs;
     		string msg = pfs.getCallsign();
@@ -256,7 +271,7 @@ private:
 		msg += "\n\t 0\n";
 		Serial.printf("Appending message to log.\n");
 		palcomRadio.appendGeneralMessage(msg);
-    		pTextarea.setText("");
+    		pTextarea.setText("");*/
   	}
 
   uint8_t hashBuffer[25];

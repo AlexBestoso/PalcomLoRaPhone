@@ -123,6 +123,7 @@ class PalcomMessage{
                                 lv_task_handler();
 			}
 
+			lv_obj_scroll_to_y(this->objectBackground, LV_COORD_MAX, LV_ANIM_OFF);
 		}
 	
     		void createGlobal(lv_obj_t *parent, uint id){

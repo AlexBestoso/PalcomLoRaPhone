@@ -51,7 +51,9 @@ class PalcomCore{
   public:
     void initSystem(){
       viewContext = palcomSetup.run();
-        _resetAllPages(viewContext);
+      _resetAllPages(viewContext);
+      PalcomFS pfs; 
+      pfs.rm(pfs_folder_recvQueue);
     }
 
     void screenSleep(){
@@ -79,8 +81,9 @@ class PalcomCore{
     void contextSwitch(void){
       sendTimer--;
       this->screenSleep();
-      if(sendTimer > 0)
+      if(sendTimer > 0){
         this->_processRecv();
+      }
       
       switch(viewContext){
         case -1:
@@ -100,6 +103,7 @@ class PalcomCore{
           break;
       }
       if(sendTimer <= 0){
+        delay(5);
         this->_processSend();
         sendTimer = sendTimerMax;
       }

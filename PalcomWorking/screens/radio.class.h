@@ -3,6 +3,8 @@
 #define __RECV_CODE_ENCRYPTED 2
 #define __RECV_CODE_OKAY 3
 
+#define RADIO_PACKET_TIMEOUT 15
+
 typedef struct palcomPacket{
   uint32_t p_code;        // Message code plus null byte. 
   uint8_t p_id;           // Ranomly generated message ID.
@@ -235,18 +237,21 @@ class PalcomRadio{
 		sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, radioPacket->p_id);
 	      	// check for repeate message
 	      	if(!SD.exists(compBuffer) && radioPacket->p_count <= 1){
+			Serial.printf("Processing single frame message.\n");
 			appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, false, false, true);
                         fileData[4] = radioPacket->p_id;
                         fileData[5] = radioPacket->p_count;
                         fileData[6] = 1;
 			fileData[7] = 'O';
       			sendQueueAdd((char *)fileData, 8, okayCode_int);
+			newPacketReceived = true;
 			return;
       		}
 		
 	      	sprintf(tmpName, "%s/%d.queued", pfs_folder_recvQueue, radioPacket->p_id);
 		sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, radioPacket->p_id);
 		if(!SD.exists(tmpName) && radioPacket->p_count > 1){
+			Serial.printf("First multi packet receipt.\n");
 			File f = SD.open(tmpName, FILE_WRITE);
 			f.printf("%c\n", radioPacket->p_count);
                         appendToFile(tmpName, radioPacket[0].p_content, radioPacket[0].p_size, false, false, false);
@@ -257,6 +262,7 @@ class PalcomRadio{
                         sendQueueAdd((char *)fileData, 8, okayCode_int);
 			return;
 		}else if(SD.exists(tmpName)){
+			Serial.printf("Continuing the processing of a multiframed message.\n");
 			PalcomFS pfs; pfs.clearFileBuffer();
 			File f = SD.open(tmpName, FILE_READ);
 			size_t s = (f.size() < 2) ? f.size() : 2;
@@ -273,6 +279,7 @@ class PalcomRadio{
 		}
 
 		if(radioPacket->p_count <= 1 && SD.exists(tmpName)){
+			Serial.printf("Adding received multipacket message to message log.\n");
 			File f = SD.open(tmpName, FILE_READ);
 			size_t s = f.size() - 2;
 			f.seek(2);
@@ -281,6 +288,7 @@ class PalcomRadio{
 			f.close();
 			appendToFile(pfs_file_publicLog, fileData, s, false, false, true);
 			pfs.rm(tmpName);
+			newPacketReceived = true;
 		}
 		return;
 
@@ -460,13 +468,16 @@ class PalcomRadio{
   }
 
 
-  		void processOkayMessage(){
+  		void processOkayMessage(void){
+			Serial.printf("Processing OKAY message.\n");
 			// using radio packet, check if there's a file using this packet's id.
 			PalcomFS pfs;
 			sprintf(fileNameBuffer, "%s/%d.queued", pfs_folder_sendQueue, radioPacket->p_id);
 			if(!SD.exists(fileNameBuffer)){
+				Serial.printf("\t~%s doesn't exist.\n", fileNameBuffer);
 				return;
 			}
+			Serial.printf("\tReceived a valid OKAY\n");
 
 			// open file and read the first 7 bytes.
 			File fd = SD.open(fileNameBuffer, FILE_READ);
@@ -477,9 +488,12 @@ class PalcomRadio{
 			palcom_packet_t *grabber;
 		       	grabber = (palcom_packet_t *)&fileData;
 			
-			if(grabber->p_count != radioPacket->p_count){
+			Serial.printf("\tCurrent file size: %ld\n", fileSize);
+			if(grabber->p_count != radioPacket->p_count ){
+				Serial.printf("\t~Compairison : %d vs %d\n", grabber->p_count, radioPacket->p_count);
 				return;
 			}
+			Serial.printf("\tOkayed message needs to be processed\n");
 			
 			// update packet header, remove chunk x from file.
 			int newSize = fileSize-7-250;
@@ -487,6 +501,7 @@ class PalcomRadio{
 				pfs.rm(fileNameBuffer);
 				return;
 			}
+			Serial.printf("\tOkayed message new size : %ld\n", newSize);
 			int offset = 257;
 			for(int i=offset; i<fileSize; i++){
 				compBuffer[i-offset] = fileData[i];
@@ -508,6 +523,8 @@ class PalcomRadio{
 			fd = SD.open(fileNameBuffer, FILE_WRITE, O_TRUNC);
 			fd.write(fileData, fileSize-250);
 			fd.close();
+			Serial.printf("\tOkayed message successful?\n");
+			timeout = RADIO_PACKET_TIMEOUT;
 		}
 		
 		void recvMessage(void){
@@ -520,22 +537,23 @@ class PalcomRadio{
 				          	enableInterrupt = false;
 				
 		        		  	int numBytes = radio.getPacketLength();
+						Serial.printf("Received %d bytes\n", numBytes);
 		        		  	int state = radio.readData(emitBuffer, numBytes);
 						if (state == RADIOLIB_ERR_NONE && numBytes > 7 && numBytes <= 256) {
 		        		    		int _code = parseCode(radioPacket[0].p_code);
 		        		    		switch(_code){
 		        		      			case __RECV_CODE_PUBLIC:
-		        		        			newPacketReceived = true;
+									Serial.printf("Received public message (%ld)\n", numBytes);
 		        		        			processPublicMessage();
 		        		        			break;
 		        		      			case __RECV_CODE_KEYSHARE:
 		        		        			processKeyshareMessage();
 		        		        			break;
 		        		      			case __RECV_CODE_ENCRYPTED:
-		        		        			newPacketReceived = true;
 		        		        			processEncryptedMessage();
 		        		        			break;
 								case __RECV_CODE_OKAY:
+									Serial.printf("Received Okay message\n");
 									processOkayMessage();
 									break;
 					              		default:
@@ -589,8 +607,8 @@ class PalcomRadio{
         		SD.mkdir(pfs_dir_public);
 		}
 	  	if(msg.length() > 0){
-		 	Serial.printf("Appending %s to %s\n", msg.c_str(), pfs_file_publicLog);
  			appendToFile(pfs_file_publicLog, (uint8_t *)msg.c_str(), msg.length(), false, false); 
+			newPacketReceived = true;
 	  	}
   	}
 
@@ -619,8 +637,8 @@ class PalcomRadio{
 		switch(code){
 			//publicCode 
 			case 0x33445500:
-				Serial.printf("(public) Message Queued to '%s'\n", compBuffer);
 				sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, p_id);
+				Serial.printf("(public) Message Queued to '%s'\n", compBuffer);
 				pfs.fd = SD.open(compBuffer, FILE_WRITE, O_TRUNC);
 				pfs.clearFileBuffer();
 				fileData[0] = 0x00;
@@ -672,7 +690,7 @@ class PalcomRadio{
 	}
 	int previousId = -1;
 	int previousFrameCount = -1;
-	int timeout = 10;
+	int timeout = RADIO_PACKET_TIMEOUT;
 	void sendQueue(void){
 		lv_task_handler();
 		PalcomFS pfs;
@@ -698,15 +716,16 @@ class PalcomRadio{
 		for(int i=0; i<256; i++){
 			emitBuffer[i] = fileData[i];
 		}
-		Serial.printf("Sending Packet with ID %d | %d, size : %ld\n", packet->p_id, radioPacket->p_id, fileSize);
 		if(previousId != radioPacket->p_id){
 			previousId = radioPacket->p_id;
 			previousFrameCount = radioPacket->p_count;
-			timeout = 10;
+			timeout = RADIO_PACKET_TIMEOUT;
 		}else if(previousId == radioPacket->p_id && previousFrameCount != radioPacket->p_count){
-			timeout = 10;
+			timeout = RADIO_PACKET_TIMEOUT;
 			previousFrameCount = radioPacket->p_count;
 		}
+
+		Serial.printf("%x remaining %d bytes, timeout(%d)\n", radioPacket->p_code, fileSize, timeout);
 		sendMessage(emitBuffer, fileSize);
 		if(timeout > 0){
 			timeout--;

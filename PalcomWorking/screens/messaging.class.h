@@ -240,7 +240,7 @@ private:
     		if (lv_event_get_code(e) != LV_EVENT_CLICKED)
         		return;
 		// debug start
-		PalcomFS pfs;
+	/*	PalcomFS pfs;
     		string msg = pfs.getCallsign();
 		for(int i=0; i<700; i++){
 			msg += "a";
@@ -253,14 +253,37 @@ private:
                 msg += "\n\t 0\n";
                 palcomRadio.appendGeneralMessage(msg);
 
-		return; // debug end
-    		/*PalcomTextarea pTextarea;
+		return; // debug end*/
+			
+    		PalcomTextarea pTextarea;
     		pTextarea.loadGlobal(2);
     		PalcomFS pfs;
     		string msg = pfs.getCallsign();
 		msg += ":\n";
 		msg += pTextarea.getText();
-	
+		
+		// debug logic
+		string debugA = pTextarea.getText();
+		string debugB = "";
+		for(int i=0; i<debugA.size() && i<6; i++){
+			debugB += debugA[i];
+		}
+		if(debugB == "/debug"){
+			Serial.printf("running debug command\n");
+			msg = pfs.getCallsign();
+                	for(int i=0; i<700; i++){
+                        	msg += "a";
+                        	if((i!=0) && (i%16) == 0){
+                        	        msg += "\n";
+                        	}
+                	}
+                	palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
+                	Serial.printf("Appending message(%ld) to log.\n", msg.size());
+                	msg += "\n\t 0\n";
+                	palcomRadio.appendGeneralMessage(msg);
+			return;
+		}	
+
     		if (strlen(pTextarea.getText()) <= 0) {
       			Serial.printf("No message, not sending.\n");
       			return;
@@ -271,7 +294,7 @@ private:
 		msg += "\n\t 0\n";
 		Serial.printf("Appending message to log.\n");
 		palcomRadio.appendGeneralMessage(msg);
-    		pTextarea.setText("");*/
+    		pTextarea.setText("");
   	}
 
   uint8_t hashBuffer[25];

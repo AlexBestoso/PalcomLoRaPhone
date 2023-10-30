@@ -12,8 +12,8 @@ class PalcomCore{
       palcomSetup.resetPage();
     }
 
-    void _processRecv(){
-      palcomRadio.recvMessage();
+    bool _processRecv(){
+      return palcomRadio.recvMessage();
     }
 
     void _processSend(){
@@ -82,7 +82,8 @@ class PalcomCore{
       sendTimer--;
       this->screenSleep();
       if(sendTimer > 0){
-        this->_processRecv();
+        if(this->_processRecv())
+          sendTimer = 0;
       }
       
       switch(viewContext){
@@ -102,11 +103,10 @@ class PalcomCore{
           this->_login();
           break;
       }
+
       if(sendTimer <= 0){
-        delay(5);
         this->_processSend();
         sendTimer = sendTimerMax;
       }
     }
-
 }palcomCore;

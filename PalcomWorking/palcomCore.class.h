@@ -84,6 +84,9 @@ class PalcomCore{
       if(sendTimer > 0){
         if(this->_processRecv())
           sendTimer = 0;
+      }else if(sendTimer <= 0){
+        this->_processSend();
+        sendTimer = sendTimerMax;
       }
       
       switch(viewContext){
@@ -102,11 +105,6 @@ class PalcomCore{
         default:
           this->_login();
           break;
-      }
-
-      if(sendTimer <= 0){
-        this->_processSend();
-        sendTimer = sendTimerMax;
       }
     }
 }palcomCore;

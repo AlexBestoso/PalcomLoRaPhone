@@ -200,7 +200,6 @@ class PalcomFS{
       return false;
     }
 
-      
     File root = SD.open(pfs_folder_sendQueue);
     lv_task_handler();
     File node = root.openNextFile();

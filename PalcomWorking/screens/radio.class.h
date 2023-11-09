@@ -2,8 +2,10 @@
 #define __RECV_CODE_KEYSHARE 1
 #define __RECV_CODE_ENCRYPTED 2
 #define __RECV_CODE_OKAY 3
+#define __RECV_CODE_CONFIRM 4
+#define __RECV_CODE_DONE 5
 
-#define RADIO_PACKET_TIMEOUT 15
+#define RADIO_PACKET_TIMEOUT 10
 
 typedef struct palcomPacket{
   	uint32_t p_code;        // Message code plus null byte. 
@@ -22,6 +24,8 @@ class PalcomRadio{
     		char keyshareCode[3] = {'\xfa', '\xaf', '\x32'};
     		char encryptedCode[3] = {'\xe9', '\xc7', '\x49'};
     		char okayCode[3] = {'\xa0','\xca', '\x71'};
+		char confirmCode[3] = {'\xaa', '\xbd', '\xee'};
+		char doneCode[3] = {'\xd0', '\x43', '\x90'};
 
     		uint8_t emitBuffer[256] = {0};
     		uint8_t recvBuffer[256] = {0};
@@ -223,9 +227,26 @@ class PalcomRadio{
 	return msgSize;
     }
 
-	void processPublicMessage(void){
+    	bool processConfirmMessage(void){
+		Serial.printf("Processing confrimation message.\n");
+		sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id);
+		PalcomFS pfs;
+		pfs.rm(compBuffer);
+		return true;
+	}
+
+	bool processDoneMessage(void){
+		Serial.printf("Processing done message.\n");
+		sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id);
+		PalcomFS pfs;
+		pfs.rm(compBuffer);
+		return true;
+	}
+
+    	
+	bool processPublicMessage(void){
       		if(radioPacket == NULL){
-        		return;
+        		return false;
       		}
       		if(!SD.exists(pfs_dir_public)){
       	  		SD.mkdir(pfs_dir_public);
@@ -249,7 +270,7 @@ class PalcomRadio{
 			fileData[7] = 'O';
       			sendQueueAdd((char *)fileData, 8, okayCode_int);
 			newPacketReceived = true;
-			return;
+			return true;
       		}
 		
 		sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id);
@@ -263,7 +284,7 @@ class PalcomRadio{
                         fileData[6] = 1;
                         fileData[7] = 'O'; 
                         sendQueueAdd((char *)fileData, 8, okayCode_int);
-			return;
+			return true;
 		}else if(SD.exists(tmpName)){
 			PalcomFS pfs; pfs.clearFileBuffer();
 			File f = SD.open(tmpName, FILE_READ);
@@ -272,7 +293,7 @@ class PalcomRadio{
 			f.close();
 			Serial.printf("Continuing the processing of a multiframed message. %d == %d\n", fileData[0], recvPacket->p_count);
 			if(fileData[0] == recvPacket->p_count)
-				return;
+				return false;
 			appendToFile(tmpName, recvPacket[0].p_content, recvPacket[0].p_size, false, false, false);
 			fileData[4] = recvPacket->p_id;
                         fileData[5] = recvPacket->p_count;
@@ -293,10 +314,10 @@ class PalcomRadio{
 			pfs.rm(tmpName);
 			newPacketReceived = true;
 		}
-		return;
+		return true;
 
       // Handle Multi framed packet
-      int err = doneProcessing();
+      /*int err = doneProcessing();
       if(err <= -1)
 	      return;
       size_t msgSize = (size_t)err;
@@ -323,24 +344,30 @@ class PalcomRadio{
           appendToFile(pfs_file_publicLog, (uint8_t *)compBuffer, msgSize, false, false);
         else
           appendToFile(pfs_file_publicLog, radioPacket[0].p_content, radioPacket[0].p_size, true, true);
-      }
-    }
+      }*/
+    	}
 
-    int parseCode(uint32_t code){
-      if(code == publicCode_int){
-        return __RECV_CODE_PUBLIC;
-      }
-      if(code == keyshareCode_int){
-        return __RECV_CODE_KEYSHARE;
-      }
-      if(code == encryptedCode_int){
-        return __RECV_CODE_ENCRYPTED;
-      }
-      if(code == okayCode_int){
-      	return __RECV_CODE_OKAY;
-      }
-      return 37707;
-    }
+    	int parseCode(uint32_t code){
+      		if(code == publicCode_int){
+        		return __RECV_CODE_PUBLIC;
+      		}
+      		if(code == keyshareCode_int){
+        		return __RECV_CODE_KEYSHARE;
+      		}
+      		if(code == encryptedCode_int){
+        		return __RECV_CODE_ENCRYPTED;
+      		}
+      		if(code == okayCode_int){
+      			return __RECV_CODE_OKAY;
+      		}
+		if(code == confirmCode_int){
+			return __RECV_CODE_CONFIRM;
+		}
+		if(code == doneCode_int){
+			return __RECV_CODE_DONE;
+		}
+      		return 37707;
+    	}
 
     void emitFrames(char *msg, size_t msgSize){
       size_t emitSize = 7;
@@ -393,7 +420,8 @@ class PalcomRadio{
     		uint32_t keyshareCode_int = 0xfaaf3200;
     		uint32_t encryptedCode_int = 0xe9c74900;
 		uint32_t okayCode_int = 0xa0ca7100;
-
+		uint32_t confirmCode_int = 0xaabdee00;
+                uint32_t doneCode_int = 0xd0439000;
 
   		PalcomRadio(){
     			radioPacket = (palcom_packet_t*)malloc(sizeof(palcom_packet_t));
@@ -489,14 +517,13 @@ class PalcomRadio{
   }
 
 
-  		bool processOkayMessage(void){
-			Serial.printf("Processing OKAY message.\n");
+  		int processOkayMessage(void){
 			// using radio packet, check if there's a file using this packet's id.
 			PalcomFS pfs;
 			sprintf(fileNameBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id);
 			if(!SD.exists(fileNameBuffer)){
 				Serial.printf("\t~%s doesn't exist.\n", fileNameBuffer);
-				return false;
+				return 2;
 			}
 			Serial.printf("\tReceived a valid OKAY\n");
 
@@ -512,17 +539,17 @@ class PalcomRadio{
 			Serial.printf("\tCurrent file size: %ld\n", fileSize);
 			if(grabber->p_count != recvPacket->p_count ){
 				Serial.printf("\t~Compairison : %d vs %d\n", grabber->p_count, recvPacket->p_count);
-				return false;
+				return 0;
 			}
-			Serial.printf("\tOkayed message needs to be processed\n");
 			
 			// update packet header, remove chunk x from file.
 			int newSize = fileSize-7-250;
 			if(newSize <= 0){
 				Serial.printf("\t~Deleting okay message? (%d)\n", newSize);
 				pfs.rm(fileNameBuffer);
-				return false;
+				return 0;
 			}
+
 			Serial.printf("\tOkayed message new size : %ld\n", newSize);
 			int offset = 257;
 			for(int i=offset; i<fileSize; i++){
@@ -545,13 +572,15 @@ class PalcomRadio{
 			fd = SD.open(fileNameBuffer, FILE_WRITE, O_TRUNC);
 			fd.write(fileData, fileSize-250);
 			fd.close();
-			Serial.printf("\tOkayed message successful?\n");
 			timeout = RADIO_PACKET_TIMEOUT;
-			return true;
+
+			return 1;
 		}
 		
 		bool recvMessage(void){
 			bool ret = false;
+			int okay = 0;
+			int sendConfirmation = false;
 		    	if ( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ) {
 		        	digitalWrite(BOARD_SDCARD_CS, HIGH);
 		        	digitalWrite(RADIO_CS_PIN, HIGH);
@@ -578,7 +607,15 @@ class PalcomRadio{
 		        		        			break;
 								case __RECV_CODE_OKAY:
 									Serial.printf("Received Okay message\n");
-									ret = processOkayMessage();
+									okay = processOkayMessage();
+									sendConfirmation = okay;
+									ret = (okay == 0) ? false : true;
+									break;
+								case __RECV_CODE_CONFIRM:
+									ret = processConfirmMessage();
+									break;
+								case __RECV_CODE_DONE:
+									ret = processDoneMessage();
 									break;
 					              		default:
 					                		Serial.printf("invalid code\n");
@@ -594,6 +631,24 @@ class PalcomRadio{
 		      		}
 		      		xSemaphoreGive( xSemaphore );
 		    	}
+
+			if(sendConfirmation == 1){
+				toggleSendMode();
+				fileData[4] = recvPacket->p_id;
+                        	fileData[5] = recvPacket->p_count;
+                        	fileData[6] = 1;
+                        	fileData[7] = 'C';
+                        	sendQueueAdd((char *)fileData, 8, confirmCode_int);
+				toggleRecvMode();
+			}else if(okay == 2){
+				toggleSendMode();
+                                fileData[4] = recvPacket->p_id;
+                                fileData[5] = recvPacket->p_count;
+                                fileData[6] = 1;
+                                fileData[7] = 'D';
+                                sendQueueAdd((char *)fileData, 8, doneCode_int);
+                                toggleRecvMode();
+			}
 			return ret;
 		}
 
@@ -681,6 +736,26 @@ class PalcomRadio{
                 	//encryptedCode
 			case 0xe9c74900:
 				break;
+			//confirmCode
+			case 0xaabdee00:
+				fileData[0] = 0x00;
+                                fileData[1] = confirmCode[2];
+                                fileData[2] = confirmCode[1];
+                                fileData[3] = confirmCode[0];
+				Serial.printf("Sending Confirmation Code.\n");
+				sendMessage(fileData, bufSize);
+				Serial.printf("Confirmation Sent.\n");
+				break;
+                	//doneCode
+			case 0xd0439000:
+				fileData[0] = 0x00;
+                                fileData[1] = doneCode[2];
+                                fileData[2] = doneCode[1];
+                                fileData[3] = doneCode[0];
+                                Serial.printf("Sending done Code.\n");
+                                sendMessage(fileData, bufSize);
+                                Serial.printf("Confirmation Sent.\n");
+				break;
 			//okayCode
 			case 0xa0ca7100:
 				sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, fileData[4]);
@@ -716,7 +791,6 @@ class PalcomRadio{
 		if(!pfs.popSendQueue()){
 			return;
 		}
-		Serial.printf("sending contents of '%s'\n", fileNameBuffer);
 		toggleSendMode();
 		lv_task_handler();
 

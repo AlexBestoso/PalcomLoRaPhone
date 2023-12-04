@@ -60,7 +60,8 @@ class PalcomFS{
             break;
           string name;
           name = target;
-          name += "/";
+          if(name != "/")
+            name += "/";
           name += node.name();
           if(node.isDirectory()){
             this->rm(name.c_str());
@@ -182,6 +183,10 @@ class PalcomFS{
     for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
       fileData[i] = 0;
   }
+  void clearCompBuffer(void){
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
+      compBuffer[i] = 0;
+  }
 
   void addToFiledata(char *buf, size_t bufSize){
     for(int i=0; i<bufSize && i<__GLOBAL_BUFFER_SIZE; i++){
@@ -216,5 +221,32 @@ class PalcomFS{
     fd = SD.open((const char *)fileNameBuffer, FILE_READ);
     lv_task_handler();
     return true;
+  }
+
+  size_t fileAppend(const char *target, uint8_t * buf, size_t bufSize){
+    File targetFile;
+    size_t targetSize = 0;
+    clearFileBuffer();
+
+    if(!SD.exists(target)){
+      targetFile = SD.open(target, FILE_WRITE);
+    }else{
+      targetFile = SD.open(target, FILE_READ);
+      targetSize = targetFile.size();
+      targetFile.read(fileData, targetSize);
+      targetFile.close();
+      targetFile = SD.open(target, FILE_WRITE, O_TRUNC);
+    }
+
+    if(targetSize > 0)
+      targetFile.write(fileData, targetSize);
+    
+    targetFile.write(buf, bufSize);
+    targetFile.close();
+    targetFile = SD.open(target, FILE_READ);
+    targetSize = targetFile.size();
+    targetFile.close();
+
+    return targetSize;
   }
 };

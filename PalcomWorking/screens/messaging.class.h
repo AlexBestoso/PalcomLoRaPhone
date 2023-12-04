@@ -236,66 +236,46 @@ private:
     }
     
   }
-  	static void Messaging_handleGeneralSend(lv_event_t *e) {
-    		if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        		return;
-		// debug start
-	/*	PalcomFS pfs;
-    		string msg = pfs.getCallsign();
-		for(int i=0; i<700; i++){
-			msg += "a";
-			if((i!=0) && (i%16) == 0){
-				msg += "\n";
-			}
-		}
-		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
-                Serial.printf("Appending message(%ld) to log.\n", msg.size());
-                msg += "\n\t 0\n";
-                palcomRadio.appendGeneralMessage(msg);
+		static void Messaging_handleGeneralSend(lv_event_t *e) {
+    			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+        			return;
 
-		return; // debug end*/
-			
-    		PalcomTextarea pTextarea;
-    		pTextarea.loadGlobal(2);
-    		PalcomFS pfs;
-    		string msg = pfs.getCallsign();
-		msg += ":\n";
-		msg += pTextarea.getText();
+    			PalcomTextarea pTextarea;
+    			pTextarea.loadGlobal(2);
+    			PalcomFS pfs;
+    			string msg = pfs.getCallsign();
+			msg += ":\n";
+			msg += pTextarea.getText();
 		
-		// debug logic
-		string debugA = pTextarea.getText();
-		string debugB = "";
-		for(int i=0; i<debugA.size() && i<6; i++){
-			debugB += debugA[i];
-		}
-		if(debugB == "/debug"){
-			Serial.printf("running debug command\n");
-			msg = pfs.getCallsign();
-                	for(int i=0; i<700; i++){
-                        	msg += "a";
-                        	if((i!=0) && (i%16) == 0){
-                        	        msg += "\n";
-                        	}
-                	}
-                	palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
-                	Serial.printf("Appending message(%ld) to log.\n", msg.size());
-                	msg += "\n\t 0\n";
-                	palcomRadio.appendGeneralMessage(msg);
-			return;
-		}	
+			// debug logic
+			string debugA = pTextarea.getText();
+			string debugB = "";
+			for(int i=0; i<debugA.size() && i<6; i++){
+				debugB += debugA[i];
+			}
+			if(debugB == "/debug"){
+				msg = pfs.getCallsign();
+				msg += ":\n";
+                		for(int i=0; i<700; i++){
+                	        	msg += "a";
+                	        	if((i!=0) && (i%16) == 0){
+                	        	        msg += "\n";
+                	        	}
+                		}
+                		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
+                		palcomRadio.appendGeneralMessage(msg, false);
+				return;
+			}	
 
-    		if (strlen(pTextarea.getText()) <= 0) {
-      			Serial.printf("No message, not sending.\n");
-      			return;
-    		}
-		Serial.printf("Sending message\n");
-    		//palcomRadio.sendPublicMessage(msg);
-		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
-		msg += "\n\t 0\n";
-		Serial.printf("Appending message to log.\n");
-		palcomRadio.appendGeneralMessage(msg);
-    		pTextarea.setText("");
-  	}
+    			if (strlen(pTextarea.getText()) <= 0) {
+      				Serial.printf("No message, not sending.\n");
+      				return;
+    			}
+    			//palcomRadio.sendPublicMessage(msg);
+			palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
+			palcomRadio.appendGeneralMessage(msg, false);
+    			pTextarea.setText("");
+  		}
 
   uint8_t hashBuffer[25];
   uint8_t firendBuffer[256];
@@ -413,152 +393,151 @@ private:
     newPacketReceived = true;
   }
 
-  	PalcomTabMenu tabMenu;
+  		PalcomTabMenu tabMenu;
 
-  	void mainView(){
-    		lv_obj_t *screen = this->getScreen();
-    		if(screen == NULL){
-      			this->globalDestroy();
-      			this->create();
-      			screen = this->getScreen();
-    		}
-    		this->setFullScreen();
-    		this->setScreenScrollDirection(LV_DIR_VER);
-    		PalcomLabel pLabel;
-    		PalcomButton pButton;
-    		PalcomTextarea pTextarea;
+  		void mainView(){
+    			lv_obj_t *screen = this->getScreen();
+    			if(screen == NULL){
+      				this->globalDestroy();
+      				this->create();
+      				screen = this->getScreen();
+    			}
+    			this->setFullScreen();
+    			this->setScreenScrollDirection(LV_DIR_VER);
+    			PalcomLabel pLabel;
+    			PalcomButton pButton;
+    			PalcomTextarea pTextarea;
 	
-    		tabMenu.y = 25;
-    		tabMenu.create(screen);
+    			tabMenu.y = 25;
+    			tabMenu.create(screen);
 
-    		tabMenu.addTab(0, "General");
-    		tabMenu.addTab(1, "Secure");
-    		tabMenu.addTab(2, "Key Share");
-    		tabMenu.addTab(3, "Menu");
-    		lv_task_handler();
+    			tabMenu.addTab(0, "General");
+    			tabMenu.addTab(1, "Secure");
+    			tabMenu.addTab(2, "Key Share");
+    			tabMenu.addTab(3, "Menu");
+    			lv_task_handler();
 
-		PalcomMessage pMessage;
-		pMessage.backgroundH = 120;
-		pMessage.messageW = 150;
-		pMessage.messageY = -40;
-		pMessage.messageX = 1;
-		pMessage.createGlobal(tabMenu.getTab(0), 1);
-		pMessage.loadGeneralMessages();
-    		lv_task_handler();
+			PalcomMessage pMessage;
+			pMessage.backgroundH = 120;
+			pMessage.messageW = 150;
+			pMessage.messageY = -40;
+			pMessage.messageX = 1;
+			pMessage.createGlobal(tabMenu.getTab(0), 1);
+			pMessage.loadGeneralMessages();
+    			lv_task_handler();
 
-    string retainer = "";
-    pTextarea.loadGlobal(2);
-    if (pTextarea.getObj() != NULL)
-      retainer = pTextarea.getText();
-    pTextarea.createGlobal(tabMenu.getTab(0), 2);
-    pTextarea.setCursorClickPos(false);
-    pTextarea.setTextSelection(false);
-    pTextarea.setSize(LV_HOR_RES - 89, (LV_VER_RES / 3) - 20);
-    pTextarea.setText(retainer.c_str());
-    pTextarea.setAlignment(LV_ALIGN_BOTTOM_MID, ((75 / 2) * -1), 0);
-    //lv_obj_add_style(Messageing_generalSendText, &bg_style, LV_PART_ANY);
-    lv_task_handler();
+    			string retainer = "";
+    			pTextarea.loadGlobal(2);
+    			if (pTextarea.getObj() != NULL)
+      				retainer = pTextarea.getText();
+    			pTextarea.createGlobal(tabMenu.getTab(0), 2);
+    			pTextarea.setCursorClickPos(false);
+    			pTextarea.setTextSelection(false);
+    			pTextarea.setSize(LV_HOR_RES - 89, (LV_VER_RES / 3) - 20);
+    			pTextarea.setText(retainer.c_str());
+    			pTextarea.setAlignment(LV_ALIGN_BOTTOM_MID, ((75 / 2) * -1), 0);
+    			//lv_obj_add_style(Messageing_generalSendText, &bg_style, LV_PART_ANY);
+    			lv_task_handler();
 
-    pButton.create(tabMenu.getTab(0));
-    pButton.setSize(24, 30);
-    pLabel.create(pButton.getObj());
-    pLabel.setText("Send");
-    pLabel.center();
-    pButton.setLabel(pLabel);
-    pButton.setSimpleCallback(Messaging_handleGeneralSend);
-    pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 230, 150);
-    lv_task_handler();
+    			pButton.create(tabMenu.getTab(0));
+    			pButton.setSize(24, 30);
+    			pLabel.create(pButton.getObj());
+    			pLabel.setText("Send");
+    			pLabel.center();
+    			pButton.setLabel(pLabel);
+    			pButton.setSimpleCallback(Messaging_handleGeneralSend);
+    			pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 230, 150);
+    			lv_task_handler();
     
-    if(SD.exists(pfs_dir_friends)){
-      File root = SD.open(pfs_dir_friends);
-      int buttonSpacing = 60;
-      int buttonCount = 0;
-      while(true){
-        if(buttonCount > 256)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        
-        pButton.create(tabMenu.getTab(1));
-        pButton.setSize(100, 30);
-        pLabel.create(pButton.getObj());
-        sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, node.name());
-        File nameFile = SD.open(compBuffer);
-        if(!nameFile){
-          pLabel.setText("My Frien");
-        }else{
-          for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
-            fileData[i] = 0;
-          }
-          nameFile.read(fileData, nameFile.size());
-          nameFile.close();
-          pLabel.setText((const char *)fileData);
-        }
-        pLabel.center();
-        pButton.setLabel(pLabel);
-        firendBuffer[buttonCount] = buttonCount;
-        pButton.setValuedCallback(Messaging_handleSelectedFriend, &firendBuffer[buttonCount]);
-        pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, -5, 60+(buttonSpacing*buttonCount));    
-        node.close();
-        buttonCount++;
-        lv_task_handler(); 
-      }
-      root.close();
-    }
-    lv_task_handler(); 
+    			if(SD.exists(pfs_dir_friends)){
+      				File root = SD.open(pfs_dir_friends);
+      				int buttonSpacing = 60;
+      				int buttonCount = 0;
+      				while(true){
+        				if(buttonCount > 256)
+          					break;
+        				File node = root.openNextFile();
+        				if(!node)
+          					break;
+					pButton.create(tabMenu.getTab(1));
+        				pButton.setSize(100, 30);
+        				pLabel.create(pButton.getObj());
+        				sprintf((char *)compBuffer, "%s/%s/name", pfs_dir_friends, node.name());
+        				File nameFile = SD.open(compBuffer);
+        				if(!nameFile){
+          					pLabel.setText("My Frien");
+        				}else{
+          					for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+            						fileData[i] = 0;
+          					}
+          					nameFile.read(fileData, nameFile.size());
+          					nameFile.close();
+          					pLabel.setText((const char *)fileData);
+        				}
+       					pLabel.center();
+        				pButton.setLabel(pLabel);
+        				firendBuffer[buttonCount] = buttonCount;
+        				pButton.setValuedCallback(Messaging_handleSelectedFriend, &firendBuffer[buttonCount]);
+        				pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, -5, 60+(buttonSpacing*buttonCount));    
+        				node.close();
+	        			buttonCount++;
+	        			lv_task_handler(); 
+	      			}
+	      			root.close();
+	    		}
+	    		lv_task_handler(); 
     
-    pButton.create(tabMenu.getTab(2));
-    pButton.setSize(30, 30);
-    pLabel.create(pButton.getObj());
-    pLabel.setText("Share Key");
-    pLabel.center();
-    pButton.setLabel(pLabel);
-    pButton.setSimpleCallback(Messaging_handleShareKey);
-    pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, 100, 0);
-    lv_task_handler();
-    if(SD.exists(pfs_dir_requests)){
-      File root = SD.open(pfs_dir_requests);
-      int buttonSpacing = 60;
-      int buttonCount = 0;
-      while(true){
-        if(buttonCount > 25)
-          break;
-        File node = root.openNextFile();
-        if(!node)
-          break;
-        pButton.create(tabMenu.getTab(2));
-        pButton.setSize(100, 30);
-        pLabel.create(pButton.getObj());
-        pLabel.setText(node.name());
-        pLabel.center();
-        pButton.setLabel(pLabel);
-        hashBuffer[buttonCount] = buttonCount;
-        pButton.setValuedCallback(Messaging_handleReceivedKey, &hashBuffer[buttonCount]);
-        pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, -5, 60+(buttonSpacing*buttonCount));    
-        node.close();
-        buttonCount++;
-        lv_task_handler(); 
-      }
-      root.close();
-    }
-  
-    pButton.create(tabMenu.getTab(3));
-    pButton.setSize(25, 30);
-    pLabel.create(pButton.getObj());
-    pLabel.setText("Home");
-    pLabel.center();
-    pButton.setLabel(pLabel);
-    pButton.setSimpleCallback(Messaging_handleHomepage);
-    pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 100, 125);
-    lv_task_handler(); 
-    if(activeTab){
-      tabMenu.setActiveTab(activeTab, false);
-      lv_task_handler();
-      activeTab = 0;
-    }
-    lv_task_handler();
-  }
+	    		pButton.create(tabMenu.getTab(2));
+	    		pButton.setSize(30, 30);
+	    		pLabel.create(pButton.getObj());
+	    		pLabel.setText("Share Key");
+	    		pLabel.center();
+	    		pButton.setLabel(pLabel);
+	    		pButton.setSimpleCallback(Messaging_handleShareKey);
+	    		pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, 100, 0);
+	    		lv_task_handler();
+	    		if(SD.exists(pfs_dir_requests)){
+	    			File root = SD.open(pfs_dir_requests);
+	      			int buttonSpacing = 60;
+	      			int buttonCount = 0;
+	      			while(true){
+	      				if(buttonCount > 25)
+	          				break;
+	        			File node = root.openNextFile();
+	        			if(!node)
+	          				break;
+	        			pButton.create(tabMenu.getTab(2));
+	        			pButton.setSize(100, 30);
+	        			pLabel.create(pButton.getObj());
+	        			pLabel.setText(node.name());
+	        			pLabel.center();
+	        			pButton.setLabel(pLabel);
+	        			hashBuffer[buttonCount] = buttonCount;
+	        			pButton.setValuedCallback(Messaging_handleReceivedKey, &hashBuffer[buttonCount]);
+	        			pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, -5, 60+(buttonSpacing*buttonCount));    
+	        			node.close();
+	        			buttonCount++;
+	        			lv_task_handler(); 
+	      			}
+	      			root.close();
+	    		}
+	  
+	    		pButton.create(tabMenu.getTab(3));
+	    		pButton.setSize(25, 30);
+	    		pLabel.create(pButton.getObj());
+	    		pLabel.setText("Home");
+	    		pLabel.center();
+	    		pButton.setLabel(pLabel);
+	    		pButton.setSimpleCallback(Messaging_handleHomepage);
+	    		pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 100, 125);
+	    		lv_task_handler(); 
+	    		if(activeTab){
+	      			tabMenu.setActiveTab(activeTab, false);
+	      			lv_task_handler();
+	      			activeTab = 0;
+	    		}
+	    		lv_task_handler();
+  		}
 
   void approvalView(){
     lv_obj_t *screen = this->getScreen();
@@ -728,72 +707,74 @@ private:
     pButton.setRelativeAlignment(LV_ALIGN_BOTTOM_MID, 100, 125);
     lv_task_handler();
   }
-public:
+	public:
   PalcomMessaging(){
     selectedHash = -1;
   }
-  void resetPage(void) {
-    buildRequired = true;
-    Messaging_pageContext = 0;
-    selectedFriend = -1;
-    selectedHash = -1;
-    this->globalDestroy();
-    this->destroy();
-  }
+  		void resetPage(void) {
+    			buildRequired = true;
+    			Messaging_pageContext = 0;
+    			selectedFriend = -1;
+    			selectedHash = -1;
+    			activeTab = 0;
+    			this->globalDestroy();
+    			this->destroy();
+  		}
 
-  void generateObjects(void){
-    if(selectedFriend != -1){
-      this->friendView();
-      lv_task_handler();
-      return;
-    }
+  		void generateObjects(void){
+    			if(selectedFriend != -1){
+      				this->friendView();
+      				lv_task_handler();
+      				return;
+    			}
     
-    if(selectedHash != -1){
-      this->approvalView();
-      lv_task_handler();
-      return;
-    }
-    
-    this->mainView();
-    lv_task_handler();
-  }
-  int run(void) {
-    if (buildRequired) {
-      this->load();
-      buildRequired = false;
-    }
-    if(selectedHash <= -1){
-      activeTab = tabMenu.getActiveTab();
-    }
-    lv_task_handler();
+    			if(selectedHash != -1){
+      				this->approvalView();
+      				lv_task_handler();
+      				return;
+    			}
+    	
+    			this->mainView();
+    			lv_task_handler();
+  		}
 
-    if (Messaging_pageContext <= 0) {
-      if ((millis() - msgCheckTimer) > ((1000 * 60)) || newPacketReceived) {
-        if(selectedFriend != -1){
-          if (getEncryptedMsgSize() != lastPublicSize || newPacketReceived) {
-           this->globalDestroy();
-           this->destroy();
-           lv_task_handler();
-           buildRequired = true;
-          }
-        }else{
-          if (getPublicMsgSize() != lastPublicSize || newPacketReceived) {
-           this->globalDestroy();
-           this->destroy();
-           lv_task_handler();
-           buildRequired = true;
-          }
-        }
-        newPacketReceived = false;
-        msgCheckTimer = millis();
-      }
-    }
+  		int run(void) {
+    			if (buildRequired) {
+      				this->load();
+      				buildRequired = false;
+    			}
+    			if(selectedHash <= -1){
+      				activeTab = tabMenu.getActiveTab();
+    			}
+    	
+			lv_task_handler();
+	
+    			if (Messaging_pageContext <= 0) {
+      				if ((millis() - msgCheckTimer) > ((1000 * 60)) || newPacketReceived) {
+        				if(selectedFriend != -1){
+        	  				if (getEncryptedMsgSize() != lastPublicSize || newPacketReceived) {
+        	   					this->globalDestroy();
+        	   					this->destroy();
+        	   					lv_task_handler();
+        	   					buildRequired = true;
+        	  				}
+        				}else{
+        	  				if (getPublicMsgSize() != lastPublicSize || newPacketReceived) {
+        	   					this->globalDestroy();
+        	   					this->destroy();
+        	   					lv_task_handler();
+        	   					buildRequired = true;
+        	  				}
+        				}
+        				newPacketReceived = false;
+        				msgCheckTimer = millis();
+      				}
+    			}
 
-    
-    if(Messaging_pageContext == 1){
-      resetPage();
-      return 1;
-    }
-    return 3;
-  }
+    			if(Messaging_pageContext == 1){
+      				resetPage();
+      				return 1;
+    			}
+    			return 3;
+  		}
 } palcomMessaging;

@@ -247,26 +247,6 @@ private:
 			msg += ":\n";
 			msg += pTextarea.getText();
 		
-			// debug logic
-			string debugA = pTextarea.getText();
-			string debugB = "";
-			for(int i=0; i<debugA.size() && i<6; i++){
-				debugB += debugA[i];
-			}
-			if(debugB == "/debug"){
-				msg = pfs.getCallsign();
-				msg += ":\n";
-                		for(int i=0; i<700; i++){
-                	        	msg += "a";
-                	        	if((i!=0) && (i%16) == 0){
-                	        	        msg += "\n";
-                	        	}
-                		}
-                		palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
-                		palcomRadio.appendGeneralMessage(msg, false);
-				return;
-			}	
-
     			if (strlen(pTextarea.getText()) <= 0) {
       				Serial.printf("No message, not sending.\n");
       				return;
@@ -295,11 +275,11 @@ private:
     newPacketReceived = true;
   }
 
-  static void Messaging_handleShareKey(lv_event_t *e){
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-      return;
-    palcomRadio.sendFriendKey();
-  }
+  		static void Messaging_handleShareKey(lv_event_t *e){
+    			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+      				return;
+    			palcomRadio.sendFriendKey();
+  		}
 
   static void Messaging_handleHomepage(lv_event_t *e){
     if (lv_event_get_code(e) != LV_EVENT_CLICKED)
@@ -740,6 +720,7 @@ private:
 
   		int run(void) {
     			if (buildRequired) {
+				Serial.printf("building page.\n");
       				this->load();
       				buildRequired = false;
     			}
@@ -760,6 +741,7 @@ private:
         	  				}
         				}else{
         	  				if (getPublicMsgSize() != lastPublicSize || newPacketReceived) {
+							Serial.printf("Resetting page for some reason...\n");
         	   					this->globalDestroy();
         	   					this->destroy();
         	   					lv_task_handler();

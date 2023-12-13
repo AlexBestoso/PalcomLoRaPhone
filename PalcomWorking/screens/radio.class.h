@@ -377,6 +377,7 @@ class PalcomRadio{
 			}
 			for(int i=0; i<33; i++)
                                 shaHash[i] = message[i];
+			shaHash[32] = 0x00;
                         Serial.printf("Recevied Friend Hash : %s\n", shaHash);
 
 			PalcomFS pfs;
@@ -396,6 +397,10 @@ class PalcomRadio{
                         Serial.printf("Received decrypting  message of size (%ld) to '%s'.\n", messageSize, pfs_file_cryptRecv);
 			if(SD.exists(pfs_file_cryptRecv))
 				SD.remove(pfs_file_cryptRecv);
+			if(messageSize-33 > 512){
+				for(int i=512; i<messageSize-33; i++)
+					compBuffer[i] = 0x00;
+			}
                         if(!rsaDecrypt((const unsigned char *)compBuffer, messageSize-33, pfs_file_cryptRecv)){
                                 Serial.printf("Decryption failed.\n");
                                 return;
@@ -411,7 +416,7 @@ class PalcomRadio{
 			// Write packet to msgLog
 			Serial.printf("Populating message log with the text : %s\n", (const char *)compBuffer);
                         if(!SD.exists(tmpName)){
-                                        appendToFile(tmpName, (uint8_t *)compBuffer, messageSize, false, false);
+                                        pfs.fileAppend(tmpName, (uint8_t *)compBuffer, messageSize);
                         }else{
                                 File msgFile = SD.open(tmpName, FILE_READ);
                                 size_t msgFileSize = msgFile.size();
@@ -419,7 +424,7 @@ class PalcomRadio{
                                 if(msgFileSize > 100000)
                                         SD.remove(tmpName);
 
-                                appendToFile(tmpName, (uint8_t *)compBuffer, messageSize, false, false);
+                                pfs.fileAppend(tmpName, (uint8_t *)compBuffer, messageSize);
                         }
 		}
 
@@ -440,11 +445,15 @@ class PalcomRadio{
                                 SD.mkdir(pfs_folder_sendQueue);
                         }
 
-			sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id);
                         sprintf(tmpName, "%s/%d.queued", pfs_folder_recvQueue, recvPacket->p_id);
 			PalcomFS pfs;
+			int errorCorrect = 0;
                         if(!SD.exists(tmpName)){
                                 Serial.printf("Checking if encrypted message is directed to me.\n");
+				if(recvPacket->p_size >= 250)
+                                        errorCorrect = 2;
+                                else
+                                        errorCorrect = -2;
 				pfs.clearCompBuffer();
 				for(int i=0; i<33; i++)
 					compBuffer[i] = recvPacket->p_content[i];
@@ -455,10 +464,7 @@ class PalcomRadio{
 
 				Serial.printf("Valid friend detected.\n");
 				pfs.clearFileBuffer();
-                                File f = SD.open(tmpName, FILE_WRITE);
-                                f.printf("%c\n", recvPacket->p_count);
-                                f.close();
-                                appendToFile(tmpName, recvPacket[0].p_content, recvPacket[0].p_size, false, false, false);
+                                pfs.fileAppend(tmpName, recvPacket->p_content, recvPacket->p_size-errorCorrect);
                                 fileData[4] = recvPacket->p_id;
                                 fileData[5] = recvPacket->p_count;
                                 fileData[6] = 1;
@@ -469,19 +475,19 @@ class PalcomRadio{
                                         return;// true;
                         }else if(SD.exists(tmpName)){
 				Serial.printf("Receiving remaining encrypted frames.\n");
+				if(recvPacket->p_size >= 250)
+                                        errorCorrect = 2;
+                                else
+                                        errorCorrect = -2;
                                 pfs.clearFileBuffer();
-                                File f = SD.open(tmpName, FILE_READ);
-                                size_t s = f.size();
-                                f.read(fileData, s);
-                                f.close();
                                 // Check to ensure we're not double parsing a packet and if there's a count bumping attack
                                 // Also check for packet decrement attack.
                                 // FileData minus 1 should equal the received packet count in order to contnue.
-                                sprintf(compBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id); // checks if okay was already sent.
-                                if(SD.exists(compBuffer)){
+                                sprintf(fileNameBuffer, "%s/%d.queued", pfs_folder_sendQueue, recvPacket->p_id); // checks if okay was already sent.
+                                if(SD.exists(fileNameBuffer)){
                                         return;// false;
                                 }
-                                appendToFile(tmpName, recvPacket[0].p_content, recvPacket[0].p_size, false, false, false);
+                                pfs.fileAppend(tmpName, recvPacket->p_content, recvPacket->p_size-errorCorrect);
                                 fileData[4] = recvPacket->p_id;
                                 fileData[5] = recvPacket->p_count;
                                 fileData[6] = 1;

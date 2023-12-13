@@ -263,9 +263,10 @@ bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){
     fileData[i] = 0x00;
   Serial.printf("Encrypted Message(%ld | %ld): \n", bufSize, rsasize);
   for(int i=0; i<bufSize; i++){
-    Serial.printf("%x ", buf[i]);
+    Serial.printf("%c ", buf[i]);
   }
   Serial.printf("\n");
+  
   if((ret = mbedtls_rsa_pkcs1_decrypt(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE, &rsasize, buf, fileData, RSA_KEY_SIZE))){
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );

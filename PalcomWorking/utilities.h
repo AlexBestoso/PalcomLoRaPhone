@@ -53,3 +53,8 @@
 #define BOARD_BOOT_PIN      0
 
 #define BOARD_BL_PIN        42
+
+#define MESSAGE_LOCAL_START 0x5
+#define MESSAGE_LOCAL_END 0x6
+#define MESSAGE_REMOTE_START 0x7
+#define MESSAGE_REMOTE_END 0x8

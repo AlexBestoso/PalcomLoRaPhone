@@ -12,8 +12,12 @@ class PalcomCore{
       palcomSetup.resetPage();
     }
 
-    void _processRecv(){
-      palcomRadio.recvMessage();
+    bool _processRecv(){
+      return palcomRadio.recvMessage();
+    }
+
+    void _processSend(){
+      palcomRadio.sendQueue();
     }
 
     void _login(void){
@@ -47,7 +51,9 @@ class PalcomCore{
   public:
     void initSystem(){
       viewContext = palcomSetup.run();
-        _resetAllPages(viewContext);
+      _resetAllPages(viewContext);
+      PalcomFS pfs; 
+      pfs.rm(pfs_folder_recvQueue);
     }
 
     void screenSleep(){
@@ -70,9 +76,19 @@ class PalcomCore{
       }
     }
 
+    int sendTimerMax = 20000;
+    int sendTimer = sendTimerMax;
     void contextSwitch(void){
+      sendTimer--;
       this->screenSleep();
-      this->_processRecv();
+      if(sendTimer > 0){
+        if(this->_processRecv())
+          sendTimer = 0;
+      }else if(sendTimer <= 0){
+        this->_processSend();
+        sendTimer = sendTimerMax;
+      }
+      
       switch(viewContext){
         case -1:
           initSystem();
@@ -91,5 +107,4 @@ class PalcomCore{
           break;
       }
     }
-
 }palcomCore;

@@ -80,49 +80,50 @@ class PalcomMessage{
 		}
 
 		void loadGeneralMessages(void){
-			for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
-				fileData[i] = 0;
-				compBuffer[i] = 0;
-			}
 			PalcomFS pfs; 
+			pfs.clearFileBuffer();
+			pfs.clearCompBuffer();
 			size_t pubMsgSize = pfs.getPublicMessages(); // public messages stored in fileData
 			int msgIndex =0;
 			bool mine = false;
 			uint32_t color = 0x555;
 			size_t messageSize = 0;
+			bool found = false;
 			for(int i=0;i<pubMsgSize && i <__GLOBAL_BUFFER_SIZE; i++){
-				if(i+5 >= pubMsgSize){
+				if(i >= pubMsgSize){
 					break;
-				}else if(fileData[i] == '\n' && fileData[i+1] == '\t' && fileData[i+2] == ' '){
-					fileData[i] = 0x00;
-					if(fileData[i+3] == '0'){
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_START || fileData[i] == (char)MESSAGE_REMOTE_START){
+					found = true;
+					continue;
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_END || fileData[i] == (char)MESSAGE_REMOTE_END){
+					if(fileData[i] == (char)MESSAGE_LOCAL_END){
 						mine = true;
 						color = 0x222;
 					}else{
 						mine = false;
 						color = 0x888;
 					}
-					for(int j=0; j<messageSize && j < __GLOBAL_BUFFER_SIZE; j++){
-						compBuffer[j] = fileData[(i-messageSize)+j];
-					}
 
 					createMessage(msgIndex, mine, color, (const char *)compBuffer);
 					lv_task_handler();
 					messageSize = 0;
 					msgIndex++;
-					i+=4;
+					found = false;
+					pfs.clearCompBuffer();
 					// End of message.
-				}else{
+				}else if(found){
 					compBuffer[messageSize] = fileData[i];
 					messageSize++;
 				}
 			}
 			if(messageSize > 0){
-				compBuffer[messageSize] = 0x0;
+				compBuffer[messageSize+2] = 0x0;
 				createMessage(msgIndex, mine, color, (const char *)compBuffer);
                                 lv_task_handler();
 			}
 
+			lv_obj_scroll_to_y(this->objectBackground, LV_COORD_MAX, LV_ANIM_OFF);
+                        lv_task_handler();
 		}
 	
     		void createGlobal(lv_obj_t *parent, uint id){

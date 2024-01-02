@@ -54,6 +54,7 @@ class PalcomCore{
       _resetAllPages(viewContext);
       PalcomFS pfs; 
       pfs.rm(pfs_folder_recvQueue);
+      pfs.rm(pfs_folder_sendQueue);
     }
 
     void screenSleep(){

@@ -51,10 +51,13 @@ class PalcomCore{
   public:
     void initSystem(){
       viewContext = palcomSetup.run();
-      _resetAllPages(viewContext);
-      PalcomFS pfs; 
-      pfs.rm(pfs_folder_recvQueue);
-      pfs.rm(pfs_folder_sendQueue);
+      if(viewContext != -1){
+        Serial.printf("[DEBUG] Exiting init screen\n");
+        _resetAllPages(viewContext);
+        PalcomFS pfs;
+        pfs.rm(pfs_folder_recvQueue);
+        pfs.rm(pfs_folder_sendQueue);
+      }
     }
 
     void screenSleep(){
@@ -80,19 +83,23 @@ class PalcomCore{
     int sendTimerMax = 20000;
     int sendTimer = sendTimerMax;
     void contextSwitch(void){
-      sendTimer--;
-      this->screenSleep();
-      if(sendTimer > 0){
-        if(this->_processRecv())
-          sendTimer = 0;
-      }else if(sendTimer <= 0){
-        this->_processSend();
-        sendTimer = sendTimerMax;
+      if(viewContext != -1){
+        sendTimer--;
+        this->screenSleep();
+        if(sendTimer > 0){
+          if(this->_processRecv())
+            sendTimer = 0;
+        }else if(sendTimer <= 0){
+          this->_processSend();
+          sendTimer = sendTimerMax;
+        }
+      }else{
+        delay(1);
       }
-      
+
       switch(viewContext){
         case -1:
-          initSystem();
+          this->initSystem();
           break;
         case 3:
           this->_messageMenu();

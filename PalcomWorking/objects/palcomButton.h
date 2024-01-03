@@ -1,48 +1,49 @@
-class PalcomButton{
-  private:
-    lv_obj_t *button;
-    int objectId = -1;
-    PalcomLabel label;
-  public:
-    lv_obj_t *getObj(){
-      return button;
-    }
-    void create(lv_obj_t *parent){
-      this->button = lv_btn_create(parent);
-    }
+class PalcomButton : public PalcomObject{
+  	private:
+    		PalcomLabel label;
+		lv_style_t style;
+		lv_style_t pressedStyle;
 
-    void createGlobal(lv_obj_t *parent, uint id){
-      if(id >= GLOBAL_GUI_OBJECT_COUNT){
-        return;
-      }
-      objectId = id;
-      globalGuiObjects[id] = lv_btn_create(parent);
-      this->button = globalGuiObjects[id];
-    }
+	public:
+    		lv_obj_t *getObj(){
+      			return this->getObject();
+    		}
+    	
+		void create(lv_obj_t *parent){
+      			this->generate(parent, pal_button);
+			lv_obj_remove_style_all(this->getObject());
+    		}
 
-    void destroy(){
-      if(this->button != NULL){
-        lv_obj_del(this->button);
-        this->button = NULL;
-      }
-    }
+    		void createGlobal(lv_obj_t *parent, int id){
+			this->generateGlobal(parent, id, pal_button);
+    		}
 
-    void setSize(int x, int y){
-      lv_obj_set_size(this->button, LV_PCT(x), LV_PCT(y));
-    }
+		void setStyle(lv_style_t *style, lv_style_t *pressedStyle){
+			lv_obj_add_style(this->getObject(), style, 0);
+			lv_obj_add_style(this->getObject(), pressedStyle, LV_STATE_PRESSED);
+		}
 
-    void setLabel(PalcomLabel label){
-      this->label = label;
-    }
+		lv_style_t getStyle(void){
+			return this->style;
+		}
+
+    		void setSize(int x, int y){
+      			lv_obj_set_size(this->getObject(), LV_PCT(x), LV_PCT(y));
+    		}
+
+    		void setLabel(PalcomLabel label){
+      			this->label = label;
+    		}
     
-    void setSimpleCallback(void(*func)(lv_event_t*)){
-      lv_obj_add_event_cb(this->button, func, LV_EVENT_ALL, 0);
-    }
+    		void setSimpleCallback(void(*func)(lv_event_t*)){
+      			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_ALL, 0);
+    		}
     
-    void setValuedCallback(void(*func)(lv_event_t*), uint8_t *val){
-      lv_obj_add_event_cb(this->button, func, LV_EVENT_ALL, val);
-    }
-    void setRelativeAlignment(int ref, int x, int y){
-      lv_obj_align_to(this->button, this->label.getObj(), ref, x,  y);
-    }
+    		void setValuedCallback(void(*func)(lv_event_t*), uint8_t *val){
+      			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_ALL, val);
+    		}
+    	
+		void setRelativeAlignment(int ref, int x, int y){
+      			lv_obj_align_to(this->getObject(), this->label.getObject(), ref, x,  y);
+    		}
 };

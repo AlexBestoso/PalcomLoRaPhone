@@ -105,6 +105,7 @@ lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 // Palcom includes
 #include "palCrypto.h"
 #include "tools/tools.h"
+#include "styles/styles.h"
 #include "objects/objects.h"
 #include "screens/screens.h"
 #include "palcomCore.class.h"
@@ -395,7 +396,7 @@ void initBoard(){
 
 
 void setup(){
-    palcomCore.initSystem();
+    palcomCore.contextSwitch();
     //palcomCore.debug();
 }
 

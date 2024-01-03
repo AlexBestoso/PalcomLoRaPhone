@@ -188,6 +188,13 @@ class PalcomFS{
       compBuffer[i] = 0;
   }
 
+  void clearAllBuffers(void){
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+      compBuffer[i] = 0;
+      fileData[i] = 0;
+    }
+  }
+
   void addToFiledata(char *buf, size_t bufSize){
     for(int i=0; i<bufSize && i<__GLOBAL_BUFFER_SIZE; i++){
       if(i < bufSize){

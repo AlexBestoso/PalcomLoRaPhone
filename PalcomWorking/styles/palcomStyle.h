@@ -1,0 +1,5 @@
+class PalcomStyle{
+	private:
+
+	public:
+};

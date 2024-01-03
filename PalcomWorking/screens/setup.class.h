@@ -1,5 +1,6 @@
 lv_obj_t *Setup_usernameTxt;
 lv_obj_t *Setup_passwordTxt;
+
 int Setup_setupControl = 0;
 int Sleep_interactionCtx = 0;
 int Sleep_maxBrightness = 256;
@@ -426,40 +427,50 @@ class PalcomSetup : public PalcomScreen{
 
     		static void Setup_handleSubmit(lv_event_t *e){
       			if(lv_event_get_code(e) == LV_EVENT_RELEASED){
-        			Serial.printf("Processing setup button press\n");
         			PalcomTextarea login_user;
         			PalcomTextarea login_pass;
+				PalcomTextarea login_passConfirm;
         			login_user.loadGlobal(1);
         			login_pass.loadGlobal(2);
+				login_passConfirm.loadGlobal(3);
         			string username = login_user.getText();
         			string password = login_pass.getText();
+				string confirmPassword = login_passConfirm.getText();
 
-        			Serial.printf("Loaded username and password.\n");
-        
         			if(username == "" || password == ""){
-          				Setup_setupControl = 2;
+          				Setup_setupControl = 0;
+					PalcomScreenError = 2;
           				Serial.printf("No user or password.\n");
           				return;
         			}
 
-        			Serial.printf("Processing hash.\n");
+				if(password != confirmPassword){
+					Setup_setupControl = 0;
+					Serial.printf("Passwords don't match.\n");
+					PalcomScreenError = 1;
+					return;
+				}
+
+				PalcomFS pfs;
+	                        pfs.setCallsign(login_user.getText());
+
+				Serial.printf("Creating login file.\n");
+				pfs.clearAllBuffers();
         			char pass_hash[33];
         			getSha256Hash((char*)password.c_str(), password.length(), pass_hash);
-        			for(int i=0; i<100000; i++)
-          				fileData[i] = 0;
-        			int iter = 0;
         			for(int i=0;i<username.length(); i++){
-          				fileData[iter] = username[i];
-          				iter++;
+          				fileData[i] = username[i];
         			}
+        			size_t iter = username.length();
         			fileData[iter] = '\r';
-        			iter++;
-        			fileData[iter] = '\n';
-        			iter++;
+        			fileData[iter+1] = '\n';
+        			iter+=2;
+
         			for(int i=0; i<33; i++){
           				fileData[iter] = pass_hash[i];
-          				iter++;
+					iter++;
         			}
+
         			File hashFile = SD.open("/login.hash", FILE_WRITE);
         			if(!hashFile){
           				Serial.println("Failed to open file.");
@@ -526,6 +537,7 @@ class PalcomSetup : public PalcomScreen{
       			setupLvgl();
     		}
 
+		const lv_img_dsc_t *img_src[1] = {&palcomLogo};
     		void displaySplash(){
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
@@ -536,8 +548,8 @@ class PalcomSetup : public PalcomScreen{
       			this->setFullScreen();
       			this->setScreenScrollDirection(LV_DIR_VER);
       	
-      			const lv_img_dsc_t *img_src[1] = {&palcomLogo};
       			this->setBgImage(img_src);
+			this->setBgX(20);
       			lv_task_handler();
     		}
 
@@ -567,7 +579,7 @@ class PalcomSetup : public PalcomScreen{
 	    	}
 
 	    	void keygenView(){
-	      		Serial.printf("Generating keys.\n");
+			displaySplash();
 	        	lv_obj_t *screen = this->getScreen();
 	        	if(screen == NULL){
 		          	this->globalDestroy();
@@ -581,22 +593,28 @@ class PalcomSetup : public PalcomScreen{
 	        	pLabel.create(screen);
 	        	pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
 	        	pLabel.setWidth(320);
-	        	pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 10);
-	        	pLabel.setText("Generating key pair");
-	        	for(int i=0; i<100; i++){
-	         		lv_task_handler(); delay(5);
-	        	}
+			pLabel.setAlignment(LV_ALIGN_TOP_MID, 10, 8);
+	        	pLabel.setText("Generating key pair, \nscreen will apprear frozen.");
+			lv_task_handler();
+
 	        	generateKeyPair(true);
        	 		Setup_setupControl = 1;
     		}
 
     		lv_obj_t *setup_cont = NULL;
     		bool initalized = false;
+		bool loginFileExists = false;
+		string usrname = "";
+
+		//LoginSubmitStyle lss;
 
 	public:
 	    	bool buildRequired = true;
 
 	    	void generateObjects(void){
+			/*
+			 * Initalize all the stuff required for the system to work.
+			 * */
 	      		if(!initalized){
 	        		initPins();
 	        		initButton();
@@ -604,15 +622,24 @@ class PalcomSetup : public PalcomScreen{
         			initScreen();
         			displaySplash();
         			finalInit();
-        			Serial.printf("Initalized!\n");
         			initalized = true;
-				buildRequired = true;
-        			return;
+				this->setBuildRequired(true);
+				return;
       			}
 
-      			if(SD.exists(F("/login.hash")))
-        			return;
+			displaySplash();
 
+			/*
+			 * Check if we need to setup the system
+			 * .*/
+      			if(SD.exists(F("/login.hash"))){
+				loginFileExists = true;
+        			return;
+			}
+
+			/*
+			 * Configure the screen for this context.
+			 * */
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
         			this->globalDestroy();
@@ -620,31 +647,39 @@ class PalcomSetup : public PalcomScreen{
         			screen = this->getScreen();
       			}
       			this->setFullScreen();
-      			this->setScreenScrollDirection(LV_DIR_VER);
-
+      			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
+			/*
+			 * Setup the context title
+			 * */
       			PalcomLabel pLabel;
       			pLabel.create(screen);
+			lv_task_handler();
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 10);
-      			if(Setup_setupControl == 0){
-	        		pLabel.setText("Please setup your account!");
+			int err = getScreenError();
+			if(err == 1){
+      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 70, 8);
+	        		pLabel.setText("Passwords don't match.");
+			}else if(err == 0/*Setup_setupControl == 2*/ ){
+      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 100, 8);
+	        		pLabel.setText("Create New Account");
       			}else{
-      				pLabel.setText("Please setup your account! || user and password required");
+      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 70, 8);
+      				pLabel.setText("User And Password Required.");
       			}
+			lv_task_handler();
 
+			/*
+			 * Create username input
+			 * */
       			pLabel.create(screen);
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 35);
-      			pLabel.setText("Username");
+      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 35);
+      			pLabel.setText("Username:");
+			lv_task_handler();
 
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 80);
-      			pLabel.setText("Password: ");
-
+			string username_str = "";
       			PalcomTextarea username;
       			username.createGlobal(screen, 1);
       			username.setCursorClickPos(false);
@@ -654,6 +689,20 @@ class PalcomSetup : public PalcomScreen{
       			username.setMaxLength(18);
       			username.setOneLine(true);
       			username.setAlignment(LV_ALIGN_TOP_MID, 20, 30);
+			if(err == 1){
+				username.setText(usrname.c_str());
+			}
+			lv_task_handler();
+
+			/*
+			 * Create password input
+			 * */
+      			pLabel.create(screen);
+      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      			pLabel.setWidth(320);
+      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 85);
+      			pLabel.setText("Password: ");
+			lv_task_handler();
 
       			PalcomTextarea password;
       			password.createGlobal(screen, 2);
@@ -664,74 +713,92 @@ class PalcomSetup : public PalcomScreen{
       			password.setMaxLength(18);
       			password.setOneLine(true);
       			password.setPasswordMode(true);
-      			password.setAlignment(LV_ALIGN_TOP_MID, 20, 70);
+      			password.setAlignment(LV_ALIGN_TOP_MID, 20, 75);
+			lv_task_handler();
+
+			/*
+			 * Create confirm password input
+			 * */
+			pLabel.create(screen);
+                        pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+                        pLabel.setWidth(320);
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 130);
+                        pLabel.setText("Confirm: ");
+			lv_task_handler();
+
+                        PalcomTextarea confirmPassword;
+                        confirmPassword.createGlobal(screen, 3);
+                        confirmPassword.setCursorClickPos(false);
+                        confirmPassword.setTextSelection(false);
+                        confirmPassword.setSize(175, 23);
+                        confirmPassword.setText("");
+                        confirmPassword.setMaxLength(18);
+                        confirmPassword.setOneLine(true);
+                        confirmPassword.setPasswordMode(true);
+                        confirmPassword.setAlignment(LV_ALIGN_TOP_MID, 20, 120);
+			lv_task_handler();
+
+
+			/*
+			 * Create Submit Button
+			 * */
 
       			PalcomButton submit;
       			submit.create(screen);
-      			submit.setSize(100, 40);
+			lss.initStyle();
+			submit.setStyle(lss.getStyle(), lss.getPressedStyle());
+      			submit.setSize(105, 30);
       			pLabel.create(submit.getObj());
       			pLabel.setText("Setup");
       			pLabel.center();
       			submit.setLabel(pLabel);
-      			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 65);
+      			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 128);
       			submit.setSimpleCallback(Setup_handleSubmit);
-
-      			Setup_setupControl = 0;
-      			while(Setup_setupControl != 1){
-	        		lv_task_handler(); delay(5);
-	        		if(Setup_setupControl == 2){
-	          			this->globalDestroy();
-	          			this->destroy();
-	          			buildRequired = true;
-	          			return;
-	        		}
-      			}
-
-      			this->globalDestroy();
-      			this->destroy();
-      			lv_task_handler();
-      			keygenView();
-
-      			generatePublicHash(true);
-
-      			PalcomFS pfs;
-      			pfs.setCallsign("Anon");
+			lv_task_handler();
     		}
 
     		void resetPage(){
-        		buildRequired = true;
-       			// initalized = false;
+			this->setBuildRequired(true);
         		systemSetup_contextControl = 0;
         		this->globalDestroy();
         		this->destroy();
+			Setup_setupControl = 0;
+			loginFileExists = false;
     		}
 
     		int run(){
-      			if(buildRequired){
-        			buildRequired = false;
+      			if(this->getBuildRequired()){
+        			this->setBuildRequired(false);
         			systemSetup_contextControl = 0;
         			this->load();
-				Serial.printf("Page has been built.\n");
       			}
       			lv_task_handler();
 
-      			if(systemSetup_contextControl == 1){
-        			//keygenView();
+      			if(Setup_setupControl == 1){
+				this->globalDestroy();
+                        	this->destroy();
+                        	lv_task_handler();
+                        	keygenView();
+                        	generatePublicHash(true);
         			resetPage();
         			return 0;
       			}
 
-      			if(SD.exists(F("/login.hash"))) {
+			lv_task_handler();
+      			if(loginFileExists) {
         			resetPage();
         			return 0;
       			}
+      			lv_task_handler();
 
-      			if(systemSetup_contextControl == 2){
-        			resetPage();
-        			keygenView();
-        			resetPage();
-        			systemSetup_contextControl = 2;
-      			}
+			if(isScreenError()){
+				this->setBuildRequired(true);
+				PalcomTextarea tmp;
+				tmp.loadGlobal(1);
+				usrname = tmp.getText();
+				this->globalDestroy();
+                        	this->destroy();
+			}
 
       			return -1;
     		}

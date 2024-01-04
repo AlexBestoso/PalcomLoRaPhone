@@ -103,7 +103,6 @@ SemaphoreHandle_t xSemaphore = NULL;
 lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
 // Palcom includes
-#include "palCrypto.h"
 #include "tools/tools.h"
 #include "styles/styles.h"
 #include "objects/objects.h"

@@ -579,7 +579,7 @@ class PalcomSetup : public PalcomScreen{
 	    	}
 
 	    	void keygenView(){
-			displaySplash();
+			//displaySplash();
 	        	lv_obj_t *screen = this->getScreen();
 	        	if(screen == NULL){
 		          	this->globalDestroy();
@@ -588,16 +588,94 @@ class PalcomSetup : public PalcomScreen{
 	        	}
 	        	this->setFullScreen();
 	        	this->setScreenScrollDirection(LV_DIR_VER);
+			string msg = "Generating Key Pair\n";
 
+			int y = 8;
+			int x = 10;
 	        	PalcomLabel pLabel;
 	        	pLabel.create(screen);
 	        	pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
 	        	pLabel.setWidth(320);
-			pLabel.setAlignment(LV_ALIGN_TOP_MID, 10, 8);
-	        	pLabel.setText("Generating key pair, \nscreen will apprear frozen.");
+			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+	        	pLabel.setText(msg.c_str());
 			lv_task_handler();
 
-	        	generateKeyPair(true);
+			PalcomCrypto pcry;
+	        	//generateKeyPair(true);
+			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Initalizing RSA Variables...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+			pcry.rsaKeyGen.initalizeVars();
+			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Generating RNG Seed...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+                        pcry.rsaKeyGen.generateRngSeed();
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Generating Key Pair...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+                        pcry.rsaKeyGen.generateKeyPair();
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Exporting Key Pair...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+                        pcry.rsaKeyGen.exportKeys();
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Writing Public Key To SD Card...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+                        pcry.rsaKeyGen.storeExportedPublicKey();
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Writing Private Key To SD Card...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+                        pcry.rsaKeyGen.storeExportedPrivateKey();
+                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+
+			
+			/*if(!pcry.rsaKeyGen.genKeys())
+				Serial.printf("Key Generation Failed.\n");
+			*/
+			pcry.rsaKeyGen.freeVars();
+
+			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
+			msg += "Generating public key hash file...";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
+			generatePublicHash(true);
+			msg += "SUCCESS\n";
+                        pLabel.setText(msg.c_str());
+                        lv_task_handler();
        	 		Setup_setupControl = 1;
     		}
 
@@ -605,8 +683,6 @@ class PalcomSetup : public PalcomScreen{
     		bool initalized = false;
 		bool loginFileExists = false;
 		string usrname = "";
-
-		//LoginSubmitStyle lss;
 
 	public:
 	    	bool buildRequired = true;
@@ -648,6 +724,7 @@ class PalcomSetup : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
+
 			/*
 			 * Setup the context title
 			 * */
@@ -767,6 +844,9 @@ class PalcomSetup : public PalcomScreen{
     		}
 
     		int run(){
+			/*
+			 * Ensure page is setup
+			 * */
       			if(this->getBuildRequired()){
         			this->setBuildRequired(false);
         			systemSetup_contextControl = 0;
@@ -774,6 +854,10 @@ class PalcomSetup : public PalcomScreen{
       			}
       			lv_task_handler();
 
+			/*
+			 * Handle the setup acount context.
+			 * This displays the key-gen info page.
+			 * */
       			if(Setup_setupControl == 1){
 				this->globalDestroy();
                         	this->destroy();
@@ -781,16 +865,22 @@ class PalcomSetup : public PalcomScreen{
                         	keygenView();
                         	generatePublicHash(true);
         			resetPage();
-        			return 0;
+        			return 0; // change screen to login page.
       			}
 
+			/*
+			 * If login file exists, exit setup page.
+			 * */
 			lv_task_handler();
       			if(loginFileExists) {
         			resetPage();
-        			return 0;
+        			return 0; // change screen to login page.
       			}
       			lv_task_handler();
 
+			/*
+			 * Handle form validation errors.
+			 * */
 			if(isScreenError()){
 				this->setBuildRequired(true);
 				PalcomTextarea tmp;
@@ -800,10 +890,10 @@ class PalcomSetup : public PalcomScreen{
                         	this->destroy();
 			}
 
-      			return -1;
+      			return -1; // loop the setup page.
     		}
 
-  		void resetLvgl(){
+  		/*void resetLvgl(){
     			setupLvgl();
-  		} 
+  		} */
 }palcomSetup;

@@ -1,3 +1,6 @@
+/*
+ * Required includes
+ * */
 #include "mbedtls/config.h"
 #include "mbedtls/md.h"
 #include "mbedtls/entropy.h"
@@ -7,12 +10,27 @@
 #include "mbedtls/rsa.h"
 
 #include "base64.h"
-
+/*
+ * Useful defines
+ * */
 #define RSA_KEY_SIZE 4096
 #define RSA_EXPONENT 65537
 #define RSA_KEY_SIZE_BYTES RSA_KEY_SIZE/8
 
 #define KEYS_DIR "/myKeys"
+
+/*
+ * Custom Classes
+ * */
+#include "./palcomRsaKeyGen.h"
+
+class PalcomCrypto{
+	private:
+
+	public:
+		PalcomRsaKeyGen rsaKeyGen;
+};
+
 byte shaResult[32];
 void getSha256Hash(char *payload, const size_t payloadLength, char* ret){
   

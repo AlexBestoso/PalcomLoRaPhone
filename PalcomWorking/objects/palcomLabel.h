@@ -1,7 +1,5 @@
 class PalcomLabel : public PalcomObject{
   	private:
-    		int objectId = -1;
-  	
 	public:
     		lv_obj_t *getObj(void){
       			return this->getObject();

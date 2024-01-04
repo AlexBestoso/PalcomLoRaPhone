@@ -8,17 +8,10 @@ class PalcomTextarea : public PalcomObject{
 
     		void create(lv_obj_t *parent){
 			this->generate(parent, pal_textarea);
-      			//this->textarea = lv_textarea_create(parent);
     		}
 
     		void createGlobal(lv_obj_t *parent, uint id){
 			this->generateGlobal(parent, id, pal_textarea);
-      			//if(id >= GLOBAL_GUI_OBJECT_COUNT){
-        		//	return;
-      			//}
-      			//objectId = id;
-      			//globalGuiObjects[id] = lv_textarea_create(parent);
-      			//this->textarea = globalGuiObjects[id];
     		}
 
     		void setCursorClickPos(bool val){

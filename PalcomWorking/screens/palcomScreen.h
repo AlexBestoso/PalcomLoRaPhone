@@ -29,7 +29,6 @@ class PalcomScreen{
 
     		void create(void){
       			this->screen = lv_scr_act();
-      			//lv_scr_load(this->screen);
     		}
 
     		void createGlobal(void){

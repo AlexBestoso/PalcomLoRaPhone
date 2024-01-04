@@ -1,3 +1,4 @@
 #include "./palcomStyle.h"
 
-#include "./loginSubmitStyle.h"
+#include "./defaultButtonStyle.h"
+#include "./defaultTextareaStyle.h"

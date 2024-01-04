@@ -19,8 +19,8 @@ class PalcomButton : public PalcomObject{
     		}
 
 		void setStyle(lv_style_t *style, lv_style_t *pressedStyle){
-			lv_obj_add_style(this->getObject(), style, 0);
-			lv_obj_add_style(this->getObject(), pressedStyle, LV_STATE_PRESSED);
+			this->setDefaultStyle(style);
+			this->setPressedStyle(pressedStyle);
 		}
 
 		lv_style_t getStyle(void){

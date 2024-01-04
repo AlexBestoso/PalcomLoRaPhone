@@ -759,6 +759,8 @@ class PalcomSetup : public PalcomScreen{
 			string username_str = "";
       			PalcomTextarea username;
       			username.createGlobal(screen, 1);
+			defaultTextareaStyle.initStyle();
+			username.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
       			username.setCursorClickPos(false);
       			username.setTextSelection(false);
       			username.setSize(175, 23);
@@ -783,6 +785,7 @@ class PalcomSetup : public PalcomScreen{
 
       			PalcomTextarea password;
       			password.createGlobal(screen, 2);
+			password.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
       			password.setCursorClickPos(false);
       			password.setTextSelection(false);
       			password.setSize(175, 23);
@@ -805,6 +808,7 @@ class PalcomSetup : public PalcomScreen{
 
                         PalcomTextarea confirmPassword;
                         confirmPassword.createGlobal(screen, 3);
+			confirmPassword.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
                         confirmPassword.setCursorClickPos(false);
                         confirmPassword.setTextSelection(false);
                         confirmPassword.setSize(175, 23);
@@ -813,7 +817,7 @@ class PalcomSetup : public PalcomScreen{
                         confirmPassword.setOneLine(true);
                         confirmPassword.setPasswordMode(true);
                         confirmPassword.setAlignment(LV_ALIGN_TOP_MID, 20, 120);
-			lv_task_handler();
+			this->execute();
 
 
 			/*
@@ -822,16 +826,18 @@ class PalcomSetup : public PalcomScreen{
 
       			PalcomButton submit;
       			submit.create(screen);
-			lss.initStyle();
-			submit.setStyle(lss.getStyle(), lss.getPressedStyle());
+			defaultButtonStyle.initStyle();
+			submit.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
       			submit.setSize(105, 30);
+
       			pLabel.create(submit.getObj());
       			pLabel.setText("Setup");
       			pLabel.center();
-      			submit.setLabel(pLabel);
+      			
+			submit.setLabel(pLabel);
       			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 128);
       			submit.setSimpleCallback(Setup_handleSubmit);
-			lv_task_handler();
+			this->execute();
     		}
 
     		void resetPage(){

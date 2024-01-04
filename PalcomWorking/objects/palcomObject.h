@@ -33,6 +33,8 @@ class PalcomObject{
 					break;
 				case pal_textarea:
 					this->object = lv_textarea_create(parent);
+					lv_obj_add_state(this->object, LV_STATE_FOCUSED);
+					lv_obj_add_state(this->object, LV_STATE_DEFAULT);
 					break;
 				case pal_button:
 					this->object = lv_btn_create(parent);
@@ -62,4 +64,40 @@ class PalcomObject{
 		void loadGlobal(int id){
                         this->object = globalGuiObjects[id];
                 }
+
+		void setDefaultStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_DEFAULT);
+		}
+
+		void setCheckedStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_CHECKED);
+		}
+
+		void setFocusedStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_FOCUSED);
+		}
+
+		void setFocusedKeyStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_FOCUS_KEY);
+		}
+
+		void setEditedStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_EDITED);
+		}
+
+		void setHoveredStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_HOVERED);
+		}
+
+		void setPressedStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_PRESSED);
+		}
+
+		void setScrolledStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_SCROLLED);
+		}
+
+		void setDisabledStyle(lv_style_t *s){
+			lv_obj_add_style(this->object, s, LV_STATE_DISABLED);
+		}
 };

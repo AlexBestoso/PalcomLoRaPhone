@@ -107,6 +107,10 @@ class PalcomScreen{
                         lv_img_set_offset_y(this->bgImage, offset);
                 }
     
+		void execute(){
+			lv_task_handler();
+		}
+
 		virtual void generateObjects(){
 
     		}

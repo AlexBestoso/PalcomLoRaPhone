@@ -1,13 +1,22 @@
 class PalcomTextarea : public PalcomObject{
   	private:
-  	
+  		lv_style_t style;
+		lv_style_t focusedStyle;
 	public:
     		lv_obj_t *getObj(void){
       			return this->getObject();
     		}
 
+		void setStyle(lv_style_t *style, lv_style_t *focusedStyle){
+			this->setDefaultStyle(style);
+			this->setFocusedStyle(focusedStyle);
+                        //lv_obj_add_style(this->getObject(), style, 0);
+                        //lv_obj_add_style(this->getObject(), pressedStyle, LV_STATE_PRESSED);
+                }
+
     		void create(lv_obj_t *parent){
 			this->generate(parent, pal_textarea);
+			lv_obj_remove_style_all(this->getObject());
     		}
 
     		void createGlobal(lv_obj_t *parent, uint id){

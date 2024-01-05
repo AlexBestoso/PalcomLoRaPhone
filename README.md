@@ -8,4 +8,5 @@
 <li>Updated the setup screen</li>
 <li>Updated RSA generation screen to be more verbose</li>
 <li>Created default styles for core components</li>
+<li>Updated the Login screen</li>
 <ol>

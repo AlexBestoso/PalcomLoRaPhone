@@ -395,7 +395,7 @@ void initBoard(){
 
 
 void setup(){
-    palcomCore.contextSwitch();
+    //palcomCore.contextSwitch();
     //palcomCore.debug();
 }
 

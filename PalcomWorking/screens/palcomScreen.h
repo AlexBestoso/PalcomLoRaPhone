@@ -15,6 +15,10 @@ class PalcomScreen{
 			return (PalcomScreenError == 0) ? false : true;
 		}
 
+		void setScreenError(int e){
+			PalcomScreenError = e;
+		}
+
 		int getScreenError(){
 			int ret = PalcomScreenError;
 			clearScreenError();

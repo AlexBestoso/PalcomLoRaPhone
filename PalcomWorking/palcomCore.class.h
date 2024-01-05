@@ -10,13 +10,16 @@ class PalcomCore{
       settingsMenu.resetPage();
       loginScreen.resetPage();
       palcomSetup.resetPage();
+      lv_task_handler();
     }
 
     bool _processRecv(){
+      lv_task_handler();
       return palcomRadio.recvMessage();
     }
 
     void _processSend(){
+      lv_task_handler();
       palcomRadio.sendQueue();
     }
 
@@ -52,7 +55,6 @@ class PalcomCore{
     void initSystem(){
       viewContext = palcomSetup.run();
       if(viewContext != -1){
-        Serial.printf("[DEBUG] Exiting init screen\n");
         _resetAllPages(viewContext);
         PalcomFS pfs;
         pfs.rm(pfs_folder_recvQueue);
@@ -86,15 +88,19 @@ class PalcomCore{
       if(viewContext != -1){
         sendTimer--;
         this->screenSleep();
+        lv_task_handler();
         if(sendTimer > 0){
           if(this->_processRecv())
             sendTimer = 0;
+          lv_task_handler();
         }else if(sendTimer <= 0){
           this->_processSend();
+          lv_task_handler();
           sendTimer = sendTimerMax;
         }
       }else{
         delay(1);
+        lv_task_handler();
       }
 
       switch(viewContext){
@@ -114,5 +120,6 @@ class PalcomCore{
           this->_login();
           break;
       }
+      lv_task_handler();
     }
 }palcomCore;

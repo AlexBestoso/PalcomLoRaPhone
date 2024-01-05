@@ -23,12 +23,47 @@
  * Custom Classes
  * */
 #include "./palcomRsaKeyGen.h"
+#include "./palcomHash.h"
 
 class PalcomCrypto{
 	private:
-
+		
 	public:
 		PalcomRsaKeyGen rsaKeyGen;
+		PalcomHash hash;
+
+		void generatePublicHash(bool regen=false){
+  			if(!SD.exists(pfs_file_keysPublic)){
+    				return;
+  			}
+
+  			if(SD.exists(pfs_file_publicHash)){
+    				if(!regen)
+     					return;
+    				SD.remove(pfs_file_publicHash);
+  			}
+	
+	  		for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+	    			fileData[i] = 0;
+	  		}
+
+	  		File keyF = SD.open(pfs_file_keysPublic, FILE_READ);
+	  		keyF.read(fileData, keyF.size());
+	  		size_t keySize = keyF.size();
+	  		keyF.close();
+
+			PalcomCrypto pcry;
+			pcry.hash.useSHA256();
+			pcry.hash.run((unsigned char *)fileData, keySize);
+
+	  		//getSha256Hash((char *)fileData, 33, (char *)shaResult);
+	
+	  		File hashF = SD.open(pfs_file_publicHash, FILE_WRITE);
+	  		hashF.write((const uint8_t *)pcry.hash.getResult().c_str(), pcry.hash.getResultSize());
+	  		hashF.close();
+		}
+
+
 };
 
 byte shaResult[32];
@@ -437,259 +472,4 @@ bool rsaEncrypt(const char *keyLoc, const unsigned char *buf, size_t bufSize, co
   mbedtls_ctr_drbg_free( &ctr_drbg );
   mbedtls_entropy_free( &entropy );
   return true;
-}
-
-bool generateKeyPair(bool regenerate){
-  PalcomFS pfs;
-  pfs.createKeysFolder();
-  if(regenerate){
-    pfs.deleteRootKeyPair();
-  }else if(pfs.rootKeysExist() > 0){
-    return false;
-  }
-
-  int ret;
-  size_t keySize = 0;
-  mbedtls_rsa_context rsa;
-  mbedtls_entropy_context entropy;
-  mbedtls_ctr_drbg_context ctr_drbg;
-  mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
-  const char *pers = "rsa_genkey";
-
-  mbedtls_ctr_drbg_init(&ctr_drbg);
-  mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
-  mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
-  mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
-  mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
-
-  mbedtls_entropy_init(&entropy);
-  if((ret = mbedtls_ctr_drbg_seed(
-      &ctr_drbg, 
-      mbedtls_entropy_func, 
-      &entropy, 
-      (const unsigned char *) pers, 
-      strlen( pers ) 
-    )) != 0 ){
-      //Serial.printf("Failed to seed PRNG : %d\n", ret );
-      mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-      mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-      mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-      mbedtls_rsa_free( &rsa );
-      mbedtls_ctr_drbg_free( &ctr_drbg );
-      mbedtls_entropy_free( &entropy );
-      return false;
-  }
-
-  //Serial.printf("Generating RSA key of size %d\n", RSA_KEY_SIZE);
-  if((ret = mbedtls_rsa_gen_key(
-      &rsa, 
-      mbedtls_ctr_drbg_random, 
-      &ctr_drbg, 
-      RSA_KEY_SIZE, 
-      RSA_EXPONENT 
-    )) != 0){
-      //Serial.printf( "failed to generate RSA keys : %d\n", ret );
-      mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-      mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-      mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-      mbedtls_rsa_free( &rsa );
-      mbedtls_ctr_drbg_free( &ctr_drbg );
-      mbedtls_entropy_free( &entropy );
-      return false;
-  }
-
-  //Serial.printf("Storing Key Pairs.\n");
-  if( (ret = mbedtls_rsa_export(&rsa, &N, &P, &Q, &D, &E)) != 0 ||
-      (ret = mbedtls_rsa_export_crt(&rsa, &DP, &DQ, &QP)) != 0 ){
-        //Serial.printf("Failed tp export RSA key parameters." );
-        mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-        mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-        mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-        mbedtls_rsa_free( &rsa );
-        mbedtls_ctr_drbg_free( &ctr_drbg );
-        mbedtls_entropy_free( &entropy );
-        return false;
-  }
-
-  pfs.clearFileBuffer();
-  if(!pfs.openPublicKey(FILE_WRITE)){
-    Serial.printf("Failed to open public key file for writing.\n");
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    return false;
-  }
-  
-  if((ret = mbedtls_mpi_write_string(&N, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write public key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&E, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0 ){
-    Serial.printf("Failed to write public key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-
-  pfs.close();
-
-  if(!pfs.openPrivateKey(FILE_WRITE)){
-    Serial.printf("Failed to open private key file for writing.\n");
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }
-
-  if((ret = mbedtls_mpi_write_string(&N , 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-
-  if((ret = mbedtls_mpi_write_string(&P , 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&Q , 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&D , 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&E , 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&DP, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-  if((ret = mbedtls_mpi_write_string(&DQ, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-
-  
-  if((ret = mbedtls_mpi_write_string(&QP, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
-    Serial.printf("Failed to write private key to file : %d\n", ret);
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    return false;
-  }else{
-    Serial.printf("Storing key of size %ld\n", keySize);
-    pfs.write(fileData, keySize);
-    keySize = 0;
-  }
-
-    Serial.printf("Keys Generated!\n");
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-    mbedtls_rsa_free( &rsa );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-    pfs.close();
-    generatePublicHash(true);
-    return true;
 }

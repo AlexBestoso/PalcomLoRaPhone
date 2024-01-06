@@ -210,4 +210,53 @@ class PalcomStyle{
                                         break;
                         }
 		}
+
+		void recolorImgOpacity(int o){
+                        switch(o){
+                                case 0:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_0);
+                                        break;
+                                case 1:
+                                       	lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_10);
+                                        break;
+                                case 2:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_20);
+                                        break;
+                                case 3:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_30);
+                                        break;
+                                case 4:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_40);
+                                        break;
+                                case 5:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_50);
+                                        break;
+                                case 6:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_60);
+                                        break;
+                                case 7:
+                                       	lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_70);
+                                        break;
+                                case 8:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_80);
+                                        break;
+                                case 9:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_90);
+                                        break;
+                                case 10:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_100);
+                                        break;
+                                case -1:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_TRANSP);
+                                        break;
+                                default:
+                                        lv_style_set_img_recolor_opa(this->targetStyle, LV_OPA_COVER);
+                                        break;
+
+                        }
+                }
+
+		void recolorImg(lv_color_t c){
+			lv_style_set_img_recolor(this->targetStyle, c);
+		}
 };

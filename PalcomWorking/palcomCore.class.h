@@ -10,6 +10,7 @@ class PalcomCore{
       settingsMenu.resetPage();
       loginScreen.resetPage();
       palcomSetup.resetPage();
+      mainMenu.resetPage();
       lv_task_handler();
     }
 
@@ -82,9 +83,23 @@ class PalcomCore{
       }
     }
 
+    void lockScreen(){
+      screenLockConditionSpace = false;
+      screenLockConditionBall = false;
+      Sleep_interactionCtx = 2;
+      Sleep_timer = millis();
+      Sleep_brightness = 0;
+      viewContext = (viewContext == -1) ? -1 : 0;
+      analogWrite(BOARD_TFT_BACKLIGHT, 0);
+      _resetAllPages();
+    }
+
     int sendTimerMax = 20000;
     int sendTimer = sendTimerMax;
     void contextSwitch(void){
+      if(screenLockConditionBall && screenLockConditionSpace)
+        this->lockScreen();
+      
       if(viewContext != -1){
         sendTimer--;
         this->screenSleep();

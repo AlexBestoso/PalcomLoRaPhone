@@ -1,4 +1,4 @@
-class DefaultButtonStyle : public PalcomStyle{
+class DefaultImagebuttonStyle : public PalcomStyle{
 	private:
 		lv_style_t submitButton;
 		lv_style_t submitButtonPressed;
@@ -21,7 +21,7 @@ class DefaultButtonStyle : public PalcomStyle{
 			return (lv_color_filter_dsc_t *)&color_filter;
 		}
 		void initStyle(){
-			/*Create a simple button style*/
+			// Create Default Style
 			this->setStyle(this->getStyle());
 			this->init();
 			this->setRadius(10);
@@ -34,18 +34,22 @@ class DefaultButtonStyle : public PalcomStyle{
 			this->setBorderWidth(2);
 			this->setTextColor(this->makeColor(0xff, 0xff, 0xff));
 
-			/*Create a style for the pressed state.
-     			*Use a color filter to simply modify all colors in this state*/
-			this->setColorFilter(this->getColorFilter(), darken);
-			this->initColorFilter();
-			this->setStyle(this->getPressedStyle());
+
+			// Create Pressed Style
+			//this->setColorFilter(this->getColorFilter(), darken);
+			//this->initColorFilter();
+			
+			this->setStyle(this->getPressedStyle());	
 			this->init();
-			this->applyColorFilter();
-			this->setColorFilterOpacity(2);
+			this->recolorImgOpacity(3);
+			this->recolorImg(this->makeColor(0x55, 0x55, 0x55));
+			//this->applyColorFilter();
+			//this->setColorFilterOpacity(2);
+
 			this->setBorderColor(this->makeColor(0x55, 0, 0));
                         this->setBorderOpacity(2);
                         this->setBorderWidth(12);
 		}
 
 
-}defaultButtonStyle;
+}defaultImagebuttonStyle;

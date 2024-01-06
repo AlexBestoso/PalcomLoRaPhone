@@ -56,8 +56,6 @@ class PalcomCrypto{
 			pcry.hash.useSHA256();
 			pcry.hash.run((unsigned char *)fileData, keySize);
 
-	  		//getSha256Hash((char *)fileData, 33, (char *)shaResult);
-	
 	  		File hashF = SD.open(pfs_file_publicHash, FILE_WRITE);
 	  		hashF.write((const uint8_t *)pcry.hash.getResult().c_str(), pcry.hash.getResultSize());
 	  		hashF.close();
@@ -91,33 +89,6 @@ void getSha256Hash(char *payload, const size_t payloadLength, char* ret){
     ret[i] = grabber[i];
   }
   ret[32] = 0x00;
-}
-
-void generatePublicHash(bool regen=false){
-  if(!SD.exists(pfs_file_keysPublic)){
-    return;
-  }
-
-  if(SD.exists(pfs_file_publicHash)){
-    if(!regen)
-      return;
-    SD.remove(pfs_file_publicHash);
-  }
-  
-  for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
-    fileData[i] = 0;
-  }
-  
-  File keyF = SD.open(pfs_file_keysPublic, FILE_READ);
-  keyF.read(fileData, keyF.size());
-  size_t keySize = keyF.size();
-  keyF.close();
-
-  getSha256Hash((char *)fileData, 33, (char *)shaResult);
-
-  File hashF = SD.open(pfs_file_publicHash, FILE_WRITE);
-  hashF.write((const uint8_t *)shaResult, 33);
-  hashF.close();
 }
 
 bool rsaDecrypt(const unsigned char *buf, size_t bufSize, const char *outLoc){

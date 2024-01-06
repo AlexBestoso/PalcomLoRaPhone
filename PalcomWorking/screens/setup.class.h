@@ -255,27 +255,33 @@ class PalcomSetup : public PalcomScreen{
                 			last_dir[i] = dir;
                 			switch (i) {
                 				case 0:
+							screenLockConditionBall = false;
                     					if(last_x < (lv_disp_get_hor_res(NULL) - mouse_cursor_icon.header.w)){
                         					last_x += pos;
                     					}
                     					break;
                 				case 1:
+							screenLockConditionBall = false;
                     					if(last_y > mouse_cursor_icon.header.h){
                         					last_y -= pos;
                     					}
                     					break;
                 				case 2:
+							screenLockConditionBall = false;
                     					if(last_x > mouse_cursor_icon.header.w){
                         					last_x -= pos;
                     					}
                     					break;
                 				case 3:
+							screenLockConditionBall = false;
                     					if(last_y < (lv_disp_get_ver_res(NULL) - mouse_cursor_icon.header.h)){
                         					last_y += pos;
                     					}
                     					break;
                 				case 4:
+							screenLockConditionBall = false;
                     					left_button_down = true;
+							screenLockConditionBall  = true;
                     					break;
                 				default:
                 					break;
@@ -389,7 +395,11 @@ class PalcomSetup : public PalcomScreen{
             			data->state = LV_INDEV_STATE_PR;
             			Sleep_interactionCtx = 0;
             			Sleep_timer = millis();
-            			//Serial.printf("Key pressed : 0x%x\n", act_key);
+				if(act_key == 0x20)
+					screenLockConditionSpace = true;
+				else
+					screenLockConditionSpace = false;
+			
             			last_key = act_key;
         		}else{
             			data->state = LV_INDEV_STATE_REL;
@@ -401,10 +411,8 @@ class PalcomSetup : public PalcomScreen{
      			switch(eventType){
         			case AceButton::kEventClicked:
             				clicked = true;
-            				//Serial.println("Clicked!");
             				break;
         			case AceButton::kEventLongPressed:
-          				//Serial.println("ClickkEventLongPresseded!"); delay(2000);
           				//If you need other peripherals to maintain power, please set the IO port to hold
           				// gpio_hold_en((gpio_num_t)BOARD_POWERON);
           				// gpio_deep_sleep_hold_en();
@@ -575,7 +583,8 @@ class PalcomSetup : public PalcomScreen{
 	     		ret = setupSD();
 	     		ret = setupRadio();
 
-	      		generatePublicHash(true);
+			PalcomCrypto pcry;
+			pcry.generatePublicHash(true);
 	    	}
 
 	    	void keygenView(){
@@ -668,7 +677,6 @@ class PalcomSetup : public PalcomScreen{
                         pLabel.setText(msg.c_str());
                         this->execute();
 			pcry.generatePublicHash(true);
-			//generatePublicHash(true);
 			msg += "SUCCESS\n";
                         pLabel.setText(msg.c_str());
                         this->execute();
@@ -865,7 +873,8 @@ class PalcomSetup : public PalcomScreen{
                         	this->destroy();
                         	lv_task_handler();
                         	keygenView();
-                        	generatePublicHash(true);
+				PalcomCrypto pcry;
+				pcry.generatePublicHash(true);
         			resetPage();
         			return 0; // change screen to login page.
       			}

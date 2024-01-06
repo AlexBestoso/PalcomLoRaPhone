@@ -47,10 +47,10 @@ using namespace ace_button;
 #define I2S_CH                          I2S_NUM_1
 
 LV_IMG_DECLARE(palcomLogo)
-LV_IMG_DECLARE(image1);
-LV_IMG_DECLARE(image2);
-LV_IMG_DECLARE(image3);
-LV_IMG_DECLARE(image4);
+LV_IMG_DECLARE(LockIcon);
+LV_IMG_DECLARE(SettingsIcon);
+LV_IMG_DECLARE(MessageIcon);
+//LV_IMG_DECLARE(image4);
 LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
 
 TouchLib *touch = NULL;
@@ -99,9 +99,12 @@ lv_obj_t    *hw_ta;
 lv_obj_t    *radio_ta;
 lv_obj_t    *tv ;
 SemaphoreHandle_t xSemaphore = NULL;
+
 #define GLOBAL_GUI_OBJECT_COUNT 10
 lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
+bool screenLockConditionSpace = false;
+bool screenLockConditionBall = false;
 // Palcom includes
 #include "tools/tools.h"
 #include "styles/styles.h"
@@ -401,7 +404,7 @@ void setup(){
 
 
 void loop(){
-  palcomCore.contextSwitch();
+  palcomCore.contextSwitch(); 
 }
 
 

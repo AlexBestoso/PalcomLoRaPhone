@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -39,6 +39,9 @@ class PalcomObject{
 				case pal_button:
 					this->object = lv_btn_create(parent);
 					break;
+				case pal_imgbutton:
+					this->object = lv_imgbtn_create(parent);
+					break;
 			}
 		}
 
@@ -56,6 +59,9 @@ class PalcomObject{
 					break;
 				case pal_button:
 					globalGuiObjects[this->id] = lv_btn_create(parent);
+					break;
+				case pal_imgbutton:
+					globalGuiObjects[this->id] = lv_imgbtn_create(parent);
 					break;
 			}
                         this->object = globalGuiObjects[this->id];

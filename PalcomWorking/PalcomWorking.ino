@@ -50,7 +50,7 @@ LV_IMG_DECLARE(palcomLogo)
 LV_IMG_DECLARE(LockIcon);
 LV_IMG_DECLARE(SettingsIcon);
 LV_IMG_DECLARE(MessageIcon);
-//LV_IMG_DECLARE(image4);
+LV_IMG_DECLARE(BackIcon);
 LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
 
 TouchLib *touch = NULL;

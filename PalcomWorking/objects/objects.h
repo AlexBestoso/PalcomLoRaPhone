@@ -1,9 +1,13 @@
-#include "palcomObject.h"
+// Parent Object
+#include "./palcomObject.h"
 
-#include "palcomLabel.h"
-#include "palcomTextarea.h"
-#include "palcomButton.h"
-#include "palcomTabMenu.h"
-#include "palcomImageButton.h"
+// Children Objects
+#include "./palcomLabel.h"
+#include "./palcomTextarea.h"
+#include "./palcomButton.h"
+#include "./palcomTabMenu.h"
+#include "./palcomImageButton.h"
 
-#include "palcomMessage.h"
+// Complex Objects
+#include "./palcomPopupMessage.h"
+#include "./palcomMessage.h"

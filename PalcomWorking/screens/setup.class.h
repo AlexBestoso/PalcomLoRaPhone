@@ -557,8 +557,7 @@ class PalcomSetup : public PalcomScreen{
       			this->setScreenScrollDirection(LV_DIR_VER);
       	
       			this->setBgImage(img_src);
-			this->setBgX(20);
-      			lv_task_handler();
+      			this->execute();
     		}
 
     		void finalInit(){
@@ -734,7 +733,7 @@ class PalcomSetup : public PalcomScreen{
 			 * */
       			PalcomLabel pLabel;
       			pLabel.create(screen);
-			lv_task_handler();
+			this->execute();
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
 			int err = getScreenError();
@@ -748,7 +747,7 @@ class PalcomSetup : public PalcomScreen{
       				pLabel.setAlignment(LV_ALIGN_TOP_MID, 70, 8);
       				pLabel.setText("User And Password Required.");
       			}
-			lv_task_handler();
+			this->execute();
 
 			/*
 			 * Create username input
@@ -758,7 +757,7 @@ class PalcomSetup : public PalcomScreen{
       			pLabel.setWidth(320);
       			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 35);
       			pLabel.setText("Username:");
-			lv_task_handler();
+			this->execute();
 
 			string username_str = "";
       			PalcomTextarea username;
@@ -775,7 +774,7 @@ class PalcomSetup : public PalcomScreen{
 			if(err == 1){
 				username.setText(usrname.c_str());
 			}
-			lv_task_handler();
+			this->execute();
 
 			/*
 			 * Create password input
@@ -785,7 +784,7 @@ class PalcomSetup : public PalcomScreen{
       			pLabel.setWidth(320);
       			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 85);
       			pLabel.setText("Password: ");
-			lv_task_handler();
+			this->execute();
 
       			PalcomTextarea password;
       			password.createGlobal(screen, 2);
@@ -798,7 +797,7 @@ class PalcomSetup : public PalcomScreen{
       			password.setOneLine(true);
       			password.setPasswordMode(true);
       			password.setAlignment(LV_ALIGN_TOP_MID, 20, 75);
-			lv_task_handler();
+			this->execute();
 
 			/*
 			 * Create confirm password input
@@ -808,7 +807,7 @@ class PalcomSetup : public PalcomScreen{
                         pLabel.setWidth(320);
                         pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 130);
                         pLabel.setText("Confirm: ");
-			lv_task_handler();
+			this->execute();
 
                         PalcomTextarea confirmPassword;
                         confirmPassword.createGlobal(screen, 3);
@@ -871,7 +870,7 @@ class PalcomSetup : public PalcomScreen{
       			if(Setup_setupControl == 1){
 				this->globalDestroy();
                         	this->destroy();
-                        	lv_task_handler();
+				this->execute();
                         	keygenView();
 				PalcomCrypto pcry;
 				pcry.generatePublicHash(true);

@@ -27,9 +27,9 @@ class PalcomButton : public PalcomObject{
 			return this->style;
 		}
 
-    		void setSize(int x, int y){
+    		/*void setSize(int x, int y){
       			lv_obj_set_size(this->getObject(), LV_PCT(x), LV_PCT(y));
-    		}
+    		}*/
 
     		void setLabel(PalcomLabel label){
       			this->label = label;

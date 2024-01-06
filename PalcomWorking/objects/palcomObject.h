@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -42,6 +42,9 @@ class PalcomObject{
 				case pal_imgbutton:
 					this->object = lv_imgbtn_create(parent);
 					break;
+				case pal_base:
+					this->object = lv_obj_create(parent);
+					break;
 			}
 		}
 
@@ -63,6 +66,8 @@ class PalcomObject{
 				case pal_imgbutton:
 					globalGuiObjects[this->id] = lv_imgbtn_create(parent);
 					break;
+				case pal_base:
+					globalGuiObjects[this->id] = lv_obj_create(parent);
 			}
                         this->object = globalGuiObjects[this->id];
                 }
@@ -106,4 +111,26 @@ class PalcomObject{
 		void setDisabledStyle(lv_style_t *s){
 			lv_obj_add_style(this->object, s, LV_STATE_DISABLED);
 		}
+
+		void setSize(int x, int y){
+                        lv_obj_set_size(this->object, LV_PCT(x), LV_PCT(y));
+                }
+
+		/*
+                 * Valid References are :
+                 * LV_ALIGN_OUT_TOP_LEFT, LV_ALIGN_OUT_TOP_MID, LV_ALIGN_OUT_TOP_RIGHT,
+                 * LV_ALIGN_OUT_RIGHT_TOP, LV_ALIGN_OUT_RIGHT_MID, LV_ALIGN_OUT_RIGHT_BOTTOM,
+                 * LV_ALIGN_OUT_BOTTOM_RIGHT, LV_ALIGN_OUT_BOTTOM_MID, LV_ALIGN_OUT_BOTTOM_LEFT,
+                 * LV_ALIGN_OUT_LEFT_BOTTOM, LV_ALIGN_OUT_LEFT_MID, LV_ALIGN_OUT_LEFT_TOP,
+                 * LV_ALIGN_IN_TOP_LEFT, LV_ALIGN_IN_TOP_MID, LV_ALIGN_IN_TOP_RIGHT,
+                 * LV_ALIGN_IN_RIGHT_MID, LV_ALIGN_IN_BOTTOM_RIGHT, LV_ALIGN_IN_BOTTOM_MID,
+                 * LV_ALIGN_IN_BOTTOM_LEFT, LV_ALIGN_IN_LEFT_MID, LV_ALIGN_CENTER
+                 */
+		void setAlignment(int ref, int x, int y){
+                        lv_obj_align(this->object, ref, x, y);
+                }
+
+		void execute(){
+                        lv_task_handler();
+                }
 };

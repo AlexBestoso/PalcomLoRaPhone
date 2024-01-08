@@ -112,10 +112,6 @@ class PalcomObject{
 			lv_obj_add_style(this->object, s, LV_STATE_DISABLED);
 		}
 
-		void setSize(int x, int y){
-                        lv_obj_set_size(this->object, LV_PCT(x), LV_PCT(y));
-                }
-
 		/*
                  * Valid References are :
                  * LV_ALIGN_OUT_TOP_LEFT, LV_ALIGN_OUT_TOP_MID, LV_ALIGN_OUT_TOP_RIGHT,
@@ -128,6 +124,14 @@ class PalcomObject{
                  */
 		void setAlignment(int ref, int x, int y){
                         lv_obj_align(this->object, ref, x, y);
+                }
+
+		void setSize(int x, int y){
+                        lv_obj_set_size(this->getObject(), LV_PCT(x), LV_PCT(y));
+                }
+
+                void setSizeRaw(int x, int y){
+                        lv_obj_set_size(this->getObject(), x, y);
                 }
 
 		void execute(){

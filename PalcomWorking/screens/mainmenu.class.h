@@ -82,6 +82,7 @@ class PalcomMainMenu : public PalcomScreen{
     			mainMenu_contextControl = 0;
     			this->globalDestroy();
     			this->destroy();
+			this->clearScreenError();
   		}
 
   		int run(){

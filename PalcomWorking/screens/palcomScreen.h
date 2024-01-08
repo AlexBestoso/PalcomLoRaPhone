@@ -21,7 +21,7 @@ class PalcomScreen{
 
 		int getScreenError(){
 			int ret = PalcomScreenError;
-			clearScreenError();
+			PalcomScreenError = 0;
 			return ret;
 		}
 		bool getBuildRequired(void){

@@ -11,3 +11,4 @@
 // Complex Objects
 #include "./palcomPopupMessage.h"
 #include "./palcomMessage.h"
+#include "./palcomTextInput.h"

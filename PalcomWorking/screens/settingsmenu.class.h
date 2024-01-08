@@ -11,9 +11,10 @@ class PalcomSettingsMenu : public PalcomScreen{
 		static void Settingsmenu_handleResetButton(lv_event_t *e){
       			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
         			return;
-      			settings_context = -1;
-      			PalcomFS pfs;
-      			pfs.rm("/");
+			PalcomScreenError = 2;
+      			//settings_context = -1;
+      			//PalcomFS pfs;
+      			//pfs.rm("/");
     		}
     
 		static void Settingsmenu_setCallsign(lv_event_t *e){
@@ -32,17 +33,33 @@ class PalcomSettingsMenu : public PalcomScreen{
 			if(lv_event_get_code(e) != LV_EVENT_CLICKED){
 				return;
 			}
-			PalcomScreenError = 2;
+			PalcomScreenError = 999;
 		}
+
+		static void Settingsmenu_yesPopup(lv_event_t *e){
+                        if(lv_event_get_code(e) != LV_EVENT_CLICKED){
+                                return;
+                        }
+			settings_context = -1;
+                        PalcomFS pfs;
+                        pfs.rm("/");
+                        PalcomScreenError = 0;
+                }
+
+		static void Settingsmenu_noPopup(lv_event_t *e){
+                        if(lv_event_get_code(e) != LV_EVENT_CLICKED){
+                                return;
+                        }
+                        PalcomScreenError = 999;
+                }
 		
   
 	public:
     		void generateObjects(void){
-			Serial.printf("Generating settings page.\n");
       			PalcomLabel pLabel;
-			PalcomPopupMessage popupDebug;
-      			PalcomImageButton settings;
+      			PalcomButton settings;
       			PalcomFS pfs;
+			PalcomPopupMessage palpop;
 
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
@@ -52,28 +69,44 @@ class PalcomSettingsMenu : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScreenScrollDirection(LV_DIR_VER);
-			this->execute();
 
 			int err = this->getScreenError();
 			if(err == 1){  // Updated Callsign.
-				popupDebug.setTitle("Settings Changed.\n");
-				popupDebug.setMessage("Callsign has been changed.");
-				popupDebug.setCloseHandler(Settingsmenu_closePopup);
-				popupDebug.create(screen);
+				palpop.setPopupType(1);
+				palpop.setTitle("Settings Changed.\n");
+				palpop.setMessage("Callsign has been changed.");
+				palpop.setCloseHandler(Settingsmenu_closePopup);
+				palpop.create(screen);
 				defaultPopupStyle.initStyle();
-				popupDebug.setStyle(defaultPopupStyle.getStyle());
+				palpop.setStyle(defaultPopupStyle.getStyle());
+				this->execute();
+				return;
+			}
+			
+			if(err == 2){ // Factory Reset
+				palpop.setPopupType(2);
+				palpop.setTitle("Are You Sure You Want To Do This?");
+				palpop.setMessage("You're about to factory reset your device.\nAre you sure you want to?");
+				palpop.setYesHandler(Settingsmenu_yesPopup);
+				palpop.setNoHandler(Settingsmenu_noPopup);
+				palpop.create(screen);
+				defaultPopupStyle.initStyle();
+				palpop.setStyle(defaultPopupStyle.getStyle());
 				this->execute();
 				return;
 			}
 
+			Serial.printf("Treating screen like it's not a popup. (%d)\n", err);
+
 			// Create Back Button.
-      			settings.create(screen);
+      			PalcomImageButton backButton;;
+      			backButton.create(screen);
 			defaultImagebuttonStyle.init();
-			settings.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-			settings.setButtonImage(NULL, &BackIcon, NULL);
-      			settings.setSizeRaw(50, 50);
-      			settings.setSimpleCallback(Settingsmenu_handleBackButton);
-      			settings.setRelativeAlignment(LV_ALIGN_OUT_TOP_RIGHT, 0,  50);
+			backButton.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
+			backButton.setButtonImage(NULL, &BackIcon, NULL);
+      			backButton.setSizeRaw(50, 50);
+      			backButton.setSimpleCallback(Settingsmenu_handleBackButton);
+      			backButton.setRelativeAlignment(LV_ALIGN_OUT_TOP_RIGHT, 0,  50);
 			this->execute();
 
       			// Callsign input
@@ -94,13 +127,15 @@ class PalcomSettingsMenu : public PalcomScreen{
       			callsign.setAlignment(LV_ALIGN_TOP_MID, 15, 83);
 			this->execute();
       			settings.create(screen);
-      			settings.setSize(20, 12);
+			defaultButtonStyle.initStyle();
+                        settings.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
+      			settings.setSizeRaw(60, 50);
       			pLabel.create(settings.getObj());
       			pLabel.setText("Update");
       			pLabel.center();
       			settings.setLabel(pLabel);
       			settings.setSimpleCallback(Settingsmenu_setCallsign);
-      			settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 250,  75);
+      			settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 255,  50);
 			this->execute();
 
 			// Username Input
@@ -110,14 +145,17 @@ class PalcomSettingsMenu : public PalcomScreen{
 			// Screen Sleep Input
 
       			// factory reset button
-      			settings.create(screen);
-      			settings.setSize(40, 25);
-      			pLabel.create(settings.getObj());
+			PalcomButton factoryReset;
+      			factoryReset.create(screen);
+			defaultButtonStyle.initStyle();
+			factoryReset.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
+      			factoryReset.setSizeRaw(50, 50);
+      			pLabel.create(factoryReset.getObj());
       			pLabel.setText("reset");
       			pLabel.center();
-      			settings.setLabel(pLabel);
-      			settings.setSimpleCallback(Settingsmenu_handleResetButton);
-      			settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 10,  100);
+      			factoryReset.setLabel(pLabel);
+      			factoryReset.setSimpleCallback(Settingsmenu_handleResetButton);
+      			factoryReset.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_RIGHT, 275,  160);
 			this->execute();
     		}
 
@@ -139,6 +177,7 @@ class PalcomSettingsMenu : public PalcomScreen{
 			this->execute();
 
 			if(this->isScreenError()){
+				Serial.printf("Detected a screen error : %d\n", PalcomScreenError);
       				this->globalDestroy();
       				this->destroy();
 				this->setBuildRequired(true);

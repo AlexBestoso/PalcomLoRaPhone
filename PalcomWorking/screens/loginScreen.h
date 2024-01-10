@@ -101,7 +101,7 @@ class PalcomLoginScreen : public PalcomScreen{
                         username.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
                         username.setCursorClickPos(false);
                         username.setTextSelection(false);
-                        username.setSize(175, 23);
+                        username.setSizeRaw(175, 23);
                         username.setText("");
                         username.setMaxLength(18);
                         username.setOneLine(true);
@@ -120,7 +120,7 @@ class PalcomLoginScreen : public PalcomScreen{
 			password.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
       			password.setCursorClickPos(false);
       			password.setTextSelection(false);
-      			password.setSize(175, 23);
+      			password.setSizeRaw(175, 23);
       			password.setText("");
       			password.setMaxLength(18);
       			password.setOneLine(true);

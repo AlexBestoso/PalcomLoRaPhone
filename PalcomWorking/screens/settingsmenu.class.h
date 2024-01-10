@@ -12,9 +12,6 @@ class PalcomSettingsMenu : public PalcomScreen{
       			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
         			return;
 			PalcomScreenError = 2;
-      			//settings_context = -1;
-      			//PalcomFS pfs;
-      			//pfs.rm("/");
     		}
     
 		static void Settingsmenu_setCallsign(lv_event_t *e){
@@ -96,7 +93,6 @@ class PalcomSettingsMenu : public PalcomScreen{
 				return;
 			}
 
-			Serial.printf("Treating screen like it's not a popup. (%d)\n", err);
 
 			// Create Back Button.
       			PalcomImageButton backButton;;
@@ -110,7 +106,29 @@ class PalcomSettingsMenu : public PalcomScreen{
 			this->execute();
 
       			// Callsign input
-      			pLabel.create(screen);
+			PalcomTextInput callSignInput;
+			callSignInput.setInputWidth(270+50);
+			callSignInput.setInputHeight(50);
+			callSignInput.setInputY(50+10);
+			
+			callSignInput.setLabelText("Callsign:");
+
+			callSignInput.setTextareaId(1);
+			callSignInput.setTextareaWidth(140);
+			callSignInput.setTextareaHeight(18);
+			callSignInput.setTextareaX(70);
+			callSignInput.setTextareaY(-8);
+			callSignInput.setDefaultText(pfs.getCallsign());
+			callSignInput.setButtonText("Submit");
+			callSignInput.setSubmitHandlerr(Settingsmenu_setCallsign);
+
+			callSignInput.create(screen);
+
+			defaultTextInputStyle.initStyle();
+			callSignInput.setStyle(defaultTextInputStyle.getStyle());
+			this->execute();
+
+      			/*pLabel.create(screen);
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
       			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 90);
@@ -136,7 +154,7 @@ class PalcomSettingsMenu : public PalcomScreen{
       			settings.setLabel(pLabel);
       			settings.setSimpleCallback(Settingsmenu_setCallsign);
       			settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 255,  50);
-			this->execute();
+			this->execute();*/
 
 			// Username Input
 

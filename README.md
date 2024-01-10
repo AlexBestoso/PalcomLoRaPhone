@@ -12,4 +12,6 @@
 <li>Can now press the mouse ball and spacebar to lock the screen from any menu, screen lock bug fixes</li>
 <li>Updated Main Menu GUI / Added image buttons.</li>
 <li>Added a popup messaging system for errors and information.</li>
+<li>Added a new gui system for creating text inputs</li>
+<li>Updated the settings GUI to use the new gui system.</li>
 <ol>

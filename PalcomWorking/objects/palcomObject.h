@@ -26,6 +26,14 @@ class PalcomObject{
                         }
 		}
 
+		void create(lv_obj_t *parent){
+                        this->generate(parent, pal_label);
+                }
+
+                void createGlobal(lv_obj_t *parent, uint id){
+                        this->generateGlobal(parent, id, pal_label);
+                }
+
 		void generate(lv_obj_t *parent, PalcomObjectType objtype){
 			switch(objtype){
 				case pal_label:
@@ -132,6 +140,31 @@ class PalcomObject{
 
                 void setSizeRaw(int x, int y){
                         lv_obj_set_size(this->getObject(), x, y);
+                }
+
+		/*
+                 * Direction can be:
+                 * LV_DIR_TOP,
+                 * LV_DIR_LEFT,
+                 * LV_DIR_BOTTOM,
+                 * LV_DIR_RIGHT,
+                 * LV_DIR_HOR,
+                 * LV_DIR_VER,
+                 * LV_DIR_ALL
+                 */
+                void setScreenScrollDirection(int direction){
+                        lv_obj_set_scroll_dir(this->getObject(), direction);
+                }
+
+		/*
+                 * Scrollbars are displayed according to a configured mode. The following mode(s) exist:
+                * LV_SCROLLBAR_MODE_OFF: Never show the scrollbars
+                * LV_SCROLLBAR_MODE_ON: Always show the scrollbars
+                * LV_SCROLLBAR_MODE_ACTIVE: Show scroll bars while an object is being scrolled
+                * LV_SCROLLBAR_MODE_AUTO: Show scroll bars when the content is large enough to be scrolled
+                */
+                void setScrollMode(lv_scrollbar_mode_t mode){
+                        lv_obj_set_scrollbar_mode(this->getObject(), mode);
                 }
 
 		void execute(){

@@ -1,10 +1,11 @@
-class DefaultPopupStyle : public PalcomStyle{
+class DefaultTextInputStyle : public PalcomStyle{
 	private:
 		lv_style_t style;
 		lv_color_filter_dsc_t color_filter;
 		
 	public:
 		lv_style_t *getStyle(void){
+			Serial.printf("Getting default popup style.\n");
 			return (lv_style_t *)&style;
 		}
 
@@ -25,4 +26,4 @@ class DefaultPopupStyle : public PalcomStyle{
 		}
 
 
-}defaultPopupStyle;
+}defaultTextInputStyle;

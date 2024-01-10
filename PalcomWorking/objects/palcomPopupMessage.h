@@ -41,7 +41,6 @@ class PalcomPopupMessage : public PalcomObject{
 		}
 
 		void setStyle(lv_style_t *style){
-			Serial.printf("Setting default style.\n");
 			this->setDefaultStyle(style);
 		}
 		

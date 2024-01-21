@@ -24,6 +24,7 @@ class PalcomTextInput : public PalcomObject{
 		size_t textAreaH = 50;
 		int  textAreaX = 0;
 		int  textAreaY = 0;
+		size_t textareaMaxLen = 15;
 		size_t textAreaGlobalId = 1;
 
 		PalcomLabel inputLabel;
@@ -105,6 +106,16 @@ class PalcomTextInput : public PalcomObject{
                         this->setDefaultStyle(style);
                 }
 
+		void maintainText(void){
+			PalcomTextarea grabber;
+			grabber.loadGlobal(textAreaGlobalId);
+			this->defaultText = grabber.getText();
+		}
+
+		void setMaxLength(size_t v){
+			this->textareaMaxLen = v;
+		}
+
 		void create(lv_obj_t *parent){
 			// Initalize object
 			this->generate(parent, pal_base);
@@ -127,8 +138,8 @@ class PalcomTextInput : public PalcomObject{
 			defaultTextareaStyle.initStyle();
 			textArea.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
 			textArea.setOneLine(true);
-			textArea.setMaxLength(15);
-			textArea.setText(defaultText.c_str());
+			textArea.setMaxLength(this->textareaMaxLen);
+			textArea.setText(this->defaultText.c_str());
 
 			// Create SubmitButton
 			submitButton.create(this->getObject());

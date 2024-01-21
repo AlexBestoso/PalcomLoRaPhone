@@ -1,6 +1,0 @@
-1) Send frame X until time out.						1) Receive and send okay message
-2) Receive okay message and send confirmation message.			2) receive confirmation message and wait for next frame
-3) repeate until final chunk						....
-4) Send final chunk							3) Receive and send okay message
-5) receive okay message and send done message.				4) Receive done message and add msg to log.
-

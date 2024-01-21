@@ -5,3 +5,5 @@
 #include "./defaultImagebuttonStyle.h"
 #include "./defaultPopupStyle.h"
 #include "./defaultTextInputStyle.h"
+#include "./defaultTabmenuStyle.h"
+#include "./defaultMenuStyle.h"

@@ -23,7 +23,7 @@ void getFriendHash(void){
       		friendHash[i] = compBuffer[i];
 }
 
-class PalcomMessaging: public PalcomScreen{
+class PalcomPlaintextMessaging: public PalcomScreen{
 	private:
   		lv_obj_t *tabDescriptor = NULL;
   		lv_obj_t *tabOne = NULL;
@@ -774,7 +774,7 @@ class PalcomMessaging: public PalcomScreen{
   		}
 	
 	public:
- 		PalcomMessaging(){
+ 		PalcomPlaintextMessaging(){
     			selectedHash = -1;
   		}
   		void resetPage(void) {
@@ -845,4 +845,4 @@ class PalcomMessaging: public PalcomScreen{
     			}
     			return 3;
   		}
-} palcomMessaging;
+} palcomPlaintextMessaging;

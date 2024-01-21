@@ -5,13 +5,22 @@ typedef struct pal_message_struct{
 }pmsg_t;
 lv_style_t recievedMessage;
 lv_style_t sentMessage;
-class PalcomMessage{
+class PalcomMessage : public PalcomObject{
 	private:
 		lv_obj_t *objectBackground = NULL;
 		lv_obj_t *object = NULL;
     		int objectId = -1;
 		PalcomLabel pLabel;
+		
+		// New variables
+		PalcomButton loadMessagesButton;
+		
+		int maxMessages = 10;
 
+		int messageContainerW = 0;
+		int messageContainerH = 0;
+		int messageContainerX = 0;
+		int messageContainerY = 0;
 
 	public:
 		int backgroundW = 300;
@@ -37,6 +46,31 @@ class PalcomMessage{
 			this->objectBackground = lv_obj_create(parent);
 			lv_obj_set_size(this->objectBackground, backgroundW, backgroundH);
 			lv_obj_set_pos(this->objectBackground, backgroundX, backgroundY);
+		}
+
+		void create(lv_obj_t *parent){
+			this->generate(parent, pal_base);
+			this->setSize(this->messageContainerW, this->messageContainerH);
+			this->setAlignment(LV_ALIGN_OUT_TOP_LEFT, this->messageContainerX, this->messageContainerY);
+			lv_style_init(&recievedMessage);
+                        lv_style_set_bg_color(&recievedMessage, lv_color_hex(0xaaaaaa));
+			this->setDefaultStyle(&recievedMessage);
+		}
+
+		void setContainerW(int w){
+			this->messageContainerW = w;
+		}
+		
+		void setContainerH(int h){
+                	this->messageContainerH = h;
+		}
+		
+		void setContainerX(int x){
+                	this->messageContainerX = x;
+		}
+		
+		void setContainerY(int y){
+                	this->messageContainerY = y;
 		}
 
     		void create(){

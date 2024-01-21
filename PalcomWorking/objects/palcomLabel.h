@@ -30,7 +30,4 @@ class PalcomLabel : public PalcomObject{
       			lv_label_set_text(this->getObject(), text);
     		}
 
-    		void center(void){
-      			lv_obj_center(this->getObject());
-    		}
 };

@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -53,6 +53,9 @@ class PalcomObject{
 				case pal_base:
 					this->object = lv_obj_create(parent);
 					break;
+				case pal_menu:
+					this->object = lv_menu_create(parent);
+					break;
 			}
 		}
 
@@ -76,6 +79,10 @@ class PalcomObject{
 					break;
 				case pal_base:
 					globalGuiObjects[this->id] = lv_obj_create(parent);
+					break;
+				case pal_menu:
+					globalGuiObjects[this->id] = lv_menu_create(parent);
+					break;
 			}
                         this->object = globalGuiObjects[this->id];
                 }
@@ -135,11 +142,11 @@ class PalcomObject{
                 }
 
 		void setSize(int x, int y){
-                        lv_obj_set_size(this->getObject(), LV_PCT(x), LV_PCT(y));
+                        lv_obj_set_size(this->object, LV_PCT(x), LV_PCT(y));
                 }
 
                 void setSizeRaw(int x, int y){
-                        lv_obj_set_size(this->getObject(), x, y);
+                        lv_obj_set_size(this->object, x, y);
                 }
 
 		/*
@@ -153,7 +160,7 @@ class PalcomObject{
                  * LV_DIR_ALL
                  */
                 void setScreenScrollDirection(int direction){
-                        lv_obj_set_scroll_dir(this->getObject(), direction);
+                        lv_obj_set_scroll_dir(this->object, direction);
                 }
 
 		/*
@@ -164,10 +171,26 @@ class PalcomObject{
                 * LV_SCROLLBAR_MODE_AUTO: Show scroll bars when the content is large enough to be scrolled
                 */
                 void setScrollMode(lv_scrollbar_mode_t mode){
-                        lv_obj_set_scrollbar_mode(this->getObject(), mode);
+                        lv_obj_set_scrollbar_mode(this->object, mode);
                 }
+
+		void center(void){
+                        lv_obj_center(this->object);
+                }
+
+		int getHorizontalResolution(void){
+			return lv_disp_get_hor_res(NULL);
+		}
+
+		int getVirticalResolution(void){
+			return lv_disp_get_ver_res(NULL);
+		}
 
 		void execute(){
                         lv_task_handler();
+                }
+
+		void setSimpleCallback(void(*func)(lv_event_t*)){
+                        lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, 0);
                 }
 };

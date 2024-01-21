@@ -7,6 +7,7 @@
 #include "./palcomButton.h"
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
+#include "./palcomMenu.h"
 
 // Complex Objects
 #include "./palcomPopupMessage.h"

@@ -1,3 +1,11 @@
+#define CONTEXT_SETUP -1
+#define CONTEXT_LOGIN 0
+#define CONTEXT_MAINMENU 1
+#define CONTEXT_SETTINGS 2
+#define CONTEXT_PLAINTEXT_MESSAGING 3
+#define CONTEXT_CIPHERTEXT_MESSAGING 4
+#define CONTEXT_KEYSHARING 5
+
 class PalcomCore{
   private:
     int viewContext = -1;
@@ -6,7 +14,7 @@ class PalcomCore{
 
     void _resetAllPages(int maintain=0){
       viewContext = maintain;
-      palcomMessaging.resetPage();
+      palcomPlaintextMessaging.resetPage();
       settingsMenu.resetPage();
       loginScreen.resetPage();
       palcomSetup.resetPage();
@@ -26,28 +34,28 @@ class PalcomCore{
 
     void _login(void){
       if(loginScreen.run()){
-        viewContext = 1;
+        viewContext = CONTEXT_MAINMENU;
         _resetAllPages(viewContext);
       }
     }
 
     void _mainMenu(void){
       viewContext = mainMenu.run();
-      if(viewContext != 1){
+      if(viewContext != CONTEXT_MAINMENU){
         _resetAllPages(viewContext);
       }
     }
 
-    void  _messageMenu(void){
-      viewContext = palcomMessaging.run();
-      if(viewContext != 3){
+    void  _plaintextMessageMenu(void){
+      viewContext = palcomPlaintextMessaging.run();
+      if(viewContext != CONTEXT_PLAINTEXT_MESSAGING){
          _resetAllPages(viewContext);
       }
     }
 
     void _settingsMenu(void){
       viewContext = settingsMenu.run();
-      if(viewContext != 2){
+      if(viewContext != CONTEXT_SETTINGS){
         _resetAllPages(viewContext);
       }
     }
@@ -119,17 +127,21 @@ class PalcomCore{
       }
 
       switch(viewContext){
-        case -1:
+        case CONTEXT_SETUP:
           this->initSystem();
           break;
-        case 3:
-          this->_messageMenu();
+        case CONTEXT_MAINMENU:
+          this->_mainMenu();
           break;
-        case 2:
+        case CONTEXT_SETTINGS:
           this->_settingsMenu();
           break;
-        case 1:
-          this->_mainMenu();
+        case CONTEXT_PLAINTEXT_MESSAGING:
+          this->_plaintextMessageMenu();
+          break;
+        case CONTEXT_CIPHERTEXT_MESSAGING:
+          break;
+        case CONTEXT_KEYSHARING:
           break;
         default:
           this->_login();

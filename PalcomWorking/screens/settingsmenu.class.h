@@ -128,34 +128,6 @@ class PalcomSettingsMenu : public PalcomScreen{
 			callSignInput.setStyle(defaultTextInputStyle.getStyle());
 			this->execute();
 
-      			/*pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 90);
-      			pLabel.setText("Callsign: ");
-			this->execute();
-      			PalcomTextarea callsign;
-      			callsign.createGlobal(screen, 1);
-      			callsign.setCursorClickPos(false);
-      			callsign.setTextSelection(false);
-      			callsign.setSize(150, 23);
-      			callsign.setText(pfs.getCallsign());
-      			callsign.setMaxLength(18);
-      			callsign.setOneLine(true);
-      			callsign.setAlignment(LV_ALIGN_TOP_MID, 15, 83);
-			this->execute();
-      			settings.create(screen);
-			defaultButtonStyle.initStyle();
-                        settings.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
-      			settings.setSizeRaw(60, 50);
-      			pLabel.create(settings.getObj());
-      			pLabel.setText("Update");
-      			pLabel.center();
-      			settings.setLabel(pLabel);
-      			settings.setSimpleCallback(Settingsmenu_setCallsign);
-      			settings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, 255,  50);
-			this->execute();*/
-
 			// Username Input
 
 			// Password Input

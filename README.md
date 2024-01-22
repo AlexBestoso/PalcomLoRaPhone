@@ -14,5 +14,6 @@
 <li>Added a popup messaging system for errors and information.</li>
 <li>Added a new gui system for creating text inputs</li>
 <li>Updated the settings GUI to use the new gui system.</li>
-<li>Moved unencrypted messaging into it's own page/app</li>
+<li>Moved unencrypted messaging into it's own page/app<./li>
+<li>Moved keysharing functionality into it's own page/app.</li>
 <ol>

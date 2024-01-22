@@ -19,6 +19,7 @@ class PalcomCore{
       loginScreen.resetPage();
       palcomSetup.resetPage();
       mainMenu.resetPage();
+      palcomKeySharing.resetPage();
       lv_task_handler();
     }
 
@@ -50,6 +51,13 @@ class PalcomCore{
       viewContext = palcomPlaintextMessaging.run();
       if(viewContext != CONTEXT_PLAINTEXT_MESSAGING){
          _resetAllPages(viewContext);
+      }
+    }
+
+    void _keyShareMenu(void){
+      viewContext = palcomKeySharing.run();
+      if(viewContext != CONTEXT_KEYSHARING){
+        _resetAllPages(viewContext);
       }
     }
 
@@ -142,6 +150,7 @@ class PalcomCore{
         case CONTEXT_CIPHERTEXT_MESSAGING:
           break;
         case CONTEXT_KEYSHARING:
+          this->_keyShareMenu();
           break;
         default:
           this->_login();

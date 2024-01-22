@@ -4,7 +4,7 @@
 #include "./radio.class.h"
 
 #include "./mainmenu.class.h"
-//#include "./messaging.class.h" // Depreciated
+#include "./keySharing.class.h"
 #include "./plaintextMessaging.class.h"
 #include "./loginScreen.h"
 #include "./settingsmenu.class.h"

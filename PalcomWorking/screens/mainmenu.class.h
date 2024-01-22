@@ -22,6 +22,12 @@ class PalcomMainMenu : public PalcomScreen{
         			return;
       			mainMenu_contextControl = 3;
     		}
+
+		static void Mainmenu_handleKeyshareButton(lv_event_t *e){
+			if(lv_event_get_code(e) != LV_EVENT_CLICKED)
+				return;
+			mainMenu_contextControl = 5;
+		}
   	
 	public:
   		void generateObjects(void){
@@ -62,8 +68,23 @@ class PalcomMainMenu : public PalcomScreen{
     			pLabel.center();
     			messages.setLabel(pLabel);
     			messages.setSimpleCallback(Mainmenu_handleMessagesButton);
-    			messages.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, 20,  100+70);
+    			messages.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20,  100+70);
 			this->execute();
+
+			// Create Keyshare Button
+                        PalcomImageButton keyshare;
+                        keyshare.create(screen);
+                        defaultButtonStyle.initStyle();
+                        keyshare.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
+                        keyshare.setButtonImage(NULL, &MessageIcon, NULL);
+                        keyshare.setSizeRaw(100, 100);
+                        pLabel.create(keyshare.getObj());
+                        pLabel.setText("Keyshare");
+                        pLabel.center();
+                        keyshare.setLabel(pLabel);
+                        keyshare.setSimpleCallback(Mainmenu_handleKeyshareButton);
+                        keyshare.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20+100+10,  100+70);
+                        this->execute();
 
     			// Create Logout Button
     			PalcomImageButton logout;
@@ -114,6 +135,13 @@ class PalcomMainMenu : public PalcomScreen{
       				this->setBuildRequired(true);
       				return 3; // Messages
     			}
+
+			if(mainMenu_contextControl == 5){
+				this->globalDestroy();
+                                this->destroy();
+                                this->setBuildRequired(true);
+                                return 5; // Keyshare
+			}
    			return 1;
   		}
 }mainMenu;

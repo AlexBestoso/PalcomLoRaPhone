@@ -1,27 +1,4 @@
-int Messaging_pageContext = 0;
-lv_obj_t *Messageing_generalRecvText = NULL;
-lv_obj_t *Messageing_generalSendText = NULL;
-
-int selectedHash = -1;
-int selectedFriend = -1;
-int activeTab = 0;
-char friendHash[33];
-char selectedFriendName[128];
-
-void getFriendHash(void){
-    	PalcomFS pfs;
-	pfs.clearCompBuffer();
-    	const char *friendHashFileName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
-    	sprintf((char *)fileData, "%s/%s/hash", pfs_dir_friends, friendHashFileName);
-    	File friendHashFile = SD.open((const char *)fileData, FILE_READ);
-    	size_t keySize = friendHashFile.size();
-    	//for(int i=0; i<33; i++)
-      	//	compBuffer[i] = 0;
-    	friendHashFile.read((uint8_t *)compBuffer, keySize);
-    	friendHashFile.close();
-    	for(int i=0; i<33; i++)
-      		friendHash[i] = compBuffer[i];
-}
+int ptm_pageContext = 0;
 
 class PalcomPlaintextMessaging: public PalcomScreen{
 	private:
@@ -56,18 +33,16 @@ class PalcomPlaintextMessaging: public PalcomScreen{
       				Serial.printf("No message, not sending.\n");
       				return;
     			}
-    			//palcomRadio.sendPublicMessage(msg);
 			palcomRadio.sendQueueAdd((char *)msg.c_str(), msg.size(), palcomRadio.publicCode_int);
 			palcomRadio.appendGeneralMessage(msg, false);
     			pTextarea.setText("");
   		}
 
-  		static void Messaging_handleHomepage(lv_event_t *e){
-    			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-      				return;
-
-    			Messaging_pageContext = 1;
-  		}
+		static void Messaging_handleHomepage(lv_event_t *e){
+                        if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+                                return;
+                        ptm_pageContext = 1;
+                }
 
   		void mainView(){
     			lv_obj_t *screen = this->getScreen();
@@ -134,14 +109,10 @@ class PalcomPlaintextMessaging: public PalcomScreen{
 
 	public:
  		PalcomPlaintextMessaging(){
-    			selectedHash = -1;
   		}
   		void resetPage(void) {
     			this->setBuildRequired(true);
-    			Messaging_pageContext = 0;
-    			selectedFriend = -1;
-    			selectedHash = -1;
-    			activeTab = 0;
+    			ptm_pageContext = 0;
     			this->globalDestroy();
     			this->destroy();
 			firstRun = true;
@@ -165,7 +136,7 @@ class PalcomPlaintextMessaging: public PalcomScreen{
     	
 			lv_task_handler();
 	
-    			if (Messaging_pageContext <= 0) {
+    			if (ptm_pageContext <= 0) {
       				if ((millis() - msgCheckTimer) > ((1000 * 60)) || newPacketReceived) {
 					size_t ledgerSize = getPublicMsgSize();
         	  			if (ledgerSize != lastPublicSize || newPacketReceived) {
@@ -195,7 +166,7 @@ class PalcomPlaintextMessaging: public PalcomScreen{
       				}
     			}
 
-    			if(Messaging_pageContext == 1){
+    			if(ptm_pageContext == 1){
       				resetPage();
       				return 1;
     			}

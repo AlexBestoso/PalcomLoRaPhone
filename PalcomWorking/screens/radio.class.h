@@ -237,7 +237,6 @@ class PalcomRadio{
     		}
 
     		void processKeyshareMessage(){
-			Serial.printf("Processing keyshare message.\n");
       			if(radioPacket == NULL){
         			return;
       			}
@@ -298,7 +297,6 @@ class PalcomRadio{
     		}
 
 		void finalizeKeyShare(unsigned char *buf, size_t size){
-			Serial.printf("Finalizing keyshare, %ld bytes\n", size);
 			PalcomFS pfs;
 			// Error handling.
 			if(size <= 33){
@@ -328,6 +326,7 @@ class PalcomRadio{
                         hashFile.write((const uint8_t *)compBuffer, size-33);
                         hashFile.close();
                         Serial.printf("Received and stored a public key to %s: (%ld) %s\n", tmpName, size-33, shaHash);
+			newPacketReceived = true;
 		}
 
 		/*
@@ -676,10 +675,6 @@ class PalcomRadio{
 		        		        			break;
 		        		      			case __RECV_CODE_KEYSHARE:
 									Serial.printf("Received keyshare message(%ld)\n", numBytes);
-									Serial.printf("Debug:\n\t");
-									for(int i=0; i<numBytes; i++){
-										Serial.printf("%c ", recvBuffer[i]);
-									}Serial.printf("\n");
 		        		        			processKeyshareMessage();
 		        		        			break;
 		        		      			case __RECV_CODE_ENCRYPTED:

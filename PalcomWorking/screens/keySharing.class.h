@@ -77,8 +77,10 @@ class PalcomKeySharing: public PalcomScreen{
     			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       				return;
 
+			Serial.printf("Approving friend key.\n");
     			PalcomFS pfs;
     			if(pfs.getFilenameByPos(selectedHash, pfs_dir_requests) == NULL){
+				Serial.printf("\tFailed to identify selected hash...\n");
       				return;
     			}
 
@@ -133,7 +135,6 @@ class PalcomKeySharing: public PalcomScreen{
 		void populateHashBuffer(void){
 			if(SD.exists(pfs_dir_requests)){
                                 File root = SD.open(pfs_dir_requests);
-                                int buttonSpacing = 60;
                                 buttonCount = 0;
                                 while(true){
                                         if(buttonCount > 25){
@@ -156,6 +157,7 @@ class PalcomKeySharing: public PalcomScreen{
     			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       				return;
     			
+			Serial.printf("Denying key.\n");
 			if(SD.exists(pfs_dir_requests)){
       				int buttonCount = 0;
       				File root = SD.open(pfs_dir_requests);
@@ -172,6 +174,7 @@ class PalcomKeySharing: public PalcomScreen{
           					break;
         				}
         				node.close(); 
+					buttonCount++;
       				}
       				root.close();
     			}
@@ -234,7 +237,7 @@ class PalcomKeySharing: public PalcomScreen{
                                         pLabel.setText(hashText[i].c_str());
                                         pLabel.center();
                                         pButton.setLabel(pLabel);
-                                        hashBuffer[buttonCount] = buttonCount;
+                                        hashBuffer[i] = i;
                                         pButton.setValuedCallback(Messaging_handleReceivedKey, &hashBuffer[buttonCount]);
                                         pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, -5, 60+(buttonSpacing*buttonCount));    
                                         this->execute();
@@ -259,6 +262,8 @@ class PalcomKeySharing: public PalcomScreen{
 	    		tabMenu.addTab(0, "Key Share");
     
 	    		pButton.create(tabMenu.getTab(0));
+			defaultButtonStyle.init();
+                        pButton.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
 	    		pButton.setSize(30, 30);
 	    		pLabel.create(pButton.getObj());
 	    		pLabel.setText("Approve");
@@ -268,6 +273,8 @@ class PalcomKeySharing: public PalcomScreen{
     			pButton.setRelativeAlignment(LV_ALIGN_TOP_MID, 25, 0);
 
 	    		pButton.create(tabMenu.getTab(0)); 
+			defaultButtonStyle.init();
+                        pButton.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
 	    		pButton.setSize(30, 30);
 	    		pLabel.create(pButton.getObj());
 	    		pLabel.setText("Deny");
@@ -289,6 +296,7 @@ class PalcomKeySharing: public PalcomScreen{
     			selectedFriend = -1;
     			selectedHash = -1;
 			pks_fetchHashes = true;
+			buttonCount = 0;
     			this->globalDestroy();
     			this->destroy();
   		}
@@ -307,6 +315,7 @@ class PalcomKeySharing: public PalcomScreen{
   		int run(void) {
     			if (this->getBuildRequired()){
 				if(pks_fetchHashes){
+					Serial.printf("Refreshing received key list.\n");
 					populateHashBuffer();
 					pks_fetchHashes = false;
 				}
@@ -317,15 +326,14 @@ class PalcomKeySharing: public PalcomScreen{
     	
 			this->execute();
 	
-    			if (Messaging_pageContext <= 5) {
-      				if (newPacketReceived) {
-        	   			this->globalDestroy();
-        	   			this->destroy();
-        	   			lv_task_handler();
-        	   			this->setBuildRequired(true);
-        				newPacketReceived = false;
-      				}
-    			}
+      			if (newPacketReceived) {
+        	   		this->globalDestroy();
+        	   		this->destroy();
+        	   		this->setBuildRequired(true);
+        			newPacketReceived = false;
+				if(selectedHash == -1)
+					pks_fetchHashes = true;
+      			}
 
     			if(Messaging_pageContext == 1){
       				resetPage();

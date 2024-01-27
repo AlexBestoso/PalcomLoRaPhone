@@ -20,6 +20,7 @@ class PalcomCore{
       palcomSetup.resetPage();
       mainMenu.resetPage();
       palcomKeySharing.resetPage();
+      palcomEncryptedMessaging.resetPage();
       lv_task_handler();
     }
 
@@ -50,7 +51,14 @@ class PalcomCore{
     void  _plaintextMessageMenu(void){
       viewContext = palcomPlaintextMessaging.run();
       if(viewContext != CONTEXT_PLAINTEXT_MESSAGING){
-         _resetAllPages(viewContext);
+        _resetAllPages(viewContext);
+      }
+    }
+
+    void _encryptedMessageMenu(void){
+      viewContext = palcomEncryptedMessaging.run();
+      if(viewContext != CONTEXT_CIPHERTEXT_MESSAGING){
+        _resetAllPages(viewContext);
       }
     }
 
@@ -148,6 +156,7 @@ class PalcomCore{
           this->_plaintextMessageMenu();
           break;
         case CONTEXT_CIPHERTEXT_MESSAGING:
+          this->_encryptedMessageMenu();
           break;
         case CONTEXT_KEYSHARING:
           this->_keyShareMenu();

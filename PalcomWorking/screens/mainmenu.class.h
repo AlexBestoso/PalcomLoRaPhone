@@ -23,6 +23,13 @@ class PalcomMainMenu : public PalcomScreen{
       			mainMenu_contextControl = 3;
     		}
 
+		static void Mainmenu_handleEncryptedMessagesButton(lv_event_t *e){
+                        if (lv_event_get_code(e) != LV_EVENT_CLICKED)
+                                return;
+			Serial.printf("Switching to encrypted page.\n");
+                        mainMenu_contextControl = 4;
+                }
+
 		static void Mainmenu_handleKeyshareButton(lv_event_t *e){
 			if(lv_event_get_code(e) != LV_EVENT_CLICKED)
 				return;
@@ -86,6 +93,21 @@ class PalcomMainMenu : public PalcomScreen{
                         keyshare.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20+100+10,  100+70);
                         this->execute();
 
+			// Create Encrypted Button
+                        PalcomImageButton encrypted;
+                        encrypted.create(screen);
+                        defaultButtonStyle.initStyle();
+                        encrypted.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
+                        encrypted.setButtonImage(NULL, &MessageIcon, NULL);
+                        encrypted.setSizeRaw(100, 100);
+                        pLabel.create(keyshare.getObj());
+                        pLabel.setText("Encrypted");
+                        pLabel.center();
+                        encrypted.setLabel(pLabel);
+                        encrypted.setSimpleCallback(Mainmenu_handleEncryptedMessagesButton);
+                        encrypted.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20+125, 55);
+                        this->execute();
+
     			// Create Logout Button
     			PalcomImageButton logout;
     			logout.create(screen);
@@ -135,6 +157,13 @@ class PalcomMainMenu : public PalcomScreen{
       				this->setBuildRequired(true);
       				return 3; // Messages
     			}
+
+			if(mainMenu_contextControl == 4){
+                                this->globalDestroy();
+                                this->destroy();
+                                this->setBuildRequired(true);
+                                return 4; // Encrypted
+                        }
 
 			if(mainMenu_contextControl == 5){
 				this->globalDestroy();

@@ -108,9 +108,54 @@ class PalcomMessage : public PalcomObject{
 			pLabel.setText(msg);
 		}
 
-		void loadEncryptedMessages(int friendIndex){
-			createMessage(0, false, 0x888, "Joe:\nniggers.");
-			createMessage(1, true, 0x222, "Me:\n>:(");
+		void loadEncryptedMessages(string friendHash){
+			Serial.printf("Loadnig friend messages...\n");
+			PalcomFS pfs;
+			pfs.clearFileBuffer();
+			size_t pubMsgSize = pfs.getFriendMessages(friendHash); // public messages stored in fileData
+			pfs.clearCompBuffer();
+			Serial.printf("Message Size : %ld\n", pubMsgSize);
+			int msgIndex =0;
+			bool mine = false;
+			uint32_t color = 0x555;
+			size_t messageSize = 0;
+			bool found = false;
+			for(int i=0;i<pubMsgSize && i <__GLOBAL_BUFFER_SIZE; i++){
+				if(i >= pubMsgSize){
+					break;
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_START || fileData[i] == (char)MESSAGE_REMOTE_START){
+					found = true;
+					continue;
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_END || fileData[i] == (char)MESSAGE_REMOTE_END){
+					if(fileData[i] == (char)MESSAGE_LOCAL_END){
+						mine = true;
+						color = 0x222;
+					}else{
+						mine = false;
+						color = 0x888;
+					}
+
+					Serial.printf("creating message.\n");
+					createMessage(msgIndex, mine, color, (const char *)compBuffer);
+					lv_task_handler();
+					messageSize = 0;
+					msgIndex++;
+					found = false;
+					pfs.clearCompBuffer();
+					// End of message.
+				}else if(found){
+					compBuffer[messageSize] = fileData[i];
+					messageSize++;
+				}
+			}
+			if(messageSize > 0){
+				compBuffer[messageSize+2] = 0x0;
+				createMessage(msgIndex, mine, color, (const char *)compBuffer);
+                                lv_task_handler();
+			}
+
+			lv_obj_scroll_to_y(this->objectBackground, LV_COORD_MAX, LV_ANIM_OFF);
+                        lv_task_handler();
 		}
 
 		void loadGeneralMessages(void){

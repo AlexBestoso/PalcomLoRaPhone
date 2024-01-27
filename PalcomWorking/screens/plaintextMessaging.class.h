@@ -96,7 +96,7 @@ class PalcomPlaintextMessaging: public PalcomScreen{
                         messageSendInput.setStyle(defaultTextInputStyle.getStyle());
                         this->execute();
 
-			PalcomImageButton backButton;;
+			PalcomImageButton backButton;
                         backButton.create(screen);
                         defaultImagebuttonStyle.init();
                         backButton.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
@@ -140,11 +140,6 @@ class PalcomPlaintextMessaging: public PalcomScreen{
       				if ((millis() - msgCheckTimer) > ((1000 * 60)) || newPacketReceived) {
 					size_t ledgerSize = getPublicMsgSize();
         	  			if (ledgerSize != lastPublicSize || newPacketReceived) {
-						if(newPacketReceived){
-							Serial.printf("DEBUG : Resetting because new packet\n");
-						}else{
-							Serial.printf("DEBUG : Change in message log size. (%ld vs %ld)\n", ledgerSize, lastPublicSize);
-						}
 						// Check for text input to ensure user doesn't lose the
 						// message they're typing
 						PalcomTextarea grabber;

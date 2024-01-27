@@ -1,26 +1,7 @@
-int Messaging_pageContext = 0;
-lv_obj_t *Messageing_generalRecvText = NULL;
-lv_obj_t *Messageing_generalSendText = NULL;
+int pks_pageContext = 0;
 
 int selectedHash = -1;
-int selectedFriend = -1;
-char friendHash[33];
 char selectedFriendName[128];
-
-void getFriendHash(void){
-    	PalcomFS pfs;
-	pfs.clearCompBuffer();
-    	const char *friendHashFileName = pfs.getFilenameByPos(selectedFriend, pfs_dir_friends);
-    	sprintf((char *)fileData, "%s/%s/hash", pfs_dir_friends, friendHashFileName);
-    	File friendHashFile = SD.open((const char *)fileData, FILE_READ);
-    	size_t keySize = friendHashFile.size();
-    	//for(int i=0; i<33; i++)
-      	//	compBuffer[i] = 0;
-    	friendHashFile.read((uint8_t *)compBuffer, keySize);
-    	friendHashFile.close();
-    	for(int i=0; i<33; i++)
-      		friendHash[i] = compBuffer[i];
-}
 
 bool pks_fetchHashes=true;
 
@@ -70,14 +51,13 @@ class PalcomKeySharing: public PalcomScreen{
   		static void Messaging_handleHomepage(lv_event_t *e){
     			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       				return;
-    			Messaging_pageContext = 1;
+    			pks_pageContext = 1;
   		}
 
   		static void Messaging_handleApproveKey(lv_event_t *e){
     			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
       				return;
 
-			Serial.printf("Approving friend key.\n");
     			PalcomFS pfs;
     			if(pfs.getFilenameByPos(selectedHash, pfs_dir_requests) == NULL){
 				Serial.printf("\tFailed to identify selected hash...\n");
@@ -292,8 +272,7 @@ class PalcomKeySharing: public PalcomScreen{
   		}
   		void resetPage(void) {
     			this->setBuildRequired(true);
-    			Messaging_pageContext = 0;
-    			selectedFriend = -1;
+    			pks_pageContext = 0;
     			selectedHash = -1;
 			pks_fetchHashes = true;
 			buttonCount = 0;
@@ -315,7 +294,6 @@ class PalcomKeySharing: public PalcomScreen{
   		int run(void) {
     			if (this->getBuildRequired()){
 				if(pks_fetchHashes){
-					Serial.printf("Refreshing received key list.\n");
 					populateHashBuffer();
 					pks_fetchHashes = false;
 				}
@@ -335,7 +313,7 @@ class PalcomKeySharing: public PalcomScreen{
 					pks_fetchHashes = true;
       			}
 
-    			if(Messaging_pageContext == 1){
+    			if(pks_pageContext == 1){
       				resetPage();
       				return 1;
     			}

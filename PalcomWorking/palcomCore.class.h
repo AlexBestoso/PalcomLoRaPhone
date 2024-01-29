@@ -1,3 +1,11 @@
+#define CONTEXT_SETUP -1
+#define CONTEXT_LOGIN 0
+#define CONTEXT_MAINMENU 1
+#define CONTEXT_SETTINGS 2
+#define CONTEXT_PLAINTEXT_MESSAGING 3
+#define CONTEXT_CIPHERTEXT_MESSAGING 4
+#define CONTEXT_KEYSHARING 5
+
 class PalcomCore{
   private:
     int viewContext = -1;
@@ -6,44 +14,64 @@ class PalcomCore{
 
     void _resetAllPages(int maintain=0){
       viewContext = maintain;
-      palcomMessaging.resetPage();
+      palcomPlaintextMessaging.resetPage();
       settingsMenu.resetPage();
       loginScreen.resetPage();
       palcomSetup.resetPage();
+      mainMenu.resetPage();
+      palcomKeySharing.resetPage();
+      palcomEncryptedMessaging.resetPage();
+      lv_task_handler();
     }
 
     bool _processRecv(){
+      lv_task_handler();
       return palcomRadio.recvMessage();
     }
 
     void _processSend(){
+      lv_task_handler();
       palcomRadio.sendQueue();
     }
 
     void _login(void){
       if(loginScreen.run()){
-        viewContext = 1;
+        viewContext = CONTEXT_MAINMENU;
         _resetAllPages(viewContext);
       }
     }
 
     void _mainMenu(void){
       viewContext = mainMenu.run();
-      if(viewContext != 1){
+      if(viewContext != CONTEXT_MAINMENU){
         _resetAllPages(viewContext);
       }
     }
 
-    void  _messageMenu(void){
-      viewContext = palcomMessaging.run();
-      if(viewContext != 3){
-         _resetAllPages(viewContext);
+    void  _plaintextMessageMenu(void){
+      viewContext = palcomPlaintextMessaging.run();
+      if(viewContext != CONTEXT_PLAINTEXT_MESSAGING){
+        _resetAllPages(viewContext);
+      }
+    }
+
+    void _encryptedMessageMenu(void){
+      viewContext = palcomEncryptedMessaging.run();
+      if(viewContext != CONTEXT_CIPHERTEXT_MESSAGING){
+        _resetAllPages(viewContext);
+      }
+    }
+
+    void _keyShareMenu(void){
+      viewContext = palcomKeySharing.run();
+      if(viewContext != CONTEXT_KEYSHARING){
+        _resetAllPages(viewContext);
       }
     }
 
     void _settingsMenu(void){
       viewContext = settingsMenu.run();
-      if(viewContext != 2){
+      if(viewContext != CONTEXT_SETTINGS){
         _resetAllPages(viewContext);
       }
     }
@@ -51,9 +79,12 @@ class PalcomCore{
   public:
     void initSystem(){
       viewContext = palcomSetup.run();
-      _resetAllPages(viewContext);
-      PalcomFS pfs; 
-      pfs.rm(pfs_folder_recvQueue);
+      if(viewContext != -1){
+        _resetAllPages(viewContext);
+        PalcomFS pfs;
+        pfs.rm(pfs_folder_recvQueue);
+        pfs.rm(pfs_folder_sendQueue);
+      }
     }
 
     void screenSleep(){
@@ -76,35 +107,64 @@ class PalcomCore{
       }
     }
 
+    void lockScreen(){
+      screenLockConditionSpace = false;
+      screenLockConditionBall = false;
+      Sleep_interactionCtx = 2;
+      Sleep_timer = millis();
+      Sleep_brightness = 0;
+      viewContext = (viewContext == -1) ? -1 : 0;
+      analogWrite(BOARD_TFT_BACKLIGHT, 0);
+      _resetAllPages();
+    }
+
     int sendTimerMax = 20000;
     int sendTimer = sendTimerMax;
     void contextSwitch(void){
-      sendTimer--;
-      this->screenSleep();
-      if(sendTimer > 0){
-        if(this->_processRecv())
-          sendTimer = 0;
-      }else if(sendTimer <= 0){
-        this->_processSend();
-        sendTimer = sendTimerMax;
-      }
+      if(screenLockConditionBall && screenLockConditionSpace)
+        this->lockScreen();
       
+      if(viewContext != -1){
+        sendTimer--;
+        this->screenSleep();
+        lv_task_handler();
+        if(sendTimer > 0){
+          if(this->_processRecv())
+            sendTimer = 0;
+          lv_task_handler();
+        }else if(sendTimer <= 0){
+          this->_processSend();
+          lv_task_handler();
+          sendTimer = sendTimerMax;
+        }
+      }else{
+        delay(1);
+        lv_task_handler();
+      }
+
       switch(viewContext){
-        case -1:
-          initSystem();
+        case CONTEXT_SETUP:
+          this->initSystem();
           break;
-        case 3:
-          this->_messageMenu();
+        case CONTEXT_MAINMENU:
+          this->_mainMenu();
           break;
-        case 2:
+        case CONTEXT_SETTINGS:
           this->_settingsMenu();
           break;
-        case 1:
-          this->_mainMenu();
+        case CONTEXT_PLAINTEXT_MESSAGING:
+          this->_plaintextMessageMenu();
+          break;
+        case CONTEXT_CIPHERTEXT_MESSAGING:
+          this->_encryptedMessageMenu();
+          break;
+        case CONTEXT_KEYSHARING:
+          this->_keyShareMenu();
           break;
         default:
           this->_login();
           break;
       }
+      lv_task_handler();
     }
 }palcomCore;

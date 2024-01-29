@@ -237,7 +237,6 @@ class PalcomRadio{
     		}
 
     		void processKeyshareMessage(){
-			Serial.printf("Processing keyshare message.\n");
       			if(radioPacket == NULL){
         			return;
       			}
@@ -298,7 +297,6 @@ class PalcomRadio{
     		}
 
 		void finalizeKeyShare(unsigned char *buf, size_t size){
-			Serial.printf("Finalizing keyshare, %ld bytes\n", size);
 			PalcomFS pfs;
 			// Error handling.
 			if(size <= 33){
@@ -328,6 +326,7 @@ class PalcomRadio{
                         hashFile.write((const uint8_t *)compBuffer, size-33);
                         hashFile.close();
                         Serial.printf("Received and stored a public key to %s: (%ld) %s\n", tmpName, size-33, shaHash);
+			newPacketReceived = true;
 		}
 
 		/*
@@ -413,19 +412,15 @@ class PalcomRadio{
                         res.close();
 			SD.remove(pfs_file_cryptRecv);
 
-			// Write packet to msgLog
-			Serial.printf("Populating message log with the text : %s\n", (const char *)compBuffer);
-                        if(!SD.exists(tmpName)){
-                                        pfs.fileAppend(tmpName, (uint8_t *)compBuffer, messageSize);
-                        }else{
-                                File msgFile = SD.open(tmpName, FILE_READ);
-                                size_t msgFileSize = msgFile.size();
-                                msgFile.close();
-                                if(msgFileSize > 100000)
-                                        SD.remove(tmpName);
+			// Prevent memory corruption.
+			pfs.clearFileBuffer();
+			for(int i=0; i<messageSize; i++){
+				fileData[i] = compBuffer[i];
+			}
 
-                                pfs.fileAppend(tmpName, (uint8_t *)compBuffer, messageSize);
-                        }
+			// Write packet to msgLog
+			Serial.printf("Populating message log with the text : %s\n", (const char *)fileData);
+			this->appendFriendMessage(tmpName, (const char *)fileData, true);
 		}
 
     		void processEncryptedMessage(void){
@@ -676,10 +671,6 @@ class PalcomRadio{
 		        		        			break;
 		        		      			case __RECV_CODE_KEYSHARE:
 									Serial.printf("Received keyshare message(%ld)\n", numBytes);
-									Serial.printf("Debug:\n\t");
-									for(int i=0; i<numBytes; i++){
-										Serial.printf("%c ", recvBuffer[i]);
-									}Serial.printf("\n");
 		        		        			processKeyshareMessage();
 		        		        			break;
 		        		      			case __RECV_CODE_ENCRYPTED:
@@ -746,6 +737,42 @@ class PalcomRadio{
     			}
   		}
 
+		void appendFriendMessage(string msgLogPath, string msg, bool external=false){
+                	PalcomFS pfs;
+                	if(!SD.exists(pfs_dir_public)){
+                	        SD.mkdir(pfs_dir_public);
+                	}
+                	size_t msgSize = msg.length();
+                	pfs.clearCompBuffer();
+                	if(!external){
+                	        compBuffer[0] = MESSAGE_LOCAL_START;
+                	        for(int i=0; i<msgSize; i++){
+                	                if(i+1 >= __GLOBAL_BUFFER_SIZE){
+                	                        break;
+                	                }
+                	                compBuffer[i+1] = msg[i];
+                	        }
+                	        int pos = (msgSize + 2 >= __GLOBAL_BUFFER_SIZE) ? __GLOBAL_BUFFER_SIZE-1 : msgSize+1;
+                	        compBuffer[pos] = MESSAGE_LOCAL_END;
+                	}else{
+                	        compBuffer[0] = MESSAGE_REMOTE_START;
+                	        for(int i=0; i<msgSize; i++){
+                	                if(i+1 >= __GLOBAL_BUFFER_SIZE){
+                	                        break;
+                	                }
+                	                compBuffer[i+1] = msg[i];
+                	        }
+                	        int pos = (msgSize + 2 >= __GLOBAL_BUFFER_SIZE) ? __GLOBAL_BUFFER_SIZE-1 : msgSize+1;
+                	        compBuffer[pos] = MESSAGE_REMOTE_END;
+                	}
+
+                	if(msgSize > 0){
+                	        Serial.printf("Appending to friend log '%s'\n", msgLogPath.c_str());
+                	        pfs.fileAppend(msgLogPath.c_str(), (uint8_t *)compBuffer, msgSize+2);
+                	        newPacketReceived = true;
+                	}
+        	}
+	
   	void appendGeneralMessage(string msg, bool external=false){
 		PalcomFS pfs;
 	  	if(!SD.exists(pfs_dir_public)){

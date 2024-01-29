@@ -36,6 +36,17 @@ class PalcomFS{
     return ret;
   }
 
+  size_t getFriendMessages(string friendHash){
+    clearFileBuffer();
+    sprintf((char *)compBuffer, "%s/%s/msgLog", pfs_dir_friends, friendHash.c_str());
+    Serial.printf("Loading messages from file '%s'", compBuffer);
+    fd = SD.open(compBuffer, FILE_READ);
+    fd.read(fileData, fd.size());
+    size_t ret = fd.size();
+    fd.close();
+    return ret;
+  }
+
   void deleteRootKeyPair(void){
     if(SD.exists(pfs_file_keysPublic))
       SD.remove(pfs_file_keysPublic);
@@ -186,6 +197,13 @@ class PalcomFS{
   void clearCompBuffer(void){
     for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++)
       compBuffer[i] = 0;
+  }
+
+  void clearAllBuffers(void){
+    for(int i=0; i<__GLOBAL_BUFFER_SIZE; i++){
+      compBuffer[i] = 0;
+      fileData[i] = 0;
+    }
   }
 
   void addToFiledata(char *buf, size_t bufSize){

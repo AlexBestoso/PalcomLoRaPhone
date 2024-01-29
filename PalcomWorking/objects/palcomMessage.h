@@ -5,13 +5,22 @@ typedef struct pal_message_struct{
 }pmsg_t;
 lv_style_t recievedMessage;
 lv_style_t sentMessage;
-class PalcomMessage{
+class PalcomMessage : public PalcomObject{
 	private:
 		lv_obj_t *objectBackground = NULL;
 		lv_obj_t *object = NULL;
     		int objectId = -1;
 		PalcomLabel pLabel;
+		
+		// New variables
+		PalcomButton loadMessagesButton;
+		
+		int maxMessages = 10;
 
+		int messageContainerW = 0;
+		int messageContainerH = 0;
+		int messageContainerX = 0;
+		int messageContainerY = 0;
 
 	public:
 		int backgroundW = 300;
@@ -37,6 +46,31 @@ class PalcomMessage{
 			this->objectBackground = lv_obj_create(parent);
 			lv_obj_set_size(this->objectBackground, backgroundW, backgroundH);
 			lv_obj_set_pos(this->objectBackground, backgroundX, backgroundY);
+		}
+
+		void create(lv_obj_t *parent){
+			this->generate(parent, pal_base);
+			this->setSize(this->messageContainerW, this->messageContainerH);
+			this->setAlignment(LV_ALIGN_OUT_TOP_LEFT, this->messageContainerX, this->messageContainerY);
+			lv_style_init(&recievedMessage);
+                        lv_style_set_bg_color(&recievedMessage, lv_color_hex(0xaaaaaa));
+			this->setDefaultStyle(&recievedMessage);
+		}
+
+		void setContainerW(int w){
+			this->messageContainerW = w;
+		}
+		
+		void setContainerH(int h){
+                	this->messageContainerH = h;
+		}
+		
+		void setContainerX(int x){
+                	this->messageContainerX = x;
+		}
+		
+		void setContainerY(int y){
+                	this->messageContainerY = y;
 		}
 
     		void create(){
@@ -74,9 +108,54 @@ class PalcomMessage{
 			pLabel.setText(msg);
 		}
 
-		void loadEncryptedMessages(int friendIndex){
-			createMessage(0, false, 0x888, "Joe:\nniggers.");
-			createMessage(1, true, 0x222, "Me:\n>:(");
+		void loadEncryptedMessages(string friendHash){
+			Serial.printf("Loadnig friend messages...\n");
+			PalcomFS pfs;
+			pfs.clearFileBuffer();
+			size_t pubMsgSize = pfs.getFriendMessages(friendHash); // public messages stored in fileData
+			pfs.clearCompBuffer();
+			Serial.printf("Message Size : %ld\n", pubMsgSize);
+			int msgIndex =0;
+			bool mine = false;
+			uint32_t color = 0x555;
+			size_t messageSize = 0;
+			bool found = false;
+			for(int i=0;i<pubMsgSize && i <__GLOBAL_BUFFER_SIZE; i++){
+				if(i >= pubMsgSize){
+					break;
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_START || fileData[i] == (char)MESSAGE_REMOTE_START){
+					found = true;
+					continue;
+				}else if(fileData[i] == (char)MESSAGE_LOCAL_END || fileData[i] == (char)MESSAGE_REMOTE_END){
+					if(fileData[i] == (char)MESSAGE_LOCAL_END){
+						mine = true;
+						color = 0x222;
+					}else{
+						mine = false;
+						color = 0x888;
+					}
+
+					Serial.printf("creating message.\n");
+					createMessage(msgIndex, mine, color, (const char *)compBuffer);
+					lv_task_handler();
+					messageSize = 0;
+					msgIndex++;
+					found = false;
+					pfs.clearCompBuffer();
+					// End of message.
+				}else if(found){
+					compBuffer[messageSize] = fileData[i];
+					messageSize++;
+				}
+			}
+			if(messageSize > 0){
+				compBuffer[messageSize+2] = 0x0;
+				createMessage(msgIndex, mine, color, (const char *)compBuffer);
+                                lv_task_handler();
+			}
+
+			lv_obj_scroll_to_y(this->objectBackground, LV_COORD_MAX, LV_ANIM_OFF);
+                        lv_task_handler();
 		}
 
 		void loadGeneralMessages(void){

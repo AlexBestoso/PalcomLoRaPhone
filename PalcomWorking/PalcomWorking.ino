@@ -49,7 +49,9 @@ using namespace ace_button;
 LV_IMG_DECLARE(palcomLogo)
 LV_IMG_DECLARE(LockIcon);
 LV_IMG_DECLARE(SettingsIcon);
-LV_IMG_DECLARE(MessageIcon);
+LV_IMG_DECLARE(Messagesymbol);
+LV_IMG_DECLARE(Keysharesymbol);
+LV_IMG_DECLARE(encryptionImage);
 LV_IMG_DECLARE(BackIcon);
 LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
 

@@ -68,14 +68,13 @@ class PalcomMainMenu : public PalcomScreen{
     			messages.create(screen);
 			defaultButtonStyle.initStyle();
                         messages.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-			messages.setButtonImage(NULL, &MessageIcon, NULL);
+			messages.setButtonImage(NULL, &Messagesymbol, NULL);
     			messages.setSizeRaw(100, 100);
-    			pLabel.create(messages.getObj());
-    			pLabel.setText("Messages");
-    			pLabel.center();
-    			messages.setLabel(pLabel);
+    		//	pLabel.create(messages.getObj());
+    		//	pLabel.setText("");
+    		//	messages.setLabel(pLabel);
     			messages.setSimpleCallback(Mainmenu_handleMessagesButton);
-    			messages.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20,  100+70);
+    			messages.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3, -103);
 			this->execute();
 
 			// Create Keyshare Button
@@ -83,14 +82,13 @@ class PalcomMainMenu : public PalcomScreen{
                         keyshare.create(screen);
                         defaultButtonStyle.initStyle();
                         keyshare.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-                        keyshare.setButtonImage(NULL, &MessageIcon, NULL);
+                        keyshare.setButtonImage(NULL, &Keysharesymbol, NULL);
                         keyshare.setSizeRaw(100, 100);
-                        pLabel.create(keyshare.getObj());
-                        pLabel.setText("Keyshare");
-                        pLabel.center();
-                        keyshare.setLabel(pLabel);
+                  //      pLabel.create(keyshare.getObj());
+                   //     pLabel.setText("");
+                    //    keyshare.setLabel(pLabel);
                         keyshare.setSimpleCallback(Mainmenu_handleKeyshareButton);
-                        keyshare.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20+100+10,  100+70);
+                        keyshare.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3+100+5, -103);
                         this->execute();
 
 			// Create Encrypted Button
@@ -98,14 +96,14 @@ class PalcomMainMenu : public PalcomScreen{
                         encrypted.create(screen);
                         defaultButtonStyle.initStyle();
                         encrypted.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-                        encrypted.setButtonImage(NULL, &MessageIcon, NULL);
+                        encrypted.setButtonImage(NULL, &encryptionImage, NULL);
                         encrypted.setSizeRaw(100, 100);
-                        pLabel.create(keyshare.getObj());
-                        pLabel.setText("Encrypted");
-                        pLabel.center();
-                        encrypted.setLabel(pLabel);
+                  //      pLabel.create(keyshare.getObj());
+                  //      pLabel.setText("");
+                  //      encrypted.setLabel(pLabel);
                         encrypted.setSimpleCallback(Mainmenu_handleEncryptedMessagesButton);
-                        encrypted.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, -20+125, 55);
+			// Bug in lvgl cayses this to get misaligned.
+                        encrypted.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3+(100*2)+(5*2), -103); 
                         this->execute();
 
     			// Create Logout Button

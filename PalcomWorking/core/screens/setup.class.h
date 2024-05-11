@@ -21,6 +21,12 @@ int systemSetup_contextControl = 0;
 
 class PalcomSetup : public PalcomScreen{
   	private:
+		PalcomPinpad pinpad;
+    		lv_obj_t *setup_cont = NULL;
+    		bool initalized = false;
+		bool loginFileExists = false;
+		string usrname = "";
+
     		/*
      		* Standard class functions.
      		*/
@@ -433,6 +439,11 @@ class PalcomSetup : public PalcomScreen{
       			data->state = getTouch(data->point.x, data->point.y) ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
     		}
 
+
+		/*
+		 * BOOP BOOP
+		 * Construction Staging
+		 * */
     		static void Setup_handleSubmit(lv_event_t *e){
       			if(lv_event_get_code(e) == LV_EVENT_RELEASED){
         			PalcomTextarea login_user;
@@ -491,6 +502,10 @@ class PalcomSetup : public PalcomScreen{
         			Setup_setupControl = 1;
       			}
     		}
+
+		/*
+		 * Staging End
+		 * */
     
     		void initPins(){
      			Serial.begin(115200);
@@ -583,7 +598,16 @@ class PalcomSetup : public PalcomScreen{
 	     		ret = setupRadio();
 
 			PalcomCrypto pcry;
-			pcry.generatePublicHash(true);
+			try{
+				pcry.generatePublicHash(true);
+			}catch(CoreException e){
+				if(e.errorCode() != 0x00){
+#ifdef DEBUG_OUTPUT == 1
+					Serial.printf("[%d] %s", e.errorCode(), e.what().c_str());
+#endif
+					e.log("PalcomSetup::finalInit");
+				}
+			}
 	    	}
 
 	    	void keygenView(){
@@ -682,13 +706,11 @@ class PalcomSetup : public PalcomScreen{
        	 		Setup_setupControl = 1;
     		}
 
-    		lv_obj_t *setup_cont = NULL;
-    		bool initalized = false;
-		bool loginFileExists = false;
-		string usrname = "";
 
 	public:
 	    	bool buildRequired = true;
+		bool showPinpad = true;
+		String errorMsg = "";
 
 	    	void generateObjects(void){
 			/*
@@ -706,7 +728,7 @@ class PalcomSetup : public PalcomScreen{
 				return;
       			}
 
-			displaySplash();
+			displaySplash(); // immage for while the system sets up.
 
 			/*
 			 * Check if we need to setup the system
@@ -731,27 +753,49 @@ class PalcomSetup : public PalcomScreen{
 			/*
 			 * Setup the context title
 			 * */
-      			PalcomLabel pLabel;
-      			pLabel.create(screen);
+      			//PalcomLabel pLabel;
+      			//pLabel.create(screen);
+			//this->execute();
+      			//pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
+      			//pLabel.setWidth(320);
+			//int err = getScreenError();
+      			//pLabel.setAlignment(LV_ALIGN_TOP_MID, 100, 8);
+	        	//pLabel.setText("Create A Passcode");
+			//this->execute();
+
+			/*
+			 * Pin Pad First Entry
+			 * */
+			if(pinpad.codeReady() && pinpad.transferReady()){
+				if(pinpad.compResults()){
+					Serial.printf("Valid Code provided\n");
+					showPinpad = false;
+				}else{
+					errorMsg = "Pins don't match\n";
+					pinpad.clearResult();
+					pinpad.clearEntry();
+				}
+			}
+			
+			if(showPinpad){
+				if(pinpad.codeReady() && !pinpad.transferReady()){
+					pinpad.transferResult();
+					pinpad.create(screen, "Confirm Passcode");
+				}else{
+					if(errorMsg == "")
+						pinpad.create(screen, "Create Passcode");
+					else
+						pinpad.create(screen, errorMsg.c_str());
+				}
+			}else{
+				Serial.printf("Configuring user data.\n");
+			}
 			this->execute();
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-			int err = getScreenError();
-			if(err == 1){
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 70, 8);
-	        		pLabel.setText("Passwords don't match.");
-			}else if(err == 0/*Setup_setupControl == 2*/ ){
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 100, 8);
-	        		pLabel.setText("Create New Account");
-      			}else{
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 70, 8);
-      				pLabel.setText("User And Password Required.");
-      			}
-			this->execute();
+
 
 			/*
 			 * Create username input
-			 * */
+			 * 
       			pLabel.create(screen);
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
@@ -778,7 +822,7 @@ class PalcomSetup : public PalcomScreen{
 
 			/*
 			 * Create password input
-			 * */
+			 *
       			pLabel.create(screen);
       			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
       			pLabel.setWidth(320);
@@ -801,7 +845,7 @@ class PalcomSetup : public PalcomScreen{
 
 			/*
 			 * Create confirm password input
-			 * */
+			 *
 			pLabel.create(screen);
                         pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
                         pLabel.setWidth(320);
@@ -825,7 +869,7 @@ class PalcomSetup : public PalcomScreen{
 
 			/*
 			 * Create Submit Button
-			 * */
+			 *
 
       			PalcomButton submit;
       			submit.create(screen);
@@ -840,7 +884,7 @@ class PalcomSetup : public PalcomScreen{
 			submit.setLabel(pLabel);
       			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 128);
       			submit.setSimpleCallback(Setup_handleSubmit);
-			this->execute();
+			this->execute();*/
     		}
 
     		void resetPage(){
@@ -862,6 +906,11 @@ class PalcomSetup : public PalcomScreen{
         			this->load();
       			}
       			this->execute();
+
+			if(pinpad.codeReady() && showPinpad){
+				this->setBuildRequired(true);
+				this->destroy();
+			}
 
 			/*
 			 * Handle the setup acount context.

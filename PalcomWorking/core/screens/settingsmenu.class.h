@@ -49,6 +49,76 @@ class PalcomSettingsMenu : public PalcomScreen{
                         }
                         PalcomScreenError = 999;
                 }
+
+		static void Settingsmenu_wiFiMenu(lv_event_t *e){
+			if(lv_event_get_code(e) != LV_EVENT_CLICKED){
+                                return;
+                        }
+
+			settings_context = CONTEXT_WIFI;
+			/*WiFi.mode(WIFI_STA);
+    			WiFi.disconnect();
+    			delay(100);
+
+			int n = WiFi.scanNetworks();
+    Serial.println("Scan done");
+    if (n == 0) {
+        Serial.println("no networks found");
+    } else {
+        Serial.print(n);
+        Serial.println(" networks found");
+        Serial.println("Nr | SSID                             | RSSI | CH | Encryption");
+        for (int i = 0; i < n; ++i) {
+            // Print SSID and RSSI for each network found
+            Serial.printf("%2d",i + 1);
+            Serial.print(" | ");
+            Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+            Serial.print(" | ");
+            Serial.printf("%4d", WiFi.RSSI(i));
+            Serial.print(" | ");
+            Serial.printf("%2d", WiFi.channel(i));
+            Serial.print(" | ");
+            switch (WiFi.encryptionType(i))
+            {
+            case WIFI_AUTH_OPEN:
+                Serial.print("open");
+                break;
+            case WIFI_AUTH_WEP:
+                Serial.print("WEP");
+                break;
+            case WIFI_AUTH_WPA_PSK:
+                Serial.print("WPA");
+                break;
+            case WIFI_AUTH_WPA2_PSK:
+                Serial.print("WPA2");
+                break;
+            case WIFI_AUTH_WPA_WPA2_PSK:
+                Serial.print("WPA+WPA2");
+                break;
+            case WIFI_AUTH_WPA2_ENTERPRISE:
+                Serial.print("WPA2-EAP");
+                break;
+            case WIFI_AUTH_WPA3_PSK:
+                Serial.print("WPA3");
+                break;
+            case WIFI_AUTH_WPA2_WPA3_PSK:
+                Serial.print("WPA2+WPA3");
+                break;
+            case WIFI_AUTH_WAPI_PSK:
+                Serial.print("WAPI");
+                break;
+            default:
+                Serial.print("unknown");
+            }
+            Serial.println();
+            delay(10);
+        }
+    }
+    Serial.println("");
+
+    // Delete the scan result to free memory for code below.
+    WiFi.scanDelete();*/
+		}
 		
   
 	public:
@@ -58,6 +128,7 @@ class PalcomSettingsMenu : public PalcomScreen{
       			PalcomFS pfs;
 			PalcomPopupMessage palpop;
 
+			// Establish screen descriptor
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
         			this->globalDestroy();
@@ -133,6 +204,20 @@ class PalcomSettingsMenu : public PalcomScreen{
 			// Password Input
 			
 			// Screen Sleep Input
+			
+			// WiFi Settings Link
+			PalcomButton wiFiSettings;
+			wiFiSettings.create(screen);
+			defaultButtonStyle.initStyle();
+			wiFiSettings.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
+			wiFiSettings.setSizeRaw(100, 75);
+			pLabel.create(wiFiSettings.getObj());
+				pLabel.setText("WiFi");
+				pLabel.center();
+			wiFiSettings.setLabel(pLabel);
+			wiFiSettings.setSimpleCallback(Settingsmenu_wiFiMenu);
+			wiFiSettings.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 0, 75);
+			this->execute();
 
       			// factory reset button
 			PalcomButton factoryReset;
@@ -141,8 +226,8 @@ class PalcomSettingsMenu : public PalcomScreen{
 			factoryReset.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
       			factoryReset.setSizeRaw(50, 50);
       			pLabel.create(factoryReset.getObj());
-      			pLabel.setText("reset");
-      			pLabel.center();
+      				pLabel.setText("reset");
+      				pLabel.center();
       			factoryReset.setLabel(pLabel);
       			factoryReset.setSimpleCallback(Settingsmenu_handleResetButton);
       			factoryReset.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_RIGHT, 275,  160);

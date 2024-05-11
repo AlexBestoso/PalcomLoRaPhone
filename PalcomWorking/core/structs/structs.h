@@ -1,0 +1,1 @@
+#include "./wifiSignal.struct.h"

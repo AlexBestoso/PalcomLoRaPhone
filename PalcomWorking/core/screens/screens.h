@@ -9,3 +9,4 @@
 #include "./encryptedMessaging.class.h"
 #include "./loginScreen.h"
 #include "./settingsmenu.class.h"
+#include "./wifiMenu.class.h"

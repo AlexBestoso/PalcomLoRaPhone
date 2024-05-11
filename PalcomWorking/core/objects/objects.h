@@ -13,3 +13,4 @@
 #include "./palcomPopupMessage.h"
 #include "./palcomMessage.h"
 #include "./palcomTextInput.h"
+#include "./palcomPinPad.h"

@@ -7,3 +7,4 @@
 #include "./defaultTextInputStyle.h"
 #include "./defaultTabmenuStyle.h"
 #include "./defaultMenuStyle.h"
+#include "./pinPadButton.style.h"

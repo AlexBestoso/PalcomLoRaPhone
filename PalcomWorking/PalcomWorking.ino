@@ -18,6 +18,8 @@
  *
  *      https://lvgl.io/tools/imageconverter
  */
+
+#define DEBUG_OUTPUT 1
 #include <Arduino.h>
 #include <SPI.h>
 #include <RadioLib.h>
@@ -28,13 +30,13 @@
 #include <Audio.h>
 #include <driver/i2s.h>
 #include <esp_vad.h>
+#include <WiFi.h>
 
 #define TOUCH_MODULES_GT911
 #include "TouchLib.h"
 #include "utilities.h"
 #include <AceButton.h>
 
-#include "PalcomFS.h"
 
 
 using namespace ace_button;
@@ -107,12 +109,10 @@ lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
 bool screenLockConditionSpace = false;
 bool screenLockConditionBall = false;
+
 // Palcom includes
-#include "tools/tools.h"
-#include "styles/styles.h"
-#include "objects/objects.h"
-#include "screens/screens.h"
-#include "palcomCore.class.h"
+#include "./PalcomWorking.h"
+//#include "palcomCore.class.h"
 
 bool setupCoder()
 {
@@ -406,7 +406,14 @@ void setup(){
 
 
 void loop(){
-  palcomCore.contextSwitch(); 
+  try{
+    palcomCore.contextSwitch(); 
+  }catch(CoreException e){
+#ifdef DEBUG_OUTPUT == 1
+    Serial.printf("[%d] %s", e.errorCode(), e.what().c_str());
+#endif
+    e.log("loop");
+  }
 }
 
 

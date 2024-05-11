@@ -34,12 +34,12 @@ class PalcomCrypto{
 
 		void generatePublicHash(bool regen=false){
   			if(!SD.exists(pfs_file_keysPublic)){
-    				return;
+    				throw CoreException("No Public Key Detected.", 0x00);
   			}
 
   			if(SD.exists(pfs_file_publicHash)){
     				if(!regen)
-     					return;
+     					throw CoreException("Not regenerating hash.", 0x00);
     				SD.remove(pfs_file_publicHash);
   			}
 	

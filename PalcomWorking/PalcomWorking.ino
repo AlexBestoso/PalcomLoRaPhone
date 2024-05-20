@@ -410,7 +410,7 @@ void loop(){
     palcomCore.contextSwitch(); 
   }catch(CoreException e){
 #ifdef DEBUG_OUTPUT == 1
-    Serial.printf("[%d] %s", e.errorCode(), e.what().c_str());
+    e.out();
 #endif
     e.log("loop");
   }

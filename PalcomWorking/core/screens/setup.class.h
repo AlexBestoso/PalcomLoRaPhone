@@ -22,6 +22,7 @@ int systemSetup_contextControl = 0;
 class PalcomSetup : public PalcomScreen{
   	private:
 		PalcomPinpad pinpad;
+		PalcomSetupForm setupForm;
     		lv_obj_t *setup_cont = NULL;
     		bool initalized = false;
 		bool loginFileExists = false;
@@ -750,25 +751,8 @@ class PalcomSetup : public PalcomScreen{
       			this->setFullScreen();
       			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
 
-			/*
-			 * Setup the context title
-			 * */
-      			//PalcomLabel pLabel;
-      			//pLabel.create(screen);
-			//this->execute();
-      			//pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			//pLabel.setWidth(320);
-			//int err = getScreenError();
-      			//pLabel.setAlignment(LV_ALIGN_TOP_MID, 100, 8);
-	        	//pLabel.setText("Create A Passcode");
-			//this->execute();
-
-			/*
-			 * Pin Pad First Entry
-			 * */
 			if(pinpad.codeReady() && pinpad.transferReady()){
 				if(pinpad.compResults()){
-					Serial.printf("Valid Code provided\n");
 					showPinpad = false;
 				}else{
 					errorMsg = "Pins don't match\n";
@@ -788,7 +772,7 @@ class PalcomSetup : public PalcomScreen{
 						pinpad.create(screen, errorMsg.c_str());
 				}
 			}else{
-				Serial.printf("Configuring user data.\n");
+				setupForm.create(screen, "Continue Setup");
 			}
 			this->execute();
 
@@ -910,6 +894,72 @@ class PalcomSetup : public PalcomScreen{
 			if(pinpad.codeReady() && showPinpad){
 				this->setBuildRequired(true);
 				this->destroy();
+			}
+
+			if(setupForm.formSubmitted()){
+				PalcomFS pfs; 
+				PalcomPartition pp;
+				pp.getAllPartitions();
+				size_t writeSize = 6;
+				while(pp.fetchPartition()){
+					String comp = (const char *)pp.partition->label;
+					if(comp != "app1")
+						continue;
+
+					Serial.printf("Found The '%s' Partition (%d bytes)\n", pp.partition->label, pp.partition->size);
+					try{
+						pfs.clearFileBuffer();
+						pp.readPartition((const esp_partition_t *)pp.partition, 0, (void *)&fileData, writeSize);
+						Serial.printf("Partition read successful : ");
+						for(int i=0; i<writeSize; i++){
+							Serial.printf("%c", fileData[i]);
+						}
+						Serial.printf("\n...Stopping...");
+
+					}catch(CoreException e){
+#ifdef DEBUG_OUTPUT == 1
+						e.out();
+#endif
+						e.log("PalcomSetup::run");
+						continue;
+					}
+
+					try{
+						pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
+						Serial.printf("Cleared Partition Data...\n");
+					}catch(CoreException e){
+#ifdef DEBUG_OUTPUT == 1
+						e.out();
+#endif
+						e.log("PalcomSetup::run");
+						continue;
+					}
+
+					strncpy((char *)fileData, "NIGGER", writeSize);
+					try{
+						pp.writePartition((const esp_partition_t *)pp.partition, 0, (const void *)&fileData, writeSize);
+						Serial.printf("Wrote %ld bytes to the partition.\n", writeSize);
+					}catch(CoreException e){
+#ifdef DEBUG_OUTPUT == 1
+                                                e.out();
+#endif
+                                                e.log("PalcomSetup::run");
+                                                continue;
+					}
+
+
+
+					while(1){}
+				}
+				pp.freePartitions();
+
+				Serial.printf("All required data has been gathered....\n");
+				Serial.printf("Login Pin : ");
+				for(int i=0; i<pinpad.entryBufferCount; i++)
+					Serial.printf("%c", pinpad.entryBuffer[i]);
+				Serial.printf("\nName : %s\n", setupForm.name.c_str());
+				Serial.printf("Lock Timer : %d\n", setupForm.lockTimer);
+				Serial.printf("Paranoia Mode : %d\n", setupForm.paranoiaMode);
 			}
 
 			/*

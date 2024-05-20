@@ -1,6 +1,7 @@
 /*
  * Useage : Error code of 0x00 means that the error can be ignored.
  * */
+
 class CoreException : public exception{
 	private:
 		PalcomFS pfs;
@@ -19,6 +20,10 @@ class CoreException : public exception{
 		return _errorCode;
 	}
 	
+	void out(void){
+		Serial.printf("[%d] %s", this->errorCode(), this->what().c_str());
+	}
+
 	void log(String catcher){
 		String tmp = "[";
 		string tmp2 = to_string(_errorCode);

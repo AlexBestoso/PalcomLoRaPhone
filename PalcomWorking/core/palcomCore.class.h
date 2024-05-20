@@ -173,7 +173,7 @@ class PalcomCore{
       				lv_task_handler();
 			}catch(CoreException e){
 #ifdef DEBUG_OUTPUT == 1
-				Serial.printf("[%d] %s", e.errorCode(), e.what().c_str());
+				e.out();
 #endif
 				e.log("palcomCore.contextSwitch");
 			}

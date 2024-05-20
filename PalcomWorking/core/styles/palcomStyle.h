@@ -16,6 +16,58 @@ class PalcomStyle{
 			lv_style_init(this->targetStyle);
 		}
 
+		lv_state_t getStateDefault(void){
+			return LV_STATE_DEFAULT;
+		}
+
+		lv_state_t getStateChecked(void){
+                        return LV_STATE_CHECKED;
+                }
+
+		lv_state_t getStateFocused(void){
+                        return LV_STATE_FOCUSED;
+                }
+
+		lv_state_t getStateFocusKey(void){
+                        return LV_STATE_FOCUS_KEY;
+                }
+
+		lv_state_t getStateEdited(void){
+                        return LV_STATE_EDITED;
+                }
+
+		lv_state_t getStateHovered(void){
+                        return LV_STATE_HOVERED;
+                }
+
+		lv_state_t getStatePressed(void){
+                        return LV_STATE_PRESSED;
+                }
+
+		lv_state_t getStateScrolled(void){
+                        return LV_STATE_SCROLLED;
+                }
+
+		lv_state_t getStateDisabled(void){
+                        return LV_STATE_DISABLED;
+                }
+
+		lv_state_t getStateCustomOne(void){
+                        return LV_STATE_USER_1;
+                }
+
+		lv_state_t getStateCustomTwo(void){
+                        return LV_STATE_USER_2;
+                }
+
+		lv_state_t getStateCustomThree(void){
+                        return LV_STATE_USER_3;
+                }
+
+		lv_state_t getStateCustomFour(void){
+                        return LV_STATE_USER_4;
+                }
+
 		void setColorFilter(lv_color_filter_dsc_t *f, lv_color_t (*colorFilterHandler)(const lv_color_filter_dsc_t *, lv_color_t, lv_opa_t)){
 			this->targetColorFilter = f;
 			this->colorFilterHandler = colorFilterHandler;
@@ -155,12 +207,33 @@ class PalcomStyle{
 			}
 		}
 
+		void setAnimationTime(int t){
+			lv_style_set_anim_time(this->targetStyle, t);
+		}
 		void setBorderWidth(int w){
 			lv_style_set_border_width(this->targetStyle, w);
 		}
 
+		/*
+		 * LV_BORDER_SIDE_NONE/TOP/BOTTOM/LEFT/RIGHT/INTERNAL
+		 *  Can be ORed '||' to use multiple.
+		 *  */
+		void setBorderSide(lv_border_side_t s){
+			lv_style_set_border_side(this->targetStyle, s);
+		}
+
 		void setTextColor(lv_color_t c){
 			lv_style_set_text_color(this->targetStyle, c);
+		}
+
+		/*
+		 * LV_TEXT_ALIGN_AUTO
+		 * LV_TEXT_ALIGN_LEFT
+		 * LV_TEXT_ALIGN_CENTER
+		 * LV_TEXT_ALIGN_RIGHT
+		 * */
+		void setTextAlign(lv_text_align_t a){
+			lv_style_set_text_align(this->targetStyle, a);	
 		}
 
 		void applyColorFilter(){
@@ -342,6 +415,18 @@ class PalcomStyle{
 
 		void setAllPadding(int p){
 			lv_style_set_pad_all(this->targetStyle, p);
+		}
+		
+		void setHorizontalPadding(int p){
+			lv_style_set_pad_hor(this->targetStyle, p);
+		}
+
+		void setVirticalPadding(int p){
+			lv_style_set_pad_ver(this->targetStyle, p);
+		}
+
+		void setPaddingGap(int p){
+			lv_style_set_pad_gap(this->targetStyle, p);
 		}
 
 		void setTranslateY(int y){

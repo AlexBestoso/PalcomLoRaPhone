@@ -118,7 +118,6 @@ class PalcomPinpad : public PalcomObject{
 			this->generate(parent, pal_base);
 			this->setSize(this->getHorizontalResolution(), this->getVirticalResolution());
 			
-			PalcomLabel titleLabel;
 			numpadTitleLabel.create(parent);
 			this->execute();
 			numpadTitleLabel.setLongMode(LV_LABEL_LONG_SCROLL);

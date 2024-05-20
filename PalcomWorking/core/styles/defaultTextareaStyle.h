@@ -2,12 +2,9 @@ class DefaultTextareaStyle : public PalcomStyle{
 	private:
 		lv_style_t textarea;
                 lv_style_t textareaFocused;
-		lv_color_filter_dsc_t color_filter;
-
-                static lv_color_t darken(const lv_color_filter_dsc_t * dsc, lv_color_t color, lv_opa_t opa){
-                        LV_UNUSED(dsc);
-                        return lv_color_darken(color, opa);
-                }
+		lv_style_t textareaCursor;
+		lv_style_t textareaErrored;
+		lv_style_t placeHolder;
 	public:
 		lv_style_t *getStyle(void){
                         return (lv_style_t *)&textarea;
@@ -17,9 +14,17 @@ class DefaultTextareaStyle : public PalcomStyle{
 			return (lv_style_t *)&textareaFocused;
 		}
 
-		lv_color_filter_dsc_t *getColorFilter(void){
-                        return (lv_color_filter_dsc_t *)&color_filter;
-                }
+		lv_style_t *getCursorStyle(void){
+			return (lv_style_t *)&textareaCursor;
+		}
+
+		lv_style_t *getPlaceHolderStyle(void){
+			return (lv_style_t *)&placeHolder;
+		}
+
+		lv_style_t *getErrorStyle(void){
+			return (lv_style_t *)&textareaErrored;
+		}
 
 		void initStyle(void){
 			// Setup the default style
@@ -27,20 +32,48 @@ class DefaultTextareaStyle : public PalcomStyle{
 			this->init();
 			this->setRadius(10);
                         this->setBgOpacity(11);
-                        this->setBgColor(this->makeColor(0x10, 0x05, 0x10));
-                        this->setBgGradientColor(this->makeColor(0x80, 0x30, 0x80));
+                        this->setBgColor(lv_palette_main(LV_PALETTE_BLUE));
+                        this->setBgGradientColor(lv_palette_darken(LV_PALETTE_BLUE, 2));
                         this->setBgGradientDirection(2);
-                        this->setBorderColor(this->makeColor(0x55, 0, 0));
+                        this->setBorderColor(lv_palette_main(LV_PALETTE_GREY));
                         this->setBorderOpacity(2);
                         this->setBorderWidth(2);
-                        this->setTextColor(this->makeColor(0xff, 0xff, 0xff));
+                        this->setTextColor(lv_color_white());
+			this->setTextAlign(LV_TEXT_ALIGN_CENTER);
+			this->setVirticalPadding(7);
+
+			// Setup the errored style
+			this->setStyle(this->getErrorStyle());
+                        this->init();
+                        this->setRadius(10);
+                        this->setBgOpacity(11);
+                        this->setBgColor(lv_palette_main(LV_PALETTE_RED));
+                        this->setBgGradientColor(lv_palette_darken(LV_PALETTE_RED, 2));
+                        this->setBgGradientDirection(2);
+                        this->setBorderColor(lv_palette_main(LV_PALETTE_GREY));
+                        this->setBorderOpacity(2);
+                        this->setBorderWidth(2);
+                        this->setTextColor(lv_color_white());
+                        this->setTextAlign(LV_TEXT_ALIGN_CENTER);
+                        this->setVirticalPadding(7);
 
 			// Configure focused
-			this->setColorFilter(this->getColorFilter(), darken);
-                        this->initColorFilter();
                         this->setStyle(this->getFocusedStyle());
                         this->init();
-                        this->applyColorFilter();
-                        this->setColorFilterOpacity(2);
+			this->setVirticalPadding(7);
+
+			// Configure Cursor
+			this->setStyle(this->getCursorStyle());
+			this->init();
+			this->setAnimationTime(500);
+		//	this->setVirticalPadding(7);
+			this->setBorderSide(LV_BORDER_SIDE_LEFT);
+                        this->setBorderOpacity(10);
+			this->setBorderColor(lv_color_white());
+
+			this->setStyle(this->getPlaceHolderStyle());
+			this->init();
+			this->setTextColor(lv_color_black());
+
 		}
 }defaultTextareaStyle;

@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -34,6 +34,18 @@ class PalcomObject{
                         this->generateGlobal(parent, id, pal_label);
                 }
 
+		void addState(lv_state_t s){
+			lv_obj_add_state(this->object, s);
+		}
+
+		void removeState(lv_state_t s){
+			lv_obj_clear_state(this->object, s);
+		}
+
+		bool stateInUse(lv_state_t s){
+                        return lv_obj_has_state(this->object, s);
+                }
+
 		void generate(lv_obj_t *parent, PalcomObjectType objtype){
 			switch(objtype){
 				case pal_label:
@@ -41,8 +53,6 @@ class PalcomObject{
 					break;
 				case pal_textarea:
 					this->object = lv_textarea_create(parent);
-					lv_obj_add_state(this->object, LV_STATE_FOCUSED);
-					lv_obj_add_state(this->object, LV_STATE_DEFAULT);
 					break;
 				case pal_button:
 					this->object = lv_btn_create(parent);
@@ -55,6 +65,12 @@ class PalcomObject{
 					break;
 				case pal_menu:
 					this->object = lv_menu_create(parent);
+					break;
+				case pal_msgbox:
+					//this->object = lv_msgbox_create(parent);
+					break;
+				case pal_checkbox:
+					this->object = lv_checkbox_create(parent);
 					break;
 			}
 		}
@@ -83,6 +99,12 @@ class PalcomObject{
 				case pal_menu:
 					globalGuiObjects[this->id] = lv_menu_create(parent);
 					break;
+				case pal_msgbox:
+					//globalGuiObjects[this->id] = lv_msgbox_create(parent);
+					break;
+				case pal_checkbox:
+					globalGuiObjects[this->id] = lv_checkbox_create(parent);
+					break;	
 			}
                         this->object = globalGuiObjects[this->id];
                 }
@@ -90,6 +112,10 @@ class PalcomObject{
 		void loadGlobal(int id){
                         this->object = globalGuiObjects[id];
                 }
+
+		void setAnyStyle(lv_style_t *s, lv_style_selector_t sel){
+			lv_obj_add_style(this->object, s, sel);
+		}
 
 		void setDefaultStyle(lv_style_t *s){
 			lv_obj_add_style(this->object, s, LV_STATE_DEFAULT);

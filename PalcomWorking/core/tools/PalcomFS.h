@@ -256,16 +256,6 @@ class PalcomFS{
       				targetFile = SD.open(target, FILE_WRITE, O_TRUNC);
     			}
 
-    			Serial.printf("Debug One (%ld):\n\t", targetSize);
-    			for(int i=0; i<targetSize; i++){
-      				Serial.printf("%c ", fileData[i]);
-    			}Serial.printf("\n");
-
-    			Serial.printf("Debug Two (%ld):\n\t", bufSize);
-    			for(int i=0; i<bufSize; i++){
-      				Serial.printf("%c ", buf[i]);
-    			}Serial.printf("\n");
-
     			if(targetSize > 0)
       				targetFile.write(fileData, targetSize);
     

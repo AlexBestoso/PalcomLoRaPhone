@@ -76,4 +76,27 @@ class PalcomPartition{
 				throw CoreException("PalcomPartition::writePartition() - An Unknown Error Occured.", 0x04);
 			}
 		}
+
+		void writeAuthData(const esp_partition_t *partition, palcom_auth_t data){
+			Serial.printf("size of auth data : %ld\n", (long)sizeof(palcom_auth_t));
+			try{
+				this->eraseRange(partition, 0, partition->size);
+			}catch(CoreException e){
+				String msg = "PalcomPartition::writeAuthData() - Failed to clear flash data.\n\t";
+				msg += e.what();
+				throw CoreException(msg.c_str(), 0x01);
+			}
+
+			Serial.printf("Attempting to store auth data...\n");
+			
+			try{
+				this->writePartition(partition, 0, (const void *)&data, sizeof(palcom_auth_t));
+			}catch(CoreException e){
+				String msg = "PalcomPartition::writePartition() - Failed to write auth data.\n\t";
+				msg += e.what();
+				throw CoreException(msg.c_str(), 0x02);
+			}
+
+			Serial.printf("Success!\n");
+		}
 };

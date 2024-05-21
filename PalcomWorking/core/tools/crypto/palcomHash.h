@@ -18,6 +18,12 @@ class PalcomHash{
 			return hashSize;
 		}
 
+
+		String getResultStr(void){
+			String ret = this->resultString.c_str();
+			return ret;
+		}
+		// TODO: Remove this one
 		string getResult(void){
 			return resultString;
 		}

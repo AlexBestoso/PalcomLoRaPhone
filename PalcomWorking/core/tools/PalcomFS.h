@@ -16,6 +16,7 @@ const char *pfs_file_cryptRecv  = "/cryptRecv.enc";
 const char *pfs_folder_sendQueue = "/sendQueue";
 const char *pfs_folder_recvQueue = "/recvQueue";
 const char *pfs_error_log = "/error.log";
+const char *pfs_config = "/settings.conf";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};
@@ -274,4 +275,10 @@ class PalcomFS{
       				return false;
     			return true;
   		}
+
+		void storeConfigData(palcom_config_t data){
+			this->fd = SD.open(pfs_config, FILE_WRITE, O_TRUNC);
+			this->fd.write((unsigned char *)&data, sizeof(palcom_config_t));
+			this->close();
+		}
 };

@@ -734,7 +734,7 @@ class PalcomSetup : public PalcomScreen{
 			/*
 			 * Check if we need to setup the system
 			 * .*/
-      			if(SD.exists(F("/login.hash"))){
+      			if(SD.exists(pfs_config)){
 				loginFileExists = true;
         			return;
 			}
@@ -775,100 +775,6 @@ class PalcomSetup : public PalcomScreen{
 				setupForm.create(screen, "Continue Setup");
 			}
 			this->execute();
-
-
-			/*
-			 * Create username input
-			 * 
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 35);
-      			pLabel.setText("Username:");
-			this->execute();
-
-			string username_str = "";
-      			PalcomTextarea username;
-      			username.createGlobal(screen, 1);
-			defaultTextareaStyle.initStyle();
-			username.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
-      			username.setCursorClickPos(false);
-      			username.setTextSelection(false);
-      			username.setSizeRaw(175, 23);
-      			username.setText("");
-      			username.setMaxLength(18);
-      			username.setOneLine(true);
-      			username.setAlignment(LV_ALIGN_TOP_MID, 20, 30);
-			if(err == 1){
-				username.setText(usrname.c_str());
-			}
-			this->execute();
-
-			/*
-			 * Create password input
-			 *
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 85);
-      			pLabel.setText("Password: ");
-			this->execute();
-
-      			PalcomTextarea password;
-      			password.createGlobal(screen, 2);
-			password.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
-      			password.setCursorClickPos(false);
-      			password.setTextSelection(false);
-      			password.setSizeRaw(175, 23);
-      			password.setText("");
-      			password.setMaxLength(18);
-      			password.setOneLine(true);
-      			password.setPasswordMode(true);
-      			password.setAlignment(LV_ALIGN_TOP_MID, 20, 75);
-			this->execute();
-
-			/*
-			 * Create confirm password input
-			 *
-			pLabel.create(screen);
-                        pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-                        pLabel.setWidth(320);
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, 5, 130);
-                        pLabel.setText("Confirm: ");
-			this->execute();
-
-                        PalcomTextarea confirmPassword;
-                        confirmPassword.createGlobal(screen, 3);
-			confirmPassword.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
-                        confirmPassword.setCursorClickPos(false);
-                        confirmPassword.setTextSelection(false);
-                        confirmPassword.setSizeRaw(175, 23);
-                        confirmPassword.setText("");
-                        confirmPassword.setMaxLength(18);
-                        confirmPassword.setOneLine(true);
-                        confirmPassword.setPasswordMode(true);
-                        confirmPassword.setAlignment(LV_ALIGN_TOP_MID, 20, 120);
-			this->execute();
-
-
-			/*
-			 * Create Submit Button
-			 *
-
-      			PalcomButton submit;
-      			submit.create(screen);
-			defaultButtonStyle.initStyle();
-			submit.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
-      			submit.setSize(105, 30);
-
-      			pLabel.create(submit.getObj());
-      			pLabel.setText("Setup");
-      			pLabel.center();
-      			
-			submit.setLabel(pLabel);
-      			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 128);
-      			submit.setSimpleCallback(Setup_handleSubmit);
-			this->execute();*/
     		}
 
     		void resetPage(){
@@ -901,65 +807,62 @@ class PalcomSetup : public PalcomScreen{
 				PalcomPartition pp;
 				pp.getAllPartitions();
 				size_t writeSize = 6;
+				
+				PalcomHash phash;
+				phash.useSHA256();
+				phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
+				palcom_auth_t authData;
+
+				// Fetch Pin Hash
+				String grab = phash.getResultStr();
+				if(phash.getResultSize() > 32)
+					throw CoreException("PalcomSetup::run() - Invalid hash size.", 0x01);
+				strncpy((char *)authData.pin_hash, grab.c_str(), phash.getResultSize());
+
+				// Fetch Pmode
+				authData.paranoia_mode = setupForm.paranoiaMode;
+
+				// Generate AES Key and IV
+				PalcomAes aes;
+				if(!aes.generate()){
+					throw CoreException("PalcomSetup::run() - Failed to generate AES keys.\n", 0x02);
+				}
+				Serial.printf("AES Key Generated!\n");
+				for(int i=0; i<32; i++)
+					authData.aes_key[i] = aes.key[i];
+				for(int i=0; i<16; i++)
+					authData.aes_iv[i] = aes.iv[i];
+				aes.clearKey();
+				aes.clearIv();
+
+				// Store sensitive data in flash memory.
 				while(pp.fetchPartition()){
 					String comp = (const char *)pp.partition->label;
 					if(comp != "app1")
 						continue;
 
 					Serial.printf("Found The '%s' Partition (%d bytes)\n", pp.partition->label, pp.partition->size);
-					try{
-						pfs.clearFileBuffer();
-						pp.readPartition((const esp_partition_t *)pp.partition, 0, (void *)&fileData, writeSize);
-						Serial.printf("Partition read successful : ");
-						for(int i=0; i<writeSize; i++){
-							Serial.printf("%c", fileData[i]);
-						}
-						Serial.printf("\n...Stopping...");
 
-					}catch(CoreException e){
-#ifdef DEBUG_OUTPUT == 1
-						e.out();
-#endif
-						e.log("PalcomSetup::run");
-						continue;
-					}
-
-					try{
-						pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
-						Serial.printf("Cleared Partition Data...\n");
-					}catch(CoreException e){
-#ifdef DEBUG_OUTPUT == 1
-						e.out();
-#endif
-						e.log("PalcomSetup::run");
-						continue;
-					}
-
-					strncpy((char *)fileData, "NIGGER", writeSize);
-					try{
-						pp.writePartition((const esp_partition_t *)pp.partition, 0, (const void *)&fileData, writeSize);
-						Serial.printf("Wrote %ld bytes to the partition.\n", writeSize);
-					}catch(CoreException e){
-#ifdef DEBUG_OUTPUT == 1
-                                                e.out();
-#endif
-                                                e.log("PalcomSetup::run");
-                                                continue;
-					}
-
-
-
-					while(1){}
+					pp.writeAuthData((const esp_partition_t *)pp.partition, authData);
+					Serial.printf("Wrote Auth Data!\n");
+					break;
 				}
 				pp.freePartitions();
-
-				Serial.printf("All required data has been gathered....\n");
-				Serial.printf("Login Pin : ");
-				for(int i=0; i<pinpad.entryBufferCount; i++)
-					Serial.printf("%c", pinpad.entryBuffer[i]);
-				Serial.printf("\nName : %s\n", setupForm.name.c_str());
-				Serial.printf("Lock Timer : %d\n", setupForm.lockTimer);
-				Serial.printf("Paranoia Mode : %d\n", setupForm.paranoiaMode);
+				
+				// Store non-sensitive config data (user name, lock timer, etc)
+				palcom_config_t configData;
+				configData.lock_timer = setupForm.lockTimer;
+				strncpy((char *)configData.user_name, setupForm.name.c_str(), 20);
+				pfs.storeConfigData(configData);
+				
+				this->globalDestroy();
+                                this->destroy();
+                                this->execute();
+                                keygenView();
+                                PalcomCrypto pcry;
+                                pcry.generatePublicHash(true);
+                                resetPage();
+                                return 0; // change screen to login page.
 			}
 
 			/*

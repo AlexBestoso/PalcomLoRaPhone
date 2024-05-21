@@ -22,6 +22,7 @@
 /*
  * Custom Classes
  * */
+#include "./palcomAes.h"
 #include "./palcomRsaKeyGen.h"
 #include "./palcomHash.h"
 

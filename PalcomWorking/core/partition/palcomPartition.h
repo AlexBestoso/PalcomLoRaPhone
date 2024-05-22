@@ -78,7 +78,6 @@ class PalcomPartition{
 		}
 
 		void writeAuthData(const esp_partition_t *partition, palcom_auth_t data){
-			Serial.printf("size of auth data : %ld\n", (long)sizeof(palcom_auth_t));
 			try{
 				this->eraseRange(partition, 0, partition->size);
 			}catch(CoreException e){
@@ -98,5 +97,31 @@ class PalcomPartition{
 			}
 
 			Serial.printf("Success!\n");
+		}
+
+		/*
+		 * This function will free all partitions if it fails to find one.
+		 * */
+		bool fetchPartitionByName(String name){
+			this->getAllPartitions();
+			while(this->fetchPartition()){
+				String comp = (const char *)this->partition->label;
+				if(comp == name){
+					return true;
+				}
+			}
+
+			this->freePartitions();
+			return false;
+		}
+
+		void readAuthData(const esp_partition_t *partition, palcom_auth_t *ret){
+			try{
+				this->readPartition(partition, 0, (void *)ret, sizeof(palcom_auth_t));
+			}catch(CoreException e){
+				String msg = "PalcomPartition::readAuthData() - Failed to read auth data.\n\t";
+				msg += e.what();
+				throw CoreException(msg.c_str(), 0x01);
+			}
 		}
 };

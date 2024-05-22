@@ -25,6 +25,9 @@ class CoreException : public exception{
 	}
 
 	void log(String catcher){
+		#ifdef DEBUG_OUTPUT == 1
+			this->out();
+		#endif
 		String tmp = "[";
 		string tmp2 = to_string(_errorCode);
 		for(int i=0; i<tmp2.length(); i++)

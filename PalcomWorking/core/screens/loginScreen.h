@@ -3,6 +3,8 @@ int login_context = 0;
 
 class PalcomLoginScreen : public PalcomScreen{
   	private:
+		PalcomPinpad pinpad;
+
     		static void Login_handleSubmit(lv_event_t *e){      
       			if (lv_event_get_code(e) != LV_EVENT_RELEASED)
         			return;
@@ -60,6 +62,7 @@ class PalcomLoginScreen : public PalcomScreen{
     		}
   	
 	public:
+		String errorMsg = "";
     		void generateObjects(void){
       			// Configure Screen
       			lv_obj_t *screen = this->getScreen();
@@ -70,76 +73,13 @@ class PalcomLoginScreen : public PalcomScreen{
       			}
       			this->setFullScreen();
 			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
-
-      			// Title Message
-      			PalcomLabel pLabel;
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-			int err = this->getScreenError();
-			if(err == 1){
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 115, 10);
-        			pLabel.setText("Invalid Credentials");
-			}else if(login_context == 3){
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 125, 10);
-        			pLabel.setText("Logged Out");
-			}else{
-      				pLabel.setAlignment(LV_ALIGN_TOP_MID, 125, 10);
-        			pLabel.setText("Enter Login");
-			}
 			this->execute();
 
-      			// Username Input
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 35+5);
-      			pLabel.setText("Username: ");
-			PalcomTextarea username;
-                        username.createGlobal(screen, 1);
-                        defaultTextareaStyle.initStyle();
-                        username.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
-                        username.setCursorClickPos(false);
-                        username.setTextSelection(false);
-                        username.setSizeRaw(175, 23);
-                        username.setText("");
-                        username.setMaxLength(18);
-                        username.setOneLine(true);
-                        username.setAlignment(LV_ALIGN_TOP_MID, 20, 30+5);
-			this->execute();
+			if(errorMsg == "")
+				pinpad.create(screen, "Enter Passcode");
+			else
+				pinpad.create(screen, errorMsg.c_str());
 
-      			// Password Input
-      			pLabel.create(screen);
-      			pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-      			pLabel.setWidth(320);
-      			pLabel.setAlignment(LV_ALIGN_TOP_MID, 0, 80+10);
-      			pLabel.setText("Password: ");
-      			PalcomTextarea password;
-      			password.createGlobal(screen, 2);
-			defaultTextareaStyle.initStyle();
-			password.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
-      			password.setCursorClickPos(false);
-      			password.setTextSelection(false);
-      			password.setSizeRaw(175, 23);
-      			password.setText("");
-      			password.setMaxLength(18);
-      			password.setOneLine(true);
-      			password.setPasswordMode(true);
-      			password.setAlignment(LV_ALIGN_TOP_MID, 20, 70+10);
-			this->execute();
-
-      			// Submit Button
-      			PalcomButton submit;
-      			submit.create(screen);
-			defaultButtonStyle.initStyle();
-			submit.setStyle(defaultButtonStyle.getStyle(), defaultButtonStyle.getPressedStyle());
-      			submit.setSize(110, 40);
-      			pLabel.create(submit.getObj());
-      			pLabel.setText("Login");
-      			pLabel.center();
-      			submit.setLabel(pLabel);
-      			submit.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_MID, -5, 65+25);
-      			submit.setSimpleCallback(Login_handleSubmit);
 			this->execute();
     		}
 
@@ -148,6 +88,7 @@ class PalcomLoginScreen : public PalcomScreen{
       			this->destroy();
         		this->setBuildRequired(true);
 			this->clearScreenError();
+			errorMsg = "";
 			login_context = 0;
     		}
 
@@ -158,27 +99,42 @@ class PalcomLoginScreen : public PalcomScreen{
       				login_context = 0;
       			}
 
+			if(pinpad.codeReady()){
+				pinpad.transferResult();
+				PalcomHash phash;
+                                phash.useSHA256();
+                                phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
+
+                                // Fetch Pin Hash
+                                String grab = phash.getResultStr();
+                                if(phash.getResultSize() > 32)
+                                        throw CoreException("PalcomLogin::run() - Invalid hash size.", 0x01);
+				
+				PalcomPartition pp;
+				if(!pp.fetchPartitionByName("app1")){
+					throw CoreException("PalcomLogin::run() - Failed to find flash partition 'app1'", 0x02);
+				}
+
+                                palcom_auth_t authData;
+				pp.readAuthData(pp.partition, &authData);
+				pp.freePartitions();
+
+				PalcomFS pfs;
+				pfs.clearAllBuffers();
+				pfs.addToFiledata((char *)authData.pin_hash, 32); // 32 is the size of the hash we used.
+				pfs.addToCompbuffer((char *)grab.c_str(), 32);
+
+				if(pfs.equalBuffers()){
+					return true;
+				}else{
+					pinpad.clear();
+					errorMsg = "Invalid Pin.";
+					pinpad.setTitleText(errorMsg.c_str());
+				}
+
+			}
       			this->execute();
 
-			if(this->isScreenError()){
-        			this->globalDestroy();
-        			this->destroy();
-        			this->setBuildRequired(true);
-        			return false;	
-			}
-      			if(login_context == 2){
-        			this->globalDestroy();
-        			this->destroy();
-        			this->setBuildRequired(true);
-        			return false;
-      			}
-      			if(login_context == 1){
-        			this->globalDestroy();
-        			this->destroy();
-        			this->setBuildRequired(true);
-        			login_context = 3;
-        			return true;
-      			}
       			return false;
     		}
 };

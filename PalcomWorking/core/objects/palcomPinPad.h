@@ -97,6 +97,12 @@ class PalcomPinpad : public PalcomObject{
 			numPadEntryCount = 0;
 		}
 
+		void clear(void){
+			this->clearResult();
+                        this->clearEntry();
+			numpadTitleLabel.setText("Enter Pin");
+		}
+
 		void transferResult(void){
 			if(this->codeReady()){
                                 for(int i=0; i<NUMPAD_ENTRY_SIZE; i++)
@@ -112,6 +118,10 @@ class PalcomPinpad : public PalcomObject{
 
 		bool codeReady(void){
 			return numPadEntryCount >= NUMPAD_ENTRY_SIZE;
+		}
+
+		void setTitleText(const char *text){
+			numpadTitleLabel.setText(text);
 		}
 
 		void create(lv_obj_t *parent, String title){

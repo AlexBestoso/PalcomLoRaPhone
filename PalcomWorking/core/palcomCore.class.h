@@ -172,10 +172,7 @@ class PalcomCore{
       				}
       				lv_task_handler();
 			}catch(CoreException e){
-#ifdef DEBUG_OUTPUT == 1
-				e.out();
-#endif
-				e.log("palcomCore.contextSwitch");
+				e.log("PalcomCore::contextSwitch()");
 			}
     		}
 }palcomCore;

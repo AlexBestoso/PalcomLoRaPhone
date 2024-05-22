@@ -217,6 +217,16 @@ class PalcomFS{
     			}
   		}
 
+  		void addToCompbuffer(char *buf, size_t bufSize){
+    			for(int i=0; i<bufSize && i<__GLOBAL_BUFFER_SIZE; i++){
+      				if(i < bufSize){
+        				compBuffer[i] = buf[i];
+      				}else{
+        				compBuffer[i] = 0;
+      				}
+    			}
+  		}
+
   		bool popSendQueue(void){
     			lv_task_handler();
     			if(!SD.exists(pfs_folder_sendQueue)){
@@ -280,5 +290,9 @@ class PalcomFS{
 			this->fd = SD.open(pfs_config, FILE_WRITE, O_TRUNC);
 			this->fd.write((unsigned char *)&data, sizeof(palcom_config_t));
 			this->close();
+		}
+
+		bool equalBuffers(void){
+			return (strncmp((const char *)fileData, (const char *)compBuffer, __GLOBAL_BUFFER_SIZE) == 0);
 		}
 };

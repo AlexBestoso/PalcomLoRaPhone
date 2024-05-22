@@ -409,9 +409,6 @@ void loop(){
   try{
     palcomCore.contextSwitch(); 
   }catch(CoreException e){
-#ifdef DEBUG_OUTPUT == 1
-    e.out();
-#endif
     e.log("loop");
   }
 }

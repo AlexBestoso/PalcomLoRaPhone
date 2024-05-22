@@ -797,6 +797,12 @@ class PalcomSetup : public PalcomScreen{
       			}
       			this->execute();
 
+      			if(loginFileExists) {
+        			resetPage();
+        			return 0; // change screen to login page.
+      			}
+      			this->execute();
+
 			if(pinpad.codeReady() && showPinpad){
 				this->setBuildRequired(true);
 				this->destroy();
@@ -841,10 +847,7 @@ class PalcomSetup : public PalcomScreen{
 					if(comp != "app1")
 						continue;
 
-					Serial.printf("Found The '%s' Partition (%d bytes)\n", pp.partition->label, pp.partition->size);
-
 					pp.writeAuthData((const esp_partition_t *)pp.partition, authData);
-					Serial.printf("Wrote Auth Data!\n");
 					break;
 				}
 				pp.freePartitions();
@@ -865,43 +868,12 @@ class PalcomSetup : public PalcomScreen{
                                 return 0; // change screen to login page.
 			}
 
-			/*
-			 * Handle the setup acount context.
-			 * This displays the key-gen info page.
-			 * */
-      			if(Setup_setupControl == 1){
-				this->globalDestroy();
-                        	this->destroy();
-				this->execute();
-                        	keygenView();
-				PalcomCrypto pcry;
-				pcry.generatePublicHash(true);
-        			resetPage();
-        			return 0; // change screen to login page.
-      			}
 			this->execute();
 
 			/*
 			 * If login file exists, exit setup page.
 			 * */
 			
-      			if(loginFileExists) {
-        			resetPage();
-        			return 0; // change screen to login page.
-      			}
-      			this->execute();
-
-			/*
-			 * Handle form validation errors.
-			 * */
-			if(isScreenError()){
-				this->setBuildRequired(true);
-				PalcomTextarea tmp;
-				tmp.loadGlobal(1);
-				usrname = tmp.getText();
-				this->globalDestroy();
-                        	this->destroy();
-			}
 
       			return -1; // loop the setup page.
     		}

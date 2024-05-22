@@ -1,5 +1,5 @@
 int PalcomScreenError = 0;
-class PalcomScreen{
+class PalcomScreen{ 
   	private:
     		lv_obj_t *screen = NULL;
 		lv_obj_t *bgImage = NULL;
@@ -118,4 +118,12 @@ class PalcomScreen{
 		virtual void generateObjects(){
 
     		}
+
+		void setFlag(lv_obj_flag_t f){
+                        lv_obj_add_flag(this->screen, f);
+                }
+
+                void unsetFlag(lv_obj_flag_t f){
+                        lv_obj_clear_flag(this->screen, f);
+                }
 };

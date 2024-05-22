@@ -5,6 +5,31 @@ class PalcomMainMenu : public PalcomScreen{
 		const lv_img_dsc_t *img_src[1] = {&palcomLogo};
 		const lv_img_dsc_t *img_lockIcon[1] = {&LockIcon};
 
+		static void menuButtonHandler(lv_event_t *e){
+			if(lv_event_get_code(e) == LV_EVENT_RELEASED){
+				uint8_t *val = (uint8_t *)lv_event_get_user_data(e);
+                                sprintf((char *)fileData, "%d", val);
+
+				int ctrl = fileData[0] == '0' ? 0 : fileData[0] == '1' ? 1 : fileData[0] == '2' ? 2 : 3;
+				switch(ctrl){
+					case 0: // Contacts
+						Serial.printf("Clicked 'Contacts' button!\n");
+						break;
+					case 1: // Settings
+						Serial.printf("Clicked 'Settings' button!\n");
+						break;
+					case 2: // About
+						Serial.printf("Clicked 'About' button!\n");
+						break;
+					case 3: // Lock Screen
+						Serial.printf("Clicked 'Lock' button!\n");
+						break;
+					default:
+						Serial.printf("Invalid menu option.\n");
+				}
+			}
+		}
+
     		static void Mainmenu_handleLogoutButton(lv_event_t *e){
       			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
         			return;
@@ -35,6 +60,74 @@ class PalcomMainMenu : public PalcomScreen{
 				return;
 			mainMenu_contextControl = 5;
 		}
+
+		void createContactsButton(lv_obj_t *parent){
+			PalcomLabel contactLabel;
+                        PalcomButton contactButton;
+                        style_pinpadButton.initStyle();
+
+                        contactButton.create(parent);
+                        contactButton.setSize(98, 20);
+                        contactButton.setDefaultStyle(style_pinpadButton.getStyle());
+                        contactButton.setPressedStyle(style_pinpadButton.getPressedStyle());
+                        contactButton.setAlignment(LV_ALIGN_OUT_TOP_LEFT, 1, 20);
+                        contactButton.setValuedCallback(&menuButtonHandler, (uint8_t *)0);
+                        contactLabel.create(contactButton.getObj());
+                        contactLabel.setText("Contacts");
+                        contactLabel.center();
+                        contactButton.setLabel(contactLabel);
+		}
+
+		void createSettingsButton(lv_obj_t *parent){
+			PalcomLabel settingLabel;
+			PalcomButton settingButton;
+			style_pinpadButton.initStyle();
+
+			settingButton.create(parent);
+			settingLabel.create(settingButton.getObj());
+			settingLabel.setText("Settings");
+			settingLabel.center();
+			settingButton.setLabel(settingLabel);
+			settingButton.setDefaultStyle(style_pinpadButton.getStyle());
+			settingButton.setPressedStyle(style_pinpadButton.getPressedStyle());
+			settingButton.setAlignment(LV_ALIGN_OUT_TOP_LEFT, 1, 80);
+			settingButton.setValuedCallback(&menuButtonHandler, (uint8_t*)1);
+			settingButton.setSize(98, 20);
+		}
+
+		void createAboutButton(lv_obj_t *parent){
+                        PalcomLabel settingLabel;
+                        PalcomButton settingButton;
+                        style_pinpadButton.initStyle();
+
+                        settingButton.create(parent);
+                        settingLabel.create(settingButton.getObj());
+                        settingLabel.setText("About");
+                        settingLabel.center();
+                        settingButton.setLabel(settingLabel);
+                        settingButton.setDefaultStyle(style_pinpadButton.getStyle());
+                        settingButton.setPressedStyle(style_pinpadButton.getPressedStyle());
+                        settingButton.setAlignment(LV_ALIGN_OUT_TOP_LEFT, 1, 80+60);
+                        settingButton.setValuedCallback(&menuButtonHandler, (uint8_t*)2);
+                        settingButton.setSize(98/2-5, 20);
+                }
+
+		void createLockButton(lv_obj_t *parent){
+                        PalcomLabel settingLabel;
+                        PalcomButton settingButton;
+                        style_pinpadButton.initStyle();
+
+                        settingButton.create(parent);
+                        settingLabel.create(settingButton.getObj());
+                        settingLabel.setText("Lock");
+                        settingLabel.center();
+                        settingButton.setLabel(settingLabel);
+                        settingButton.setDefaultStyle(style_pinpadButton.getStyle());
+                        settingButton.setPressedStyle(style_pinpadButton.getPressedStyle());
+                        settingButton.setAlignment(LV_ALIGN_OUT_TOP_LEFT, 175, 80+60);
+                        settingButton.setValuedCallback(&menuButtonHandler, (uint8_t*)3);
+                        settingButton.setSize(98/2-5, 20);
+                }
   	
 	public:
   		void generateObjects(void){
@@ -46,76 +139,22 @@ class PalcomMainMenu : public PalcomScreen{
       				screen = this->getScreen();
     			}
     			this->setFullScreen();
-    			this->setScreenScrollDirection(LV_DIR_VER);
-    			this->setBgImage(img_src);
+    			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
+			this->unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+			this->execute();
+			
+			this->createContactsButton(screen);
 			this->execute();
 
-    			PalcomLabel pLabel;
-
-    			// Create Settings Button
-    			PalcomImageButton settings;
-    			settings.create(screen);
-			defaultImagebuttonStyle.initStyle();
-                        settings.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-			settings.setButtonImage(NULL, &SettingsIcon, NULL);
-    			settings.setSizeRaw(50, 50);
-    			settings.setSimpleCallback(Mainmenu_handleSettingsButton);
-    			settings.setRelativeAlignment(LV_ALIGN_OUT_TOP_LEFT, 0,  50);
+			this->createSettingsButton(screen);
 			this->execute();
 
-			// Create Messages Button
-    			PalcomImageButton messages;
-    			messages.create(screen);
-			defaultButtonStyle.initStyle();
-                        messages.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-			messages.setButtonImage(NULL, &Messagesymbol, NULL);
-    			messages.setSizeRaw(100, 100);
-    		//	pLabel.create(messages.getObj());
-    		//	pLabel.setText("");
-    		//	messages.setLabel(pLabel);
-    			messages.setSimpleCallback(Mainmenu_handleMessagesButton);
-    			messages.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3, -103);
+			this->createAboutButton(screen);
 			this->execute();
 
-			// Create Keyshare Button
-                        PalcomImageButton keyshare;
-                        keyshare.create(screen);
-                        defaultButtonStyle.initStyle();
-                        keyshare.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-                        keyshare.setButtonImage(NULL, &Keysharesymbol, NULL);
-                        keyshare.setSizeRaw(100, 100);
-                  //      pLabel.create(keyshare.getObj());
-                   //     pLabel.setText("");
-                    //    keyshare.setLabel(pLabel);
-                        keyshare.setSimpleCallback(Mainmenu_handleKeyshareButton);
-                        keyshare.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3+100+5, -103);
-                        this->execute();
-
-			// Create Encrypted Button
-                        PalcomImageButton encrypted;
-                        encrypted.create(screen);
-                        defaultButtonStyle.initStyle();
-                        encrypted.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-                        encrypted.setButtonImage(NULL, &encryptionImage, NULL);
-                        encrypted.setSizeRaw(100, 100);
-                  //      pLabel.create(keyshare.getObj());
-                  //      pLabel.setText("");
-                  //      encrypted.setLabel(pLabel);
-                        encrypted.setSimpleCallback(Mainmenu_handleEncryptedMessagesButton);
-			// Bug in lvgl cayses this to get misaligned.
-                        encrypted.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_LEFT, 3+(100*2)+(5*2), -103); 
-                        this->execute();
-
-    			// Create Logout Button
-    			PalcomImageButton logout;
-    			logout.create(screen);
-			defaultImagebuttonStyle.initStyle();
-                        logout.setStyle(defaultImagebuttonStyle.getStyle(), defaultImagebuttonStyle.getPressedStyle());
-			logout.setButtonImage(NULL, &LockIcon, NULL);
-			logout.setSizeRaw(50, 50);
-    			logout.setRelativeAlignment(LV_ALIGN_OUT_TOP_RIGHT, 0, 50);
-    			logout.setSimpleCallback(Mainmenu_handleLogoutButton);
+			this->createLockButton(screen);
 			this->execute();
+			
   		}
 
   		void resetPage(){

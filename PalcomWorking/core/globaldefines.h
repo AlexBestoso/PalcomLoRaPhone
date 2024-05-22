@@ -1,3 +1,5 @@
+#define SOFTWARE_VERSION "0.1.5 Beta"
+
 /*
  * Application Contexts
  * */
@@ -5,6 +7,10 @@
 #define CONTEXT_LOGIN 0
 #define CONTEXT_MAINMENU 1
 #define CONTEXT_SETTINGS 2
+#define CONTEXT_CONTACTS 3
+#define CONTEXT_ABOUT 4
+
+
 #define CONTEXT_PLAINTEXT_MESSAGING 3
 #define CONTEXT_CIPHERTEXT_MESSAGING 4
 #define CONTEXT_KEYSHARING 5

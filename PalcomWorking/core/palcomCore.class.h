@@ -6,11 +6,13 @@ class PalcomCore{
 
     		void _resetAllPages(int maintain=0){
       			viewContext = maintain;
-      			palcomPlaintextMessaging.resetPage();
-      			settingsMenu.resetPage();
+			aboutScreen.resetPage();
       			loginScreen.resetPage();
       			palcomSetup.resetPage();
       			mainMenu.resetPage();
+
+      			palcomPlaintextMessaging.resetPage();
+      			settingsMenu.resetPage();
       			palcomKeySharing.resetPage();
       			palcomEncryptedMessaging.resetPage();
 			wifiMenu.resetPage();
@@ -33,6 +35,12 @@ class PalcomCore{
         			_resetAllPages(viewContext);
       			}
     		}
+
+		void _aboutScreen(void){
+			if((viewContext = aboutScreen.run()) != CONTEXT_ABOUT){
+				_resetAllPages(viewContext);
+			}
+		}
 
     		void _mainMenu(void){
       			viewContext = mainMenu.run();
@@ -154,18 +162,12 @@ class PalcomCore{
         				case CONTEXT_SETTINGS:
         	  				this->_settingsMenu();
         	  				break;
-        				case CONTEXT_PLAINTEXT_MESSAGING:
-        	  				this->_plaintextMessageMenu();
-        	  				break;
-        				case CONTEXT_CIPHERTEXT_MESSAGING:
-        	  				this->_encryptedMessageMenu();
-        	  				break;
-        				case CONTEXT_KEYSHARING:
-        	  				this->_keyShareMenu();
-        	  				break;
-					case CONTEXT_WIFI:
-						this->_wifiSettingsiMenu();
+					case CONTEXT_CONTACTS:
+						
 						break;
+					case CONTEXT_ABOUT:
+						this->_aboutScreen();
+						break;	
         				default:
         	  				this->_login();
         					break;

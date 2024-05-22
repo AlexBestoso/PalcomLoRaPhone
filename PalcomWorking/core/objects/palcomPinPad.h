@@ -22,7 +22,6 @@ class PalcomPinpad : public PalcomObject{
 				if(numPadEntryCount >= 6)
 					return;
 				uint8_t *val = (uint8_t *)lv_event_get_user_data(e);
-				String t = "";
 				sprintf((char *)fileData, "%d", val);
 				numPadEntry[numPadEntryCount] = fileData[0];
 				numPadEntryCount++;

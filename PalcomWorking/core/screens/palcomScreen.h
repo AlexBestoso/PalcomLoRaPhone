@@ -1,11 +1,12 @@
 int PalcomScreenError = 0;
-class PalcomScreen{
+class PalcomScreen{ 
   	private:
     		lv_obj_t *screen = NULL;
 		lv_obj_t *bgImage = NULL;
     		int objectId = -1;
 		bool buildRequired = true;
   	public:
+		PalcomObject object;
 
 		void clearScreenError(void){
 			PalcomScreenError = 0;
@@ -33,6 +34,7 @@ class PalcomScreen{
 
     		void create(void){
       			this->screen = lv_scr_act();
+			object.setObject(this->screen);
     		}
 
     		void createGlobal(void){
@@ -40,6 +42,7 @@ class PalcomScreen{
       			globalGuiObjects[0] = lv_scr_act();
       			objectId = 0;
       			screen = globalGuiObjects[0];
+			object.setObject(this->screen);
     		}
 
     		void destroy(void){
@@ -118,4 +121,12 @@ class PalcomScreen{
 		virtual void generateObjects(){
 
     		}
+
+		void setFlag(lv_obj_flag_t f){
+                        lv_obj_add_flag(this->screen, f);
+                }
+
+                void unsetFlag(lv_obj_flag_t f){
+                        lv_obj_clear_flag(this->screen, f);
+                }
 };

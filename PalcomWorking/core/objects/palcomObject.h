@@ -219,4 +219,12 @@ class PalcomObject{
 		void setSimpleCallback(void(*func)(lv_event_t*)){
                         lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, 0);
                 }
+
+		void setFlag(lv_obj_flag_t f){
+			lv_obj_add_flag(this->object, f);
+		}
+
+		void unsetFlag(lv_obj_flag_t f){
+			lv_obj_clear_flag(this->object, f);
+		}
 };

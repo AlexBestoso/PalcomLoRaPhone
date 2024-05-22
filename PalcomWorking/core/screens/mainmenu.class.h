@@ -13,19 +13,19 @@ class PalcomMainMenu : public PalcomScreen{
 				int ctrl = fileData[0] == '0' ? 0 : fileData[0] == '1' ? 1 : fileData[0] == '2' ? 2 : 3;
 				switch(ctrl){
 					case 0: // Contacts
-						Serial.printf("Clicked 'Contacts' button!\n");
+						mainMenu_contextControl = 1;
 						break;
 					case 1: // Settings
-						Serial.printf("Clicked 'Settings' button!\n");
+						mainMenu_contextControl = 2;
 						break;
 					case 2: // About
-						Serial.printf("Clicked 'About' button!\n");
+						mainMenu_contextControl = 3;
 						break;
 					case 3: // Lock Screen
-						Serial.printf("Clicked 'Lock' button!\n");
+						mainMenu_contextControl = 4;
 						break;
 					default:
-						Serial.printf("Invalid menu option.\n");
+						mainMenu_contextControl = 0;
 				}
 			}
 		}
@@ -178,36 +178,33 @@ class PalcomMainMenu : public PalcomScreen{
       				this->globalDestroy();
       				this->destroy();
       				this->setBuildRequired(true);
-      				return 0; // logout
+      				return CONTEXT_CONTACTS;
     			}
 
     			if(mainMenu_contextControl == 2){
       				this->globalDestroy();
       				this->destroy();
       				this->setBuildRequired(true);
-      				return 2; // Settings
+      				return CONTEXT_SETTINGS;
     			}
 
-    			if(mainMenu_contextControl == 3){
-      				this->globalDestroy();
-      				this->destroy();
-      				this->setBuildRequired(true);
-      				return 3; // Messages
-    			}
-
-			if(mainMenu_contextControl == 4){
+			if(mainMenu_contextControl == 3){
                                 this->globalDestroy();
                                 this->destroy();
                                 this->setBuildRequired(true);
-                                return 4; // Encrypted
+                                return CONTEXT_ABOUT;
                         }
 
-			if(mainMenu_contextControl == 5){
-				this->globalDestroy();
-                                this->destroy();
-                                this->setBuildRequired(true);
-                                return 5; // Keyshare
-			}
+    			if(mainMenu_contextControl == 4){
+      				this->globalDestroy();
+      				this->destroy();
+      				this->setBuildRequired(true);
+      				return CONTEXT_LOGIN;
+    			}
+
+
+
+
    			return 1;
   		}
 }mainMenu;

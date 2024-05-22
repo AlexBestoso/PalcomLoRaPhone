@@ -154,18 +154,12 @@ class PalcomCore{
         				case CONTEXT_SETTINGS:
         	  				this->_settingsMenu();
         	  				break;
-        				case CONTEXT_PLAINTEXT_MESSAGING:
-        	  				this->_plaintextMessageMenu();
-        	  				break;
-        				case CONTEXT_CIPHERTEXT_MESSAGING:
-        	  				this->_encryptedMessageMenu();
-        	  				break;
-        				case CONTEXT_KEYSHARING:
-        	  				this->_keyShareMenu();
-        	  				break;
-					case CONTEXT_WIFI:
-						this->_wifiSettingsiMenu();
+					case CONTEXT_CONTACTS:
+						
 						break;
+					case CONTEXT_ABOUT:
+
+						break;	
         				default:
         	  				this->_login();
         					break;

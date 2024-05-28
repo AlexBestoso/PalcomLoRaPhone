@@ -1,4 +1,7 @@
-#define SOFTWARE_VERSION "0.1.5 Beta"
+#define SOFTWARE_VERSION "0.1.6 Beta"
+
+#define SCREEN_HOR 320
+#define SCREEN_VIR 240
 
 /*
  * Application Contexts

@@ -33,20 +33,23 @@ class PalcomScreen{
 		}
 
     		void create(void){
-      			this->screen = lv_scr_act();
+      			this->screen = lv_screen_active();
+			if(this->screen == NULL){
+				throw CoreException("PalcomScreen::create() - Failed to fetch active screen.", 0x01);
+			}
 			object.setObject(this->screen);
     		}
 
     		void createGlobal(void){
-      			lv_obj_clean(lv_scr_act());
-      			globalGuiObjects[0] = lv_scr_act();
+      			lv_obj_clean(lv_screen_active());
+      			globalGuiObjects[0] = lv_screen_active();
       			objectId = 0;
       			screen = globalGuiObjects[0];
 			object.setObject(this->screen);
     		}
 
     		void destroy(void){
-      			lv_obj_clean(lv_scr_act());
+      			lv_obj_clean(lv_screen_active());
 			this->screen = NULL;
 			this->bgImage = NULL;
     		}
@@ -116,6 +119,8 @@ class PalcomScreen{
     
 		void execute(){
 			lv_task_handler();
+			lv_timer_handler();
+			lv_tick_inc(5);
 		}
 
 		virtual void generateObjects(){

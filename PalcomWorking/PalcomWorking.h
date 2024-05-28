@@ -1,8 +1,19 @@
-// Globlal code and defines
+/* 
+ * Globlal code should always be at the top of this file.
+* * */
 #include "./core/globaldefines.h"
 
 #include "./core/tools/PalcomFS.h"
 #include "./core/error/error.h"
+
+/*
+ * Initalizers should always be after global defines and above everythign else.
+* * */
+#include "./core/initalizer/initalizer.h"
+
+/*
+ * Everything else shall be ordered relative to what's required.
+* * */
 
 #include "./core/partition/partition.h"
 

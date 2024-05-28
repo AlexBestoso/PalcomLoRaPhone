@@ -3,7 +3,6 @@ int mainMenu_contextControl = 0;
 class PalcomMainMenu : public PalcomScreen{
   	private:
 		const lv_img_dsc_t *img_src[1] = {&palcomLogo};
-		const lv_img_dsc_t *img_lockIcon[1] = {&LockIcon};
 
 		static void menuButtonHandler(lv_event_t *e){
 			if(lv_event_get_code(e) == LV_EVENT_RELEASED){
@@ -30,36 +29,6 @@ class PalcomMainMenu : public PalcomScreen{
 			}
 		}
 
-    		static void Mainmenu_handleLogoutButton(lv_event_t *e){
-      			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-      			mainMenu_contextControl = 1;
-    		}
-
-    		static void Mainmenu_handleSettingsButton(lv_event_t *e){
-      			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-      			mainMenu_contextControl = 2;
-    		}
-
-    		static void Mainmenu_handleMessagesButton(lv_event_t *e){
-      			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-      			mainMenu_contextControl = 3;
-    		}
-
-		static void Mainmenu_handleEncryptedMessagesButton(lv_event_t *e){
-                        if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-                                return;
-			Serial.printf("Switching to encrypted page.\n");
-                        mainMenu_contextControl = 4;
-                }
-
-		static void Mainmenu_handleKeyshareButton(lv_event_t *e){
-			if(lv_event_get_code(e) != LV_EVENT_CLICKED)
-				return;
-			mainMenu_contextControl = 5;
-		}
 
 		void createContactsButton(lv_obj_t *parent){
 			PalcomLabel contactLabel;

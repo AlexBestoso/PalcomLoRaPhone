@@ -16,10 +16,10 @@ class PalcomTextarea : public PalcomObject{
 		}
 
 		void popCharLeft(void){
-			lv_textarea_del_char(this->getObject());
+			lv_textarea_delete_char(this->getObject());
 		}
 		void popCharRight(void){
-			lv_textarea_del_char_forward(this->getObject());
+			lv_textarea_delete_char_forward(this->getObject());
 		}
 
 		void pushText(const char *t){

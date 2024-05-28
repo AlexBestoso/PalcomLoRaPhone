@@ -4,6 +4,8 @@ class PalcomObject{
 		lv_obj_t *object = NULL;
 		int id = -1;
 	public:
+		PalcomColors colors;
+
 		lv_obj_t *getObject(void){
 			return this->object;
 		}
@@ -58,7 +60,7 @@ class PalcomObject{
 					this->object = lv_btn_create(parent);
 					break;
 				case pal_imgbutton:
-					this->object = lv_imgbtn_create(parent);
+					this->object = lv_imagebutton_create(parent);
 					break;
 				case pal_base:
 					this->object = lv_obj_create(parent);
@@ -91,7 +93,7 @@ class PalcomObject{
 					globalGuiObjects[this->id] = lv_btn_create(parent);
 					break;
 				case pal_imgbutton:
-					globalGuiObjects[this->id] = lv_imgbtn_create(parent);
+					globalGuiObjects[this->id] = lv_imagebutton_create(parent);
 					break;
 				case pal_base:
 					globalGuiObjects[this->id] = lv_obj_create(parent);
@@ -214,11 +216,17 @@ class PalcomObject{
 
 		void execute(){
                         lv_task_handler();
+			lv_timer_handler();
+			lv_tick_inc(5);
                 }
 
 		void setSimpleCallback(void(*func)(lv_event_t*)){
                         lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, 0);
                 }
+
+		void setParamCallback(void(*func)(lv_event_t *), void *input){
+			lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, input);
+		}
 
 		void setFlag(lv_obj_flag_t f){
 			lv_obj_add_flag(this->object, f);
@@ -226,5 +234,21 @@ class PalcomObject{
 
 		void unsetFlag(lv_obj_flag_t f){
 			lv_obj_clear_flag(this->object, f);
+		}
+
+		lv_color_t getStyleBgColor(int v){
+			return lv_obj_get_style_bg_color(this->object, v);
+		}
+
+		void setStyleBgColor(lv_color_t c, int v){
+			lv_obj_set_style_bg_color(this->object, c, v);
+		}
+
+		void setStylePaddingHor(int padding, lv_style_selector_t sel){
+			lv_obj_set_style_pad_hor(this->object, padding, sel);	
+		}
+
+		int getStylePaddingLeft(lv_part_t p){
+			return lv_obj_get_style_pad_left((const lv_obj_t *)this->getObject(), p);
 		}
 };

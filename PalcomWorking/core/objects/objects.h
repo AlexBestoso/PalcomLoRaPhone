@@ -2,20 +2,20 @@
 #include "./palcomObject.h"
 
 // Children Objects
-#include "./palcomLabel.h"
-#include "./palcomTextarea.h"
+#include "./label.object.h"
+#include "./textarea.object.h"
 #include "./palcomButton.h"
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
-#include "./palcomMenu.h"
+#include "./menu/menu.h"
 #include "./palcomMessageBox.h"
-#include "./palcomCheckbox.h"
+#include "./checkbox.object.h"
 
 // Complex Objects
 #include "./palcomPopupMessage.h"
 #include "./palcomMessage.h"
 #include "./palcomTextInput.h"
-#include "./palcomPinPad.h"
+#include "./pinpad.object.h"
 
 // Forms
 #include "./forms/forms.h"

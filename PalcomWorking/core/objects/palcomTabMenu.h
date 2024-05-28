@@ -14,7 +14,7 @@ class PalcomTabMenu{
     		}
     	
 		void create(lv_obj_t *parent){
-      			this->menu = lv_tabview_create(parent, x, y);
+      			this->menu = lv_tabview_create(parent);
     		}
 
     		void createGlobal(lv_obj_t *parent, uint id){
@@ -23,7 +23,7 @@ class PalcomTabMenu{
       			}
       		
 			objectId = id;
-      			globalGuiObjects[id] = lv_tabview_create(parent, x, y);
+      			globalGuiObjects[id] = lv_tabview_create(parent);
       			this->menu = globalGuiObjects[id];
     		}
 

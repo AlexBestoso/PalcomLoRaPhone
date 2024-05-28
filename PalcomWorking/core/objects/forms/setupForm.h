@@ -27,7 +27,7 @@ class PalcomSetupForm : public PalcomObject{
 		static void helpFunc_name(lv_event_t* e){
 			if(lv_event_get_code(e) == LV_EVENT_RELEASED){
 				PalcomMessageBox pmbox;
-				pmbox.create(NULL, "Help", "The name input is used for caller ID and relay authentication.", {NULL}, true);
+				pmbox.create(NULL, "Help", "The name input is used for caller ID and relay authentication.", true);
 				pmbox.setAlignment(LV_ALIGN_TOP_LEFT, 40, 40);
 
 			}
@@ -36,7 +36,7 @@ class PalcomSetupForm : public PalcomObject{
 		static void helpFunc_pmode(lv_event_t* e){
                         if(lv_event_get_code(e) == LV_EVENT_RELEASED){
                                 PalcomMessageBox pmbox;
-                                pmbox.create(NULL, "Help", "P-mode or, 'paranoia mode', makes it so that after 10 failed login attempts your device's SD card is wiped.", {NULL}, true);
+                                pmbox.create(NULL, "Help", "P-mode or, 'paranoia mode', makes it so that after 10 failed login attempts your device's SD card is wiped.", true);
                                 pmbox.setAlignment(LV_ALIGN_TOP_LEFT, 40, 40);
 
                         }
@@ -45,7 +45,7 @@ class PalcomSetupForm : public PalcomObject{
 		static void helpFunc_lock(lv_event_t* e){
                         if(lv_event_get_code(e) == LV_EVENT_RELEASED){
                                 PalcomMessageBox pmbox;
-                                pmbox.create(NULL, "Help", "The lock timer is used to determine how many minutes of inactivity needs to pass before automatically locking the screen. The default is 3 minutes. Set to 0 to disable.", {NULL}, true);
+                                pmbox.create(NULL, "Help", "The lock timer is used to determine how many minutes of inactivity needs to pass before automatically locking the screen. The default is 3 minutes. Set to 0 to disable.", true);
                                 pmbox.setAlignment(LV_ALIGN_TOP_LEFT, 40, 40);
 
                         }

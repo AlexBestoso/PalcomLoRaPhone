@@ -8,11 +8,18 @@ class PalcomMenu : public PalcomObject{
 		lv_style_t style;
 		lv_style_t pressedStyle;
 
+
 	public:
+		lv_obj_t *rootPage;
+
 		void create(lv_obj_t *parent){
       			this->generate(parent, pal_menu);
-			lv_obj_remove_style_all(this->getObject());
+			//lv_obj_remove_style_all(this->getObject());
     		}
+
+		int getMainHeaderLeftPadding(void){
+			return lv_obj_get_style_pad_left(getMainHeader(), 0);
+		}
 
 		void setSubPageSize(lv_obj_t *page, int x, int y){
 			lv_obj_set_size(page, x, y);
@@ -20,6 +27,10 @@ class PalcomMenu : public PalcomObject{
 
 		lv_obj_t *createPage(void){
 			return lv_menu_page_create(this->getObject(), NULL);
+		}
+
+		lv_obj_t *newPage(const char *title){
+			return lv_menu_page_create(this->getObject(), (char *)title);
 		}
 
 		lv_obj_t *createContainer(lv_obj_t *o){
@@ -35,7 +46,7 @@ class PalcomMenu : public PalcomObject{
     		}
 
 		void setMenuBackButtonText(string text){
-			menuBackButton.create(lv_menu_get_main_header_back_btn(this->getObject()));
+			menuBackButton.create(lv_menu_get_main_header_back_button(this->getObject()));
 			menuBackButtonLabel.create(menuBackButton.getObject());
 			menuBackButtonLabel.setText(text.c_str());
 		}
@@ -49,11 +60,23 @@ class PalcomMenu : public PalcomObject{
     		}
 
 		void enableRootBackButton(bool v){
-			if(v){
-				lv_menu_set_mode_root_back_btn(this->getObject(), LV_MENU_ROOT_BACK_BTN_ENABLED);
-			}else{
-				lv_menu_set_mode_root_back_btn(this->getObject(), LV_MENU_ROOT_BACK_BTN_DISABLED);
-			}
+			lv_menu_set_mode_root_back_button(this->getObject(), (v) ? LV_MENU_ROOT_BACK_BUTTON_ENABLED : LV_MENU_ROOT_BACK_BUTTON_DISABLED);
+		}
+
+		void setHeaderMode(lv_menu_mode_header_t m){
+			lv_menu_set_mode_header(this->getObject(), m);
+		}
+
+		void setHMTopFixed(void){
+			this->setHeaderMode(LV_MENU_HEADER_TOP_FIXED);
+		}
+
+		void setHMTopUnfixed(void){
+			this->setHeaderMode(LV_MENU_HEADER_TOP_UNFIXED);
+		}
+		
+		void setHMBottomFixed(void){
+			this->setHeaderMode(LV_MENU_HEADER_BOTTOM_FIXED);
 		}
     
     		void setBackCallback(void(*func)(lv_event_t*)){
@@ -74,5 +97,13 @@ class PalcomMenu : public PalcomObject{
 
 		void linkContainerToPage(lv_obj_t *cont, lv_obj_t *page){
 			lv_menu_set_load_page_event(this->getObject(), cont, page);
+		}
+
+		lv_obj_t *getMainBackButton(void){
+			return lv_menu_get_main_header_back_button(this->getObject());
+		}
+
+		lv_obj_t *getMainHeader(void){
+			return lv_menu_get_main_header(this->getObject());
 		}
 };

@@ -44,6 +44,6 @@ class PalcomImageButton : public PalcomObject{
     		}
 
 		void setButtonImage(const lv_img_dsc_t* imageLeft, const lv_img_dsc_t *imageMid, const lv_img_dsc_t *imageRight){
-			lv_imgbtn_set_src(this->getObject(), LV_IMGBTN_STATE_RELEASED, imageLeft, imageMid, imageRight);
+			lv_imagebutton_set_src(this->getObject(), LV_IMAGEBUTTON_STATE_RELEASED, imageLeft, imageMid, imageRight);
 		}
 };

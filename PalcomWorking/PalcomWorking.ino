@@ -23,8 +23,13 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <RadioLib.h>
-#include <TFT_eSPI.h>
+
 #include <lvgl.h>
+
+#if LV_USE_TFT_ESPI
+  #include <TFT_eSPI.h>
+#endif
+
 #include <SD.h>
 #include "es7210.h"
 #include <Audio.h>
@@ -49,15 +54,18 @@ using namespace ace_button;
 #define I2S_CH                          I2S_NUM_1
 
 LV_IMG_DECLARE(palcomLogo)
-LV_IMG_DECLARE(LockIcon);
+/*LV_IMG_DECLARE(LockIcon);
 LV_IMG_DECLARE(SettingsIcon);
 LV_IMG_DECLARE(Messagesymbol);
 LV_IMG_DECLARE(Keysharesymbol);
 LV_IMG_DECLARE(encryptionImage);
+*/
 LV_IMG_DECLARE(BackIcon);
-LV_IMG_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
+LV_IMG_DECLARE(mousePointerPng); /*Declare the image file.*/
 
 TouchLib *touch = NULL;
+
+
 
 #ifdef USING_SX1262
 #define RADIO_FREQ          868.0
@@ -104,7 +112,7 @@ lv_obj_t    *radio_ta;
 lv_obj_t    *tv ;
 SemaphoreHandle_t xSemaphore = NULL;
 
-#define GLOBAL_GUI_OBJECT_COUNT 10
+#define GLOBAL_GUI_OBJECT_COUNT 1
 lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 
 bool screenLockConditionSpace = false;
@@ -182,7 +190,7 @@ void addMessage(const char *str)
 static void event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t *obj = lv_event_get_target(e);
+    lv_obj_t *obj = (lv_obj_t *)lv_event_get_target(e);
     if (code == LV_EVENT_VALUE_CHANGED) {
         Serial.printf("State: %s\n", lv_obj_has_state(obj, LV_STATE_CHECKED) ? "On" : "Off");
         if (hasRadio) {

@@ -237,11 +237,11 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BACKICON 
 };
 
 const lv_img_dsc_t BackIcon = {
-  .header.cf = LV_IMG_CF_TRUE_COLOR,
-  .header.always_zero = 0,
-  .header.reserved = 0,
+  .header.cf = LV_COLOR_FORMAT_RAW_ALPHA,
+//  .header.always_zero = 0,
+//  .header.reserved = 0,
   .header.w = 50,
   .header.h = 50,
-  .data_size = 2500 * LV_COLOR_SIZE / 8,
+  .data_size = 2500 * LV_COLOR_DEPTH / 8,
   .data = BackIcon_map,
 };

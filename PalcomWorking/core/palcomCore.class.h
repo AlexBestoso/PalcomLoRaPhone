@@ -132,18 +132,26 @@ class PalcomCore{
      	 	  			sendTimer--;
       		  			this->screenSleep();
       		  			lv_task_handler();
+					lv_timer_handler();
+					lv_tick_inc(5);
         				if(sendTimer > 0){
         	  				if(this->_processRecv())
         	    					sendTimer = 0;
         	  				lv_task_handler();
+						lv_timer_handler();
+						lv_tick_inc(5);
         				}else if(sendTimer <= 0){
         	  				this->_processSend();
         	  				lv_task_handler();
+						lv_timer_handler();
+						lv_tick_inc(5);
         	  				sendTimer = sendTimerMax;
         				}
       				}else{
         				delay(1);
         				lv_task_handler();
+					lv_timer_handler();
+					lv_tick_inc(5);
       				}
 
       				switch(viewContext){
@@ -173,8 +181,11 @@ class PalcomCore{
         					break;
       				}
       				lv_task_handler();
+				lv_timer_handler();
+				lv_tick_inc(5);
 			}catch(CoreException e){
-				e.log("PalcomCore::contextSwitch()");
+				e.log("PalcomCore::contextSwitch() - Critical Failure.");
+				while(1){}
 			}
     		}
 }palcomCore;

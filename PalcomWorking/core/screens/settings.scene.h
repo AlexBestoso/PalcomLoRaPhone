@@ -1,4 +1,4 @@
-int settings_context = 0;
+int settings_context = CONTEXT_SETTINGS;
 
 class PalcomSettingsMenu : public PalcomScreen{
   	private:
@@ -120,14 +120,17 @@ class PalcomSettingsMenu : public PalcomScreen{
     WiFi.scanDelete();*/
 		}
 		
-  
+
+		static void backButton(lv_event_t *e){
+                        if(lv_event_get_code(e) == LV_EVENT_RELEASED){
+                                lv_obj_t *o = (lv_obj_t *)lv_event_get_target(e);
+                                lv_obj_t *m = (lv_obj_t *)lv_event_get_user_data(e);
+                                settings_context = CONTEXT_MAINMENU;
+                        }
+                }
+
 	public:
     		void generateObjects(void){
-      			PalcomLabel pLabel;
-      			PalcomButton settings;
-      			PalcomFS pfs;
-			PalcomPopupMessage palpop;
-
 			// Establish screen descriptor
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
@@ -138,7 +141,13 @@ class PalcomSettingsMenu : public PalcomScreen{
       			this->setFullScreen();
       			this->setScreenScrollDirection(LV_DIR_VER);
 
-			int err = this->getScreenError();
+			SettingsMenu sm;
+			sm.make(screen, &backButton);
+			this->execute();
+
+
+
+/*			int err = this->getScreenError();
 			if(err == 1){  // Updated Callsign.
 				palpop.setPopupType(1);
 				palpop.setTitle("Settings Changed.\n");
@@ -231,12 +240,12 @@ class PalcomSettingsMenu : public PalcomScreen{
       			factoryReset.setLabel(pLabel);
       			factoryReset.setSimpleCallback(Settingsmenu_handleResetButton);
       			factoryReset.setRelativeAlignment(LV_ALIGN_OUT_BOTTOM_RIGHT, 275,  160);
-			this->execute();
+			this->execute();*/
     		}
 
     		void resetPage(void){
       			this->setBuildRequired(true);
-      			settings_context = 0;
+      			settings_context = CONTEXT_SETTINGS;
       			this->globalDestroy();
       			this->destroy();
 			this->clearScreenError();
@@ -251,12 +260,6 @@ class PalcomSettingsMenu : public PalcomScreen{
 
 			this->execute();
 
-			if(this->isScreenError()){
-				Serial.printf("Detected a screen error : %d\n", PalcomScreenError);
-      				this->globalDestroy();
-      				this->destroy();
-				this->setBuildRequired(true);
-                        }
 
       			return settings_context;
     		}

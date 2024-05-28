@@ -65,6 +65,7 @@ class PalcomLoginScreen : public PalcomScreen{
 		String errorMsg = "";
     		void generateObjects(void){
       			// Configure Screen
+			Serial.printf("Generating login screen\n");
       			lv_obj_t *screen = this->getScreen();
       			if(screen == NULL){
         			this->globalDestroy();
@@ -81,6 +82,8 @@ class PalcomLoginScreen : public PalcomScreen{
 				pinpad.create(screen, errorMsg.c_str());
 
 			this->execute();
+			Serial.printf("Screen created.\n");
+
     		}
 
     		void resetPage(){

@@ -2,7 +2,10 @@ class PalcomColors{
 	private:
 
 	public:
-		int getColorBrightness(lv_color_t c){
+		int getColorBrightness(lv_color_t c){ // depreicated
+			return lv_color_brightness(c);
+		}
+		int getBrightness(lv_color_t c){
 			return lv_color_brightness(c);
 		}
 
@@ -13,4 +16,5 @@ class PalcomColors{
 		lv_color_t make(int r, int g, int b){
 			return LV_COLOR_MAKE(r, g, b);
 		}
+
 };

@@ -1,3 +1,5 @@
+#include "./section.object.h"
+#include "./page.object.h"
 #include "./menu.object.h"
 
 /*

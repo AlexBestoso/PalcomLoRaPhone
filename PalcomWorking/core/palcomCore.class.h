@@ -75,9 +75,9 @@ class PalcomCore{
       			if(viewContext != CONTEXT_SETTINGS){
         			_resetAllPages(viewContext);
       			}
-			if(viewContext == CONTEXT_WIFI){
-				wifiMenu.setAlternateReturn(CONTEXT_SETTINGS);
-			}
+			//if(viewContext == CONTEXT_WIFI){
+			//	wifiMenu.setAlternateReturn(CONTEXT_SETTINGS);
+		//	}
     		}
 
 		void _wifiSettingsiMenu(void){

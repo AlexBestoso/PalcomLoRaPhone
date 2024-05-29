@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -48,6 +48,16 @@ class PalcomObject{
                         return lv_obj_has_state(this->object, s);
                 }
 
+		void generate(lv_obj_t *parent, PalcomObjectType objtype, const char *data){
+			switch(objtype){
+				case pal_menupage:
+                                        this->object = lv_menu_page_create(parent, data);
+                                        break;
+				defeault:
+					this->generate(parent, objtype);
+			}
+		}
+
 		void generate(lv_obj_t *parent, PalcomObjectType objtype){
 			switch(objtype){
 				case pal_label:
@@ -74,6 +84,14 @@ class PalcomObject{
 				case pal_checkbox:
 					this->object = lv_checkbox_create(parent);
 					break;
+				case pal_menusect:
+					this->object = lv_menu_section_create(parent);
+					break;
+				case pal_menupage:
+					this->object = lv_menu_page_create(parent, NULL);
+					break;
+				case pal_slider:
+					this->object = lv_slider_create(parent);
 			}
 		}
 
@@ -214,6 +232,10 @@ class PalcomObject{
 			return lv_disp_get_ver_res(NULL);
 		}
 
+		void fullScreen(void){
+			lv_obj_set_size(this->object, this->getHorizontalResolution(), this->getVirticalResolution());
+		}
+
 		void execute(){
                         lv_task_handler();
 			lv_timer_handler();
@@ -224,8 +246,8 @@ class PalcomObject{
                         lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, 0);
                 }
 
-		void setParamCallback(void(*func)(lv_event_t *), void *input){
-			lv_obj_add_event_cb(this->object, func, LV_EVENT_ALL, input);
+		void setParamCallback(void(*func)(lv_event_t *), void *input, lv_event_code_t event=LV_EVENT_ALL){
+			lv_obj_add_event_cb(this->object, func, event, input);
 		}
 
 		void setFlag(lv_obj_flag_t f){
@@ -236,19 +258,23 @@ class PalcomObject{
 			lv_obj_clear_flag(this->object, f);
 		}
 
-		lv_color_t getStyleBgColor(int v){
+		lv_color_t getStyleBgColor(int v=0){
 			return lv_obj_get_style_bg_color(this->object, v);
 		}
 
-		void setStyleBgColor(lv_color_t c, int v){
+		void setStyleBgColor(lv_color_t c, int v=0){
 			lv_obj_set_style_bg_color(this->object, c, v);
 		}
 
-		void setStylePaddingHor(int padding, lv_style_selector_t sel){
+		void setStylePaddingHor(int padding, lv_style_selector_t sel=0){
 			lv_obj_set_style_pad_hor(this->object, padding, sel);	
 		}
 
-		int getStylePaddingLeft(lv_part_t p){
+		int getStylePaddingLeft(lv_part_t p=LV_PART_MAIN){
 			return lv_obj_get_style_pad_left((const lv_obj_t *)this->getObject(), p);
+		}
+
+		void setFlexGrow(int v){
+			lv_obj_set_flex_grow(this->getObject(), v);
 		}
 };

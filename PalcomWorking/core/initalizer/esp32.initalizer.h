@@ -137,12 +137,10 @@ class ESP32Initalizer{
                         }
 
                         if( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ){
-				Serial.printf("Writing %ld bytes to screen.\n", s);
 				lv_draw_sw_rgb565_swap((void *)color_p, s);
 
                                 tft.startWrite();
                                 tft.setAddrWindow( area->x1, area->y1, w, h );
-                                //tft.pushColors( ( uint16_t * )&color_p, s, false );
 				tft.pushPixels((void *)color_p, w*h);
                                 tft.endWrite();
                                 lv_disp_flush_ready( disp );
@@ -156,7 +154,6 @@ class ESP32Initalizer{
                                 data->state = LV_INDEV_STATE_REL;
                                 return;
                         }
-			Serial.printf("\tTouch Detected!\n");
                         TP_Point t = touch->getPoint(0);
                         switch(rotation){
                                 case 1:
@@ -197,7 +194,6 @@ class ESP32Initalizer{
                                         screenLockConditionSpace = false;
 
                                 last_key = act_key;
-				Serial.printf("key pressed '%c'\n", act_key);
                         }else{
                                 data->state = LV_INDEV_STATE_REL;
                         }

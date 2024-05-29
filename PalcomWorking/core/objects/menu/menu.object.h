@@ -10,11 +10,12 @@ class PalcomMenu : public PalcomObject{
 
 
 	public:
+		PalcomPage page;
+
 		lv_obj_t *rootPage;
 
 		void create(lv_obj_t *parent){
       			this->generate(parent, pal_menu);
-			//lv_obj_remove_style_all(this->getObject());
     		}
 
 		int getMainHeaderLeftPadding(void){
@@ -79,10 +80,6 @@ class PalcomMenu : public PalcomObject{
 			this->setHeaderMode(LV_MENU_HEADER_BOTTOM_FIXED);
 		}
     
-    		void setBackCallback(void(*func)(lv_event_t*)){
-      			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_CLICKED, this->getObject());
-    		}
-    
     		void setValuedCallback(void(*func)(lv_event_t*), uint8_t *val){
       			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_ALL, val);
     		}
@@ -105,5 +102,13 @@ class PalcomMenu : public PalcomObject{
 
 		lv_obj_t *getMainHeader(void){
 			return lv_menu_get_main_header(this->getObject());
+		}
+
+		int getMainHeaderPaddingLeft(void){
+                        return lv_obj_get_style_pad_left((const lv_obj_t *)getMainHeader(), LV_PART_ANY);
+                }
+
+		void setSidebarPage(lv_obj_t *o){
+			lv_menu_set_sidebar_page(this->getObject(), o);
 		}
 };

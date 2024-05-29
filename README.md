@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 0.2.0 Beta</code>
+<code>version 0.2.2 Beta</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -10,4 +10,5 @@
 <li>New main menu is in place</li>
 <li>Added the 'About' page.</li>
 <li>Upgraded LVGL from 8.3 to 9.1</li>
+<li>Implemented working menu class</li>
 </ol>

@@ -10,6 +10,7 @@
 #include "./menu/menu.h"
 #include "./palcomMessageBox.h"
 #include "./checkbox.object.h"
+#include "./slider/slider.h"
 
 // Complex Objects
 #include "./palcomPopupMessage.h"

@@ -6,6 +6,21 @@ class PalcomTextarea : public PalcomObject{
   	private:
   		lv_style_t style;
 		lv_style_t focusedStyle;
+
+		static void simpleCb(lv_event_t *e){
+                        lv_obj_t *obj = (lv_obj_t*)lv_event_get_target(e);
+                        char *data = (char *)lv_event_get_user_data(e);
+
+                        if(lv_event_get_code(e) == LV_EVENT_INSERT){
+                        }else if(lv_event_get_code(e) == LV_EVENT_FOCUSED){
+                                keyboardFocusedObj = obj;
+                        }else if(lv_event_get_code(e) == LV_EVENT_DEFOCUSED){
+                                keyboardFocusedObj == NULL;
+                        }
+
+
+                }
+
 	public:
     		lv_obj_t *getObj(void){
       			return this->getObject();
@@ -60,6 +75,8 @@ class PalcomTextarea : public PalcomObject{
 
     		void create(lv_obj_t *parent){
 			this->generate(parent, pal_textarea);
+			this->setParamCallback(&simpleCb, this->getObject());
+			lv_group_add_obj(keyboardGroup, this->getObject());
 			//lv_obj_remove_style_all(this->getObject());
     		}
 

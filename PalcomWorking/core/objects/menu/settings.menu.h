@@ -49,7 +49,7 @@ class SettingsMenu : public PalcomMenu{
 		}
 
 		lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt, lv_menu_builder_variant_t builder_variant){
-    			lv_obj_t * obj = lv_menu_cont_create(parent);
+    			lv_obj_t * obj = this->createContainer(parent);
 		
     			lv_obj_t * img = NULL;
     			PalcomLabel label;
@@ -98,6 +98,31 @@ class SettingsMenu : public PalcomMenu{
     			return obj;
 		}
 
+		static void simpleCb(lv_event_t *e){
+			lv_obj_t *obj = (lv_obj_t*)lv_event_get_target(e);
+			char *data = (char *)lv_event_get_user_data(e);
+
+			if(lv_event_get_code(e) == LV_EVENT_INSERT){
+			}else if(lv_event_get_code(e) == LV_EVENT_FOCUSED){
+				keyboardFocusedObj = obj;
+			}else if(lv_event_get_code(e) == LV_EVENT_DEFOCUSED){
+				keyboardFocusedObj == NULL;
+			}
+
+
+		}
+
+		lv_obj_t *create_textarea(lv_obj_t *parent, const char *icon, const char *text){
+			lv_obj_t *obj = this->create_text(parent, icon, text, LV_MENU_ITEM_BUILDER_VARIANT_2);
+			PalcomTextarea textarea;
+			textarea.create(obj);
+			textarea.setSize(120, 40);
+			
+
+			return obj;
+
+		}
+
 	public:
 		void make(lv_obj_t *parent, void (*exitFunc)(lv_event_t *)){
 			this->create(parent);
@@ -122,7 +147,7 @@ class SettingsMenu : public PalcomMenu{
 	    		generalPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
 			generalPage.addSeparator();
 	    		generalPage.section.create(generalPage.getObject());
-	    		this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name", 0, 150, 120);
+	    		this->create_textarea(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name");
 	    		this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "LockTimer", 0, 150, 50);
 	    		this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 50);
 

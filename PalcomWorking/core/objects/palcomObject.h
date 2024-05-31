@@ -250,6 +250,9 @@ class PalcomObject{
 			lv_obj_add_event_cb(this->object, func, event, input);
 		}
 
+		void addFlag(lv_obj_flag_t f){
+			setFlag(f);
+		}
 		void setFlag(lv_obj_flag_t f){
 			lv_obj_add_flag(this->object, f);
 		}

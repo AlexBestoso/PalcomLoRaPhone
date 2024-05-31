@@ -31,10 +31,6 @@ class PalcomSettingsMenu : public PalcomScreen{
                         //}
                 }
 
-		void drawPinpad(lv_obj_t *parent){
-			this->pinpad.create(parent, "Enter Passcode");
-		}
-
 		void processNewPinMode(void){
 			if(pinpad.codeReady() && !pinpad.transferReady()){
                                 if(this->pinCtx == 0){
@@ -49,12 +45,13 @@ class PalcomSettingsMenu : public PalcomScreen{
                                         for(int i=0; i<32; i++){
                                                 if(result[i] != menu.authData.pin_hash[i]){
                                                         pinpad.clear();
-                                                        Serial.printf("Invalid passcode.\n");
                                                         pinpad.setTitleText("Invalid Passcode");
+							this->execute();
                                                         break;
                                                 }else{
                                                         pinpad.clear();
                                                         pinpad.setTitleText("Enter new passcode");
+							this->execute();
                                                         errorMsg = "";
                                                         this->pinCtx = 1;
                                                 }
@@ -62,6 +59,7 @@ class PalcomSettingsMenu : public PalcomScreen{
                                 }else if(this->pinCtx == 1){
 					pinpad.transferResult();
                                         pinpad.setTitleText("Confirm Passcode");
+					this->execute();
                                         this->pinCtx = 2;
                                 }else{
                                         return;
@@ -94,10 +92,11 @@ class PalcomSettingsMenu : public PalcomScreen{
                                         menu.reset();
                                         this->setBuildRequired(true);
                                         this->destroy();
-
+					this->execute();
                                 }else{
                                         pinpad.clear();
                                         pinpad.setTitleText("Passcodes invalid.");
+					this->execute();
                                         this->pinCtx = 1;
                                 }
                         }
@@ -105,6 +104,14 @@ class PalcomSettingsMenu : public PalcomScreen{
 
 	public:
 		String errorMsg = "";
+
+		bool updateTimer(void){
+			return menu.updateTimer();
+		}
+
+		bool updateBrightness(void){
+			return menu.updateBrightness();
+		}
 
     		void generateObjects(void){
 			// Establish screen descriptor
@@ -116,12 +123,15 @@ class PalcomSettingsMenu : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScreenScrollDirection(LV_DIR_VER);
+			this->execute();
 
 
 			if(this->newPinMode){
-				this->drawPinpad(screen);
+				this->pinpad.create(screen, "Enter Passcode");
+				this->execute();
 			}else{	
 				this->menu.make(screen, &backButton);
+				this->execute();
 			}
 			this->execute();
     		}
@@ -134,12 +144,15 @@ class PalcomSettingsMenu : public PalcomScreen{
 			this->clearScreenError();
 			this->newPinMode = false;
 			this->menu.reset();
+			this->execute();
     		}
 
     		int run(void){
       			if(this->getBuildRequired()){
 				menu.fetchConfigData();
+				this->execute();
 				menu.fetchAuthData();
+				this->execute();
         			this->setBuildRequired(false);
         			settings_context = 2;
         			this->load();
@@ -152,11 +165,13 @@ class PalcomSettingsMenu : public PalcomScreen{
 				this->destroy();
 				newPinMode = true;
 				errorMsg = "";
+				this->execute();
 				return settings_context;
 			}
 
 			if(newPinMode){
 				this->processNewPinMode();
+				this->execute();
 			}
 			
       			return settings_context;

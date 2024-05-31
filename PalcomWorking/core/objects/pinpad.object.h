@@ -121,11 +121,13 @@ class PalcomPinpad : public PalcomObject{
 
 		void setTitleText(const char *text){
 			numpadTitleLabel.setText(text);
+			this->execute();
 		}
 
 		void create(lv_obj_t *parent, String title){
 			this->generate(parent, pal_base);
 			this->setSize(this->getHorizontalResolution(), this->getVirticalResolution());
+			this->execute();
 			
 			numpadTitleLabel.create(parent);
 			this->execute();
@@ -141,15 +143,19 @@ class PalcomPinpad : public PalcomObject{
 			this->createNumButton(parent, "2", 80+xPadding, 5+yPadding);
 			this->createNumButton(parent, "3", 160+xPadding, 5+yPadding);
 			this->createNumButton(parent, "4", 240+xPadding, 5+yPadding);
+			this->execute();
 
 			this->createNumButton(parent, "5", 0+xPadding, 65+yPadding);
 			this->createNumButton(parent, "6", 80+xPadding, 65+yPadding);
 			this->createNumButton(parent, "7", 160+xPadding, 65+yPadding);
 			this->createNumButton(parent, "8", 240+xPadding, 65+yPadding);
+			this->execute();
 
 			this->createNumButton(parent, "9", 0+xPadding, 125+yPadding);
 			this->createNumButton(parent, "0", 80+xPadding, 125+yPadding);
+			this->execute();
 
 			this->createDeleteButton(parent, 160+xPadding, 125+yPadding);
+			this->execute();
 		}
 };

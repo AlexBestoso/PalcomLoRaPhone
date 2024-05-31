@@ -8,9 +8,11 @@
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
 #include "./palcomMessageBox.h"
-#include "./menu/menu.h"
 #include "./checkbox.object.h"
 #include "./slider/slider.h"
+
+// Menu Depends on the above widgets.
+#include "./menu/menu.h"
 
 // Complex Objects
 #include "./palcomPopupMessage.h"

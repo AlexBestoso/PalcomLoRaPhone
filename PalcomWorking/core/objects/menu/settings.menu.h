@@ -30,12 +30,15 @@ typedef uint8_t lv_menu_builder_variant_t;
 
 bool settingsMenu_exit = false;
 bool settingsMenu_newPin = false;
+bool settingsMenu_updateTimer = false;
+bool settingsMenu_updateBrightness = false;
 class SettingsMenu : public PalcomMenu{
 	private:
 		PalcomPage generalPage;
 		PalcomPage securityPage;
 		PalcomPage relayPage;
 		PalcomPage resetPage;
+		PalcomPage rootPage;
 
 		PalcomButton backBtn;
 		PalcomObject rootPg;
@@ -52,17 +55,18 @@ class SettingsMenu : public PalcomMenu{
 		}
 
 		static void callback_wipeDevice(lv_event_t *e){
-			Serial.printf("Wiping Device...\n");
-			PalcomFS pfs;
-			pfs.rm("/");
-			PalcomPartition pp;
-			pp.fetchPartitionByName("app1");
-			pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
-			pp.freePartitions();
+			PalcomEvent event(e);
+			if(event.getCode() == LV_EVENT_RELEASED){
+				PalcomFS pfs;
+				pfs.rm("/");
+				PalcomPartition pp;
+				pp.fetchPartitionByName("app1");
+				pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
+				pp.freePartitions();
 	
-			Serial.printf("Goodbye...\n");
-			delay(500);
-			esp_restart();
+				delay(500);
+				esp_restart();
+			}
 		}
 		static void callback_factoryReset(lv_event_t *e){
 			PalcomEvent event(e);
@@ -78,6 +82,68 @@ class SettingsMenu : public PalcomMenu{
 			PalcomEvent event(e);
 			if(event.getCode() == LV_EVENT_RELEASED){
 				settingsMenu_newPin = true;
+			}
+		}
+
+		static void callback_processUsername(lv_event_t *e){
+			PalcomEvent event(e);
+
+			if(event.getCode() == LV_EVENT_DEFOCUSED){
+				PalcomTextarea textarea;
+				textarea.setObject((lv_obj_t *)event.getTarget());
+				String originalText = (const char *)event.getUserData();
+				String newText = (const char *)textarea.getText();
+				if(newText == "" || originalText == newText){
+					return;
+				}else if(newText != originalText){
+					PalcomFS pfs;
+					palcom_config_t *config = pfs.getConfigData();
+					for(int i=0; i<20; i++){
+						if(i<newText.length()){
+							config->user_name[i] = newText[i];
+						}else{
+							config->user_name[i] = 0x00;
+						}
+					}
+					pfs.storeConfigData(config[0]);
+				}
+			}
+		}
+		static void callback_processLockTimer(lv_event_t *e){
+                        PalcomEvent event(e);
+
+                        if(event.getCode() == LV_EVENT_DEFOCUSED){
+                                PalcomTextarea textarea;
+                                textarea.setObject((lv_obj_t *)event.getTarget());
+                                uint8_t *originalValue = (uint8_t *)event.getUserData();
+                                String newText = (const char *)textarea.getText();
+				uint8_t newValue = newText.toInt();
+
+                                if(newText == "" || originalValue[0] == newValue){
+                                        return;
+                                }else if(newValue != originalValue[0]){
+                                        PalcomFS pfs;
+                                        palcom_config_t *config = pfs.getConfigData();
+                                        config->lock_timer = newValue;
+                                        pfs.storeConfigData(config[0]);
+					settingsMenu_updateTimer = true;
+                                }
+                        }
+                }
+
+		static void callback_processBrightness(lv_event_t *e){
+			PalcomEvent event(e);
+
+			if(event.getCode() == LV_EVENT_RELEASED){
+				PalcomSlider slider;
+				slider.setObject((lv_obj_t *)event.getTarget());
+				PalcomFS pfs;
+				palcom_config_t *config = pfs.getConfigData();
+				config->screen_brightness = slider.getValue();
+				pfs.storeConfigData(config[0]);
+				analogWrite(BOARD_TFT_BACKLIGHT, config->screen_brightness);
+
+				settingsMenu_updateBrightness = true;
 			}
 		}
 
@@ -110,13 +176,15 @@ class SettingsMenu : public PalcomMenu{
 		lv_obj_t * create_slider(lv_obj_t * parent, const char * icon, const char * txt, int32_t min, int32_t max, int32_t val){
     			lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
 
-    			lv_obj_t * slider = lv_slider_create(obj);
-    			lv_obj_set_flex_grow(slider, 1);
-    			lv_slider_set_range(slider, min, max);
-    			lv_slider_set_value(slider, val, LV_ANIM_OFF);
+			PalcomSlider slider;
+			slider.create(obj);
+    			slider.setFlexGrow(1);
+    			slider.setRange(min, max);
+    			slider.setValue(val);
+			slider.setParamCallback(&callback_processBrightness, slider.getObject());
 
     			if(icon == NULL) {
-        			lv_obj_add_flag(slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+				slider.addFlag(LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
     			}
 
     			return obj;
@@ -144,20 +212,6 @@ class SettingsMenu : public PalcomMenu{
 			button.setLabel(label);
 
 			return obj;
-		}
-
-		static void simpleCb(lv_event_t *e){
-			lv_obj_t *obj = (lv_obj_t*)lv_event_get_target(e);
-			char *data = (char *)lv_event_get_user_data(e);
-
-			if(lv_event_get_code(e) == LV_EVENT_INSERT){
-			}else if(lv_event_get_code(e) == LV_EVENT_FOCUSED){
-				keyboardFocusedObj = obj;
-			}else if(lv_event_get_code(e) == LV_EVENT_DEFOCUSED){
-				keyboardFocusedObj == NULL;
-			}
-
-
 		}
 
 		lv_obj_t *create_textarea(lv_obj_t *parent, const char *icon, const char *text, char *value=NULL){
@@ -191,16 +245,29 @@ class SettingsMenu : public PalcomMenu{
 
 		void createGeneralPage(void){
 			String userName = (const char *)configData.user_name;
+			String lockTimer = to_string(configData.lock_timer).c_str();
 			sprintf((char *)compBuffer, "%d", configData.lock_timer);
 			generalPage.create(this->getObject(), NULL);
                         generalPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
                         generalPage.addSeparator();
                         generalPage.section.create(generalPage.getObject());
-                        this->create_textarea(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name", (char *)userName.c_str());
+                        lv_obj_t * obj = this->create_text(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name", LV_MENU_ITEM_BUILDER_VARIANT_2);
+			PalcomTextarea textarea;
+                        textarea.create(obj);
+                        textarea.setSize(120, 40);
+			textarea.setParamCallback(&callback_processUsername, (void *)userName.c_str(), LV_EVENT_DEFOCUSED);
+                        textarea.setText((const char *)configData.user_name);
 			this->execute();
-                        this->create_textarea2(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "LockTimer", (char *)compBuffer);
+
+			obj = this->create_text(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Lock Timer", LV_MENU_ITEM_BUILDER_VARIANT_2);
+                        textarea.create(obj);
+                        textarea.setSize(120, 40);
+                        textarea.setParamCallback(&callback_processLockTimer, (void *)&configData.lock_timer, LV_EVENT_DEFOCUSED);
+                        textarea.setText(lockTimer.c_str());
 			this->execute();
-                        this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 50);
+			
+
+                        this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Brightness", 1, 255, configData.screen_brightness);
 			this->execute();
 		}
 
@@ -233,6 +300,8 @@ class SettingsMenu : public PalcomMenu{
 		void reset(void){
 			settingsMenu_exit = false;
 			settingsMenu_newPin = false;
+			settingsMenu_updateTimer = false;
+			settingsMenu_updateBrightness = false;
 			
 			uint8_t *configData_ptr = (uint8_t*)&configData;
                 	uint8_t *authData_ptr = (uint8_t*)&authData;
@@ -250,6 +319,7 @@ class SettingsMenu : public PalcomMenu{
 			PalcomFS pfs;
                         palcom_config_t *configData_ptr = pfs.getConfigData();
 			configData.lock_timer = configData_ptr->lock_timer;
+			configData.screen_brightness = configData_ptr->screen_brightness;
 			for(int i=0; i<20; i++){
 				configData.user_name[i] = configData_ptr->user_name[i];
 			}
@@ -264,8 +334,26 @@ class SettingsMenu : public PalcomMenu{
 			pp.readAuthData((const esp_partition_t *)pp.partition, &authData);
 			pp.freePartitions();
 		}
+
+		bool updateTimer(void){
+			if(settingsMenu_updateTimer){
+				settingsMenu_updateTimer = false;
+				return true;
+			}
+			return false;
+		}
+
+		bool updateBrightness(void){
+			if(settingsMenu_updateBrightness){
+				settingsMenu_updateBrightness = false;
+				return true;
+			}
+			return false;
+		}
+
 		void make(lv_obj_t *parent, void (*exitFunc)(lv_event_t *)){
 			this->create(parent);
+			this->execute();
 
 	    		lv_color_t bg_color = this->getStyleBgColor();
 	    		if(this->colors.getBrightness(bg_color) > 127) {
@@ -278,15 +366,18 @@ class SettingsMenu : public PalcomMenu{
 			this->setParamCallback(exitFunc, (void*)this->getObject(), LV_EVENT_CLICKED);
 			this->fullScreen();
 	    		this->center();
+			this->execute();
 
 		    	lv_obj_t * cont;
 			PalcomSection section;
 
 			/* Create General Page */
 			this->createGeneralPage();
+			this->execute();
 
 			/* Create Security Page */
 			this->createSecurityPage();
+			this->execute();
 
 			/* Create Relay Page */
 			relayPage.create(this->getObject(), NULL);
@@ -295,31 +386,34 @@ class SettingsMenu : public PalcomMenu{
 	    		relayPage.section.create(relayPage.getObject());
 	    		this->create_slider(relayPage.section.getObject(), LV_SYMBOL_SETTINGS, "Relay IP", 0, 150, 100);
 	    		this->create_slider(relayPage.section.getObject(), LV_SYMBOL_SETTINGS, "Relay Port", 0, 150, 100);
+			this->execute();
 
 			/* Create factory reset page */
 			this->createFactoryResetPage();
+			this->execute();
 
 	    		/*Create a root page*/
-			this->page.create(this->getObject(), "Settings");
-			this->page.setStylePaddingHor(this->getMainHeaderPaddingLeft());
+			rootPage.create(this->getObject(), "Settings");
+			rootPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
+			this->execute();
 	    		
-			this->page.section.create(this->page.getObject());
-	    		cont = this->create_text(this->page.section.getObject(), LV_SYMBOL_SETTINGS, "General", LV_MENU_ITEM_BUILDER_VARIANT_1);
+			rootPage.section.create(rootPage.getObject());
+	    		cont = this->create_text(rootPage.section.getObject(), LV_SYMBOL_SETTINGS, "General", LV_MENU_ITEM_BUILDER_VARIANT_1);
 			this->linkContainerToPage(cont, generalPage.getObject());
 	    		
-			cont = this->create_text(this->page.section.getObject(), LV_SYMBOL_SETTINGS, "Security", LV_MENU_ITEM_BUILDER_VARIANT_1);
+			cont = this->create_text(rootPage.section.getObject(), LV_SYMBOL_SETTINGS, "Security", LV_MENU_ITEM_BUILDER_VARIANT_1);
 			this->linkContainerToPage(cont, securityPage.getObject());
 	    		
-			cont = this->create_text(this->page.section.getObject(), LV_SYMBOL_SETTINGS, "Relay", LV_MENU_ITEM_BUILDER_VARIANT_1);
+			cont = this->create_text(rootPage.section.getObject(), LV_SYMBOL_SETTINGS, "Relay", LV_MENU_ITEM_BUILDER_VARIANT_1);
 			this->linkContainerToPage(cont, relayPage.getObject());
 
-	    		this->create_text(this->page.getObject(), NULL, "Admin", LV_MENU_ITEM_BUILDER_VARIANT_1);
+	    		this->create_text(rootPage.getObject(), NULL, "Admin", LV_MENU_ITEM_BUILDER_VARIANT_1);
 	    		
-			this->page.section.create(this->page.getObject());
-    			cont = this->create_text(this->page.section.getObject(), NULL, "Factory Reset", LV_MENU_ITEM_BUILDER_VARIANT_1);
+			rootPage.section.create(rootPage.getObject());
+    			cont = this->create_text(rootPage.section.getObject(), NULL, "Factory Reset", LV_MENU_ITEM_BUILDER_VARIANT_1);
 			this->linkContainerToPage(cont, resetPage.getObject());
 
-    			this->setSidebarPage(this->page.getObject());
+    			this->setSidebarPage(rootPage.getObject());
 	
     			lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(this->getObject()), 0), 0), LV_EVENT_CLICKED,NULL);
 		}

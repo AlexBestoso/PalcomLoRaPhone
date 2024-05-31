@@ -178,7 +178,7 @@ class PalcomSetup : public PalcomScreen{
 				initer.setupSD();
                         	initer.setupRadio();
 
-				try{
+			/*	try{
 					PalcomCrypto pcry;
                         		pcry.generatePublicHash(true);
 				}catch(CoreException e){
@@ -189,7 +189,7 @@ class PalcomSetup : public PalcomScreen{
 					}else{
 						e.log("PalcomSetup::generateObject()");
 					}
-				}
+				}*/
 
         			initalized = true;
 				this->setBuildRequired(true);
@@ -330,6 +330,7 @@ class PalcomSetup : public PalcomScreen{
 				palcom_config_t configData;
 				configData.lock_timer = setupForm.lockTimer;
 				strncpy((char *)configData.user_name, setupForm.name.c_str(), 20);
+				configData.screen_brightness = 100;
 				pfs.storeConfigData(configData);
 				
 				this->globalDestroy();

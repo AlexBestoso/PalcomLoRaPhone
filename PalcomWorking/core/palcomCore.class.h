@@ -4,19 +4,46 @@ class PalcomCore{
     		lv_obj_t *parent;
     		PalcomLoginScreen loginScreen;    
 
+		void execute(void){
+			lv_task_handler();
+                        lv_timer_handler();
+                        lv_tick_inc(5);
+		}
+
+		void updateSleepTimer(void){
+			PalcomFS pfs;
+			this->execute();
+			palcom_config_t *cfg = pfs.getConfigData();
+			this->execute();
+			screenSleepTime = cfg->lock_timer;
+			this->execute();
+
+		}
+
+		void updateBrightness(void){
+			PalcomFS pfs;
+			this->execute();
+			palcom_config_t *cfg = pfs.getConfigData();
+			this->execute();
+			screenBrightness = cfg->screen_brightness;
+			this->execute();
+			analogWrite(BOARD_TFT_BACKLIGHT, screenBrightness);
+		}
+
     		void _resetAllPages(int maintain=0){
       			viewContext = maintain;
 			aboutScreen.resetPage();
       			loginScreen.resetPage();
       			palcomSetup.resetPage();
       			mainMenu.resetPage();
+			this->execute();
 
       			palcomPlaintextMessaging.resetPage();
       			settingsMenu.resetPage();
       			palcomKeySharing.resetPage();
       			palcomEncryptedMessaging.resetPage();
 			wifiMenu.resetPage();
-      			lv_task_handler();
+      			this->execute();
     		}
 
     		bool _processRecv(){
@@ -72,6 +99,10 @@ class PalcomCore{
 
     		void _settingsMenu(void){
       			viewContext = settingsMenu.run();
+			if(settingsMenu.updateTimer())
+				updateSleepTimer();
+			if(settingsMenu.updateBrightness())
+				updateBrightness();
       			if(viewContext != CONTEXT_SETTINGS){
         			_resetAllPages(viewContext);
       			}
@@ -90,16 +121,21 @@ class PalcomCore{
   	public:
     		int sendTimerMax = 20000;
     		int sendTimer = sendTimerMax;
+		int screenSleepTime = 3;
+		int screenBrightness = Sleep_maxBrightness;
 		
     		void screenSleep(){
-      			if(Sleep_interactionCtx == 0 && Sleep_brightness != Sleep_maxBrightness){
-        			Sleep_brightness = Sleep_maxBrightness;
+			if(screenSleepTime <= 0){
+				return;
+			}
+      			if(Sleep_interactionCtx == 0 && Sleep_brightness != screenBrightness){
+        			Sleep_brightness = screenBrightness;
         			Sleep_timer = millis();
-        			analogWrite(BOARD_TFT_BACKLIGHT, Sleep_maxBrightness);
-      			}else if((millis()-Sleep_timer) > (1000*60) && Sleep_interactionCtx == 0){
+        			analogWrite(BOARD_TFT_BACKLIGHT, screenBrightness);
+      			}else if((millis()-Sleep_timer) > (1000*60*screenSleepTime) && Sleep_interactionCtx == 0){
         			Sleep_interactionCtx = 1;
         			Sleep_timer = millis();
-        			Sleep_brightness = Sleep_maxBrightness/2;
+        			Sleep_brightness = screenBrightness/2;
         			analogWrite(BOARD_TFT_BACKLIGHT, Sleep_brightness);
       			}else if((millis()-Sleep_timer) > (1000*30) && Sleep_interactionCtx == 1){
         			Sleep_interactionCtx = 2;
@@ -112,6 +148,7 @@ class PalcomCore{
     		}
 
     		void lockScreen(){
+			updateSleepTimer();
       			screenLockConditionSpace = false;
       			screenLockConditionBall = false;
       			Sleep_interactionCtx = 2;
@@ -131,33 +168,27 @@ class PalcomCore{
       				if(viewContext != -1){
      	 	  			sendTimer--;
       		  			this->screenSleep();
-      		  			lv_task_handler();
-					lv_timer_handler();
-					lv_tick_inc(5);
+					this->execute();
         				if(sendTimer > 0){
         	  				if(this->_processRecv())
         	    					sendTimer = 0;
-        	  				lv_task_handler();
-						lv_timer_handler();
-						lv_tick_inc(5);
+						this->execute();
         				}else if(sendTimer <= 0){
         	  				this->_processSend();
-        	  				lv_task_handler();
-						lv_timer_handler();
-						lv_tick_inc(5);
+						this->execute();
         	  				sendTimer = sendTimerMax;
         				}
       				}else{
         				delay(1);
-        				lv_task_handler();
-					lv_timer_handler();
-					lv_tick_inc(5);
+					this->execute();
       				}
 
       				switch(viewContext){
         				case CONTEXT_SETUP:
 						viewContext = palcomSetup.run();
                         			if(viewContext != -1){
+							updateSleepTimer();
+							updateBrightness();
                                 			_resetAllPages(viewContext);
                                 			PalcomFS pfs;
                                 			pfs.rm(pfs_folder_recvQueue);
@@ -180,9 +211,7 @@ class PalcomCore{
         	  				this->_login();
         					break;
       				}
-      				lv_task_handler();
-				lv_timer_handler();
-				lv_tick_inc(5);
+				this->execute();
 			}catch(CoreException e){
 				e.log("PalcomCore::contextSwitch() - Critical Failure.");
 				while(1){}

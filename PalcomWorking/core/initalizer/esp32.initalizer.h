@@ -185,13 +185,10 @@ class ESP32Initalizer{
                                         screenLockConditionSpace = false;
 
                                 last_key = act_key;
-				keyboard_data.pressed = true;
-				keyboard_data.released = false;
 				if(keyboardFocusedObj != NULL){
 					PalcomTextarea kfo;
 					kfo.setObject(keyboardFocusedObj);
 					if(kfo.stateInUse(LV_STATE_FOCUSED)){
-						Serial.printf("Pushing key : %c\n", act_key);
 						if(last_key == LV_KEY_BACKSPACE)
 							kfo.popCharLeft();
 						else
@@ -201,11 +198,8 @@ class ESP32Initalizer{
 				}
                         }else{
                                 data->state = LV_INDEV_STATE_RELEASED;
-				keyboard_data.pressed = false;
-				keyboard_data.released = true;
                         }
                         data->key = last_key;
-			keyboard_data.key = data->key;
                 }
 
 		static uint32_t keypad_get_key(void){

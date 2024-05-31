@@ -288,7 +288,7 @@ class PalcomFS{
 
 		void storeConfigData(palcom_config_t data){
 			this->fd = SD.open(pfs_config, FILE_WRITE, O_TRUNC);
-			this->fd.write((unsigned char *)&data, sizeof(palcom_config_t));
+			this->fd.write((unsigned char *)&data, PALCOM_CONFIG_DATA_SIZE);
 			this->close();
 		}
 

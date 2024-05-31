@@ -1,4 +1,4 @@
-#define SOFTWARE_VERSION "0.2.4 Beta"
+#define SOFTWARE_VERSION "0.2.5 Beta"
 
 #define SCREEN_HOR 320
 #define SCREEN_VIR 240
@@ -22,8 +22,11 @@
 #define LVGL_BUFFER_SIZE    (TFT_WIDTH * TFT_HEIGHT ) * sizeof(lv_color_t)
 
 lv_color_t *draw_buf = NULL;
+
 lv_group_t *keyboardGroup = NULL;
+
 lv_obj_t *keyboardFocusedObj = NULL;
+
 int Setup_setupControl = 0;
 int Sleep_interactionCtx = 0;
 int Sleep_maxBrightness = 256;

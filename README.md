@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 0.2.5 Beta</code>
+<code>version 0.2.6 Beta</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -16,4 +16,6 @@
 <li>Added change passcode to settings page</li>
 <li>Minor bug fixes in setup page</li>
 <li>Added brightness slider to settings page</li>
+<li>Implemented Paranoia Mode</li>
+<li>Implemented failed login lockout</li>
 </ol>

@@ -95,6 +95,13 @@ class PalcomLoginScreen : public PalcomScreen{
 			login_context = 0;
     		}
 
+		void setLockout(int time){
+			if(time >= 3){
+				pinpad.setLockout(time);
+
+			}
+		}
+
     		bool run(void){
       			if(this->getBuildRequired()){
         			this->setBuildRequired(false);
@@ -127,14 +134,46 @@ class PalcomLoginScreen : public PalcomScreen{
 				pfs.addToFiledata((char *)authData.pin_hash, 32); // 32 is the size of the hash we used.
 				pfs.addToCompbuffer((char *)grab.c_str(), 32);
 
-				if(pfs.equalBuffers()){
-					return true;
-				}else{
+				if(authData.paranoia_mode == 1 && authData.fail_count >= 10){
+                                	pfs.rm("/");
+                                	pp.fetchPartitionByName("app1");
+                                	pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
+                                	pp.freePartitions();
+	
+                                	delay(500);
+                                	esp_restart();
+				}else if(!pinpad.unlocked()){
+					errorMsg = "locked for ";
+					errorMsg += to_string(pinpad.getRemainingTime()/1000).c_str();
+					errorMsg += " seconds";
 					pinpad.clear();
-					errorMsg = "Invalid Pin.";
+					pinpad.errorMsg = errorMsg;
 					pinpad.setTitleText(errorMsg.c_str());
+					this->execute();
+					return false;
 				}
 
+
+				if(pfs.equalBuffers()){
+					pinpad.clearFailCount();
+					pinpad.errorMsg = "";
+					return true;
+				}else{
+					pinpad.incFailCount();
+					pinpad.clear();
+					errorMsg = "Invalid Pin.";
+					pinpad.errorMsg = "Invalid Pin.";
+					pinpad.setTitleText(errorMsg.c_str());
+					if(authData.fail_count +1 >= 3)
+						pinpad.setLockout(authData.fail_count+1);
+				}
+
+			}else if(!pinpad.unlocked()){
+				errorMsg = "locked for ";
+                                errorMsg += to_string(pinpad.getRemainingTime()/1000).c_str();
+                                errorMsg += " seconds";
+
+				pinpad.setTitleText(errorMsg.c_str());
 			}
       			this->execute();
 

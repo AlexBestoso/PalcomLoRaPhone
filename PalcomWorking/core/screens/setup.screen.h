@@ -280,6 +280,7 @@ class PalcomSetup : public PalcomScreen{
 			if(pinpad.codeReady() && showPinpad){
 				this->setBuildRequired(true);
 				this->destroy();
+				return -1;
 			}
 
 			if(setupForm.formSubmitted()){
@@ -301,6 +302,7 @@ class PalcomSetup : public PalcomScreen{
 
 				// Fetch Pmode
 				authData.paranoia_mode = setupForm.paranoiaMode;
+				authData.fail_count = 0;
 
 				// Generate AES Key and IV
 				PalcomAes aes;

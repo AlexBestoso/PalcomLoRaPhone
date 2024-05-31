@@ -147,6 +147,22 @@ class SettingsMenu : public PalcomMenu{
 			}
 		}
 
+		static void callback_togglePmode(lv_event_t *e){
+			PalcomEvent event(e);
+			if(event.getCode() == LV_EVENT_VALUE_CHANGED){
+				PalcomSwitch sw;
+				sw.setObject((lv_obj_t*)event.getTarget());	
+				int newVal = sw.stateInUse(LV_STATE_CHECKED) ? 1 : 0;
+				PalcomPartition pp;
+				palcom_auth_t data;
+				pp.fetchPartitionByName("app1");
+				pp.readAuthData((const esp_partition_t *)pp.partition, &data);
+				data.paranoia_mode = newVal;
+				pp.writeAuthData((const esp_partition_t *)pp.partition, data);
+				pp.freePartitions();
+			}
+		}
+
 		lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt, lv_menu_builder_variant_t builder_variant){
     			lv_obj_t * obj = this->createContainer(parent);
 		
@@ -193,8 +209,15 @@ class SettingsMenu : public PalcomMenu{
 		lv_obj_t * create_switch(lv_obj_t * parent, const char * icon, const char * txt, bool chk){
     			lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_1);
 
-    			lv_obj_t * sw = lv_switch_create(obj);
-    			lv_obj_add_state(sw, chk ? LV_STATE_CHECKED : 0);
+			PalcomSwitch sw;
+    			sw.create(obj);
+			if(chk){
+				sw.addState(LV_STATE_CHECKED);
+			}else if(sw.stateInUse(LV_STATE_CHECKED)){
+				sw.removeState(LV_STATE_CHECKED);
+			}
+
+			sw.setSimpleCallback(&callback_togglePmode);
 
     			return obj;
 		}

@@ -30,6 +30,16 @@ class PalcomCore{
 			analogWrite(BOARD_TFT_BACKLIGHT, screenBrightness);
 		}
 
+		void updateLockout(void){
+			PalcomPartition pp;
+			pp.fetchPartitionByName("app1");
+			palcom_auth_t data;
+			pp.readAuthData((const esp_partition_t *)pp.partition, &data);
+			if(data.fail_count >= 3){
+				loginScreen.setLockout(data.fail_count);
+			}
+		}
+
     		void _resetAllPages(int maintain=0){
       			viewContext = maintain;
 			aboutScreen.resetPage();
@@ -189,6 +199,7 @@ class PalcomCore{
                         			if(viewContext != -1){
 							updateSleepTimer();
 							updateBrightness();
+							updateLockout();
                                 			_resetAllPages(viewContext);
                                 			PalcomFS pfs;
                                 			pfs.rm(pfs_folder_recvQueue);

@@ -10,6 +10,7 @@
 #include "./palcomMessageBox.h"
 #include "./checkbox.object.h"
 #include "./slider/slider.h"
+#include "./switch.object.h"
 
 // Menu Depends on the above widgets.
 #include "./menu/menu.h"

@@ -167,34 +167,37 @@ class PalcomSetup : public PalcomScreen{
 			 * Initalize all the stuff required for the system to work.
 			 * */
 	      		if(!initalized){
-				try{
-					initer.pinInit();
-					initer.aceButtonInit();
-					initer.semaphoreInit();
-					initer.lcdInit();
-					initer.touchscreenInit();
-					kbDected = checkKb();
-					initer.lvglInit();
-					displaySplash();
-					initer.setupSD();
-                        		initer.setupRadio();
+				initer.pinInit();
+				initer.aceButtonInit();
+				initer.semaphoreInit();
+				initer.lcdInit();
+				initer.touchscreenInit();
+				kbDected = checkKb();
+				initer.lvglInit();
+				displaySplash();
+				initer.setupSD();
+                        	initer.setupRadio();
 
+				try{
 					PalcomCrypto pcry;
                         		pcry.generatePublicHash(true);
-
-        				initalized = true;
-					this->setBuildRequired(true);
-
-					Serial.printf("System Initalized.\n");
-					return;
 				}catch(CoreException e){
 					String msg = "PalcomSetup::generateObject() - Failed to initalize system.\n\t";
 					msg += e.what();
-					throw CoreException(msg.c_str(), 0x01);
+					if(e.errorCode() > 0){ // Critical error caught
+						throw CoreException(msg.c_str(), 0x01);
+					}else{
+						e.log("PalcomSetup::generateObject()");
+					}
 				}
+
+        			initalized = true;
+				this->setBuildRequired(true);
+				
+				Serial.printf("System Initalized.\n");
+				return;
       			}
 
-			displaySplash();
 
 			/*
 			 * Check if we need to setup the system
@@ -203,6 +206,7 @@ class PalcomSetup : public PalcomScreen{
 				loginFileExists = true;
         			return;
 			}
+			this->execute();
 
 			/*
 			 * Configure the screen for this context.
@@ -215,6 +219,7 @@ class PalcomSetup : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
+			this->execute();
 
 			if(pinpad.codeReady() && pinpad.transferReady()){
 				if(pinpad.compResults()){
@@ -229,14 +234,17 @@ class PalcomSetup : public PalcomScreen{
 			if(showPinpad){
 				if(pinpad.codeReady() && !pinpad.transferReady()){
 					pinpad.transferResult();
+					this->destroy();
 					pinpad.create(screen, "Confirm Passcode");
 				}else{
+					this->destroy();
 					if(errorMsg == "")
 						pinpad.create(screen, "Create Passcode");
 					else
 						pinpad.create(screen, errorMsg.c_str());
 				}
 			}else{
+				this->destroy();
 				setupForm.create(screen, "Continue Setup");
 			}
 			this->execute();

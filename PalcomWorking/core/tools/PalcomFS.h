@@ -292,6 +292,19 @@ class PalcomFS{
 			this->close();
 		}
 
+		palcom_config_t *getConfigData(void){
+			palcom_config_t *ret;
+			if(!SD.exists(pfs_config))
+				return ret;
+			this->fd = SD.open(pfs_config, FILE_READ);
+			this->clearAllBuffers();
+			size_t fsize = this->fd.size();
+			this->fd.read(fileData, fsize);
+			this->close();
+			ret = (palcom_config_t*)&fileData;
+			return ret;
+		}
+
 		bool equalBuffers(void){
 			return (strncmp((const char *)fileData, (const char *)compBuffer, __GLOBAL_BUFFER_SIZE) == 0);
 		}

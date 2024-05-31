@@ -7,8 +7,8 @@
 #include "./palcomButton.h"
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
-#include "./menu/menu.h"
 #include "./palcomMessageBox.h"
+#include "./menu/menu.h"
 #include "./checkbox.object.h"
 #include "./slider/slider.h"
 

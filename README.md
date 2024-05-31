@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 0.2.3 Beta</code>
+<code>version 0.2.4 Beta</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -12,4 +12,7 @@
 <li>Upgraded LVGL from 8.3 to 9.1</li>
 <li>Implemented working menu class</li>
 <li>Fixed Texareas failing to inject keyboard input</li>
+<li>Added factory reset to settings page</li>
+<li>Added change passcode to settings page</li>
+<li>Minor bug fixes in setup page</li>
 </ol>

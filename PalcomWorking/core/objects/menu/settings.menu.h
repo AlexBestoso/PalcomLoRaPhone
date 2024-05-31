@@ -29,6 +29,7 @@ typedef uint8_t lv_menu_builder_variant_t;
 
 
 bool settingsMenu_exit = false;
+bool settingsMenu_newPin = false;
 class SettingsMenu : public PalcomMenu{
 	private:
 		PalcomPage generalPage;
@@ -38,14 +39,46 @@ class SettingsMenu : public PalcomMenu{
 
 		PalcomButton backBtn;
 		PalcomObject rootPg;
+		
 
 		static void callback_exitSettingsMenu(lv_event_t * e){
-    			lv_obj_t * obj = (lv_obj_t *)lv_event_get_target(e);
-    			lv_obj_t * menu = (lv_obj_t*)lv_event_get_user_data(e);
+			PalcomEvent event(e);
+    			lv_obj_t *obj = (lv_obj_t*)event.getTarget();
+    			lv_obj_t *menu = (lv_obj_t*)event.getUserData();
 
-    			if(lv_menu_back_button_is_root(menu, obj) && lv_event_get_code(e) == LV_EVENT_RELEASED) {
+    			if(lv_menu_back_button_is_root(menu, obj) && event.getCode() == LV_EVENT_RELEASED) {
 				settingsMenu_exit = true;
     			}
+		}
+
+		static void callback_wipeDevice(lv_event_t *e){
+			Serial.printf("Wiping Device...\n");
+			PalcomFS pfs;
+			pfs.rm("/");
+			PalcomPartition pp;
+			pp.fetchPartitionByName("app1");
+			pp.eraseRange((const esp_partition_t *)pp.partition, 0, pp.partition->size);
+			pp.freePartitions();
+	
+			Serial.printf("Goodbye...\n");
+			delay(500);
+			esp_restart();
+		}
+		static void callback_factoryReset(lv_event_t *e){
+			PalcomEvent event(e);
+			if(event.getCode() == LV_EVENT_RELEASED){
+				PalcomMessageBox mb;
+				mb.create(lv_screen_active(), "WARNING", "Are you Sure that you want to continue? This will erase everything on the device.", true);
+				mb.setFooterButton("Wipe", &callback_wipeDevice, 0);
+				
+			}
+		}
+
+		static void callback_newPasscode(lv_event_t *e){
+			PalcomEvent event(e);
+			if(event.getCode() == LV_EVENT_RELEASED){
+				settingsMenu_newPin = true;
+			}
 		}
 
 		lv_obj_t * create_text(lv_obj_t * parent, const char * icon, const char * txt, lv_menu_builder_variant_t builder_variant){
@@ -98,6 +131,21 @@ class SettingsMenu : public PalcomMenu{
     			return obj;
 		}
 
+		lv_obj_t *create_button(lv_obj_t * parent, const char * icon, const char * txt, void(*func)(lv_event_t *e)){
+    			lv_obj_t * obj = create_text(parent, icon, txt, LV_MENU_ITEM_BUILDER_VARIANT_2);
+			PalcomButton button;
+			button.create(obj);
+			button.setSize(90, 40);
+			button.setSimpleCallback(func);
+			PalcomLabel label;
+			label.create(button.getObject());
+			label.setText("");
+			label.center();
+			button.setLabel(label);
+
+			return obj;
+		}
+
 		static void simpleCb(lv_event_t *e){
 			lv_obj_t *obj = (lv_obj_t*)lv_event_get_target(e);
 			char *data = (char *)lv_event_get_user_data(e);
@@ -112,18 +160,110 @@ class SettingsMenu : public PalcomMenu{
 
 		}
 
-		lv_obj_t *create_textarea(lv_obj_t *parent, const char *icon, const char *text){
+		lv_obj_t *create_textarea(lv_obj_t *parent, const char *icon, const char *text, char *value=NULL){
 			lv_obj_t *obj = this->create_text(parent, icon, text, LV_MENU_ITEM_BUILDER_VARIANT_2);
 			PalcomTextarea textarea;
 			textarea.create(obj);
 			textarea.setSize(120, 40);
+			if(value != NULL){
+				textarea.setText((const char *)value);
+			}
 			
 
 			return obj;
 
 		}
 
+		lv_obj_t *create_textarea2(lv_obj_t *parent, const char *icon, const char *text, char *value=NULL){
+                        lv_obj_t *obj = this->create_text(parent, icon, text, LV_MENU_ITEM_BUILDER_VARIANT_2);
+                        PalcomTextarea textarea;
+                        textarea.create(obj);
+                        textarea.setSize(120, 40);
+			textarea.setValidChars("0123456789");
+                        if(value != NULL){
+                                textarea.setText((const char *)value);
+                        }
+
+
+                        return obj;
+
+                }
+
+		void createGeneralPage(void){
+			String userName = (const char *)configData.user_name;
+			sprintf((char *)compBuffer, "%d", configData.lock_timer);
+			generalPage.create(this->getObject(), NULL);
+                        generalPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
+                        generalPage.addSeparator();
+                        generalPage.section.create(generalPage.getObject());
+                        this->create_textarea(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name", (char *)userName.c_str());
+			this->execute();
+                        this->create_textarea2(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "LockTimer", (char *)compBuffer);
+			this->execute();
+                        this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 50);
+			this->execute();
+		}
+
+		void createSecurityPage(void){
+			securityPage.create(this->getObject(), NULL);
+                        securityPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
+                        securityPage.addSeparator();
+                        securityPage.section.create(securityPage.getObject());
+                        this->create_switch(securityPage.section.getObject(), LV_SYMBOL_SETTINGS, "PMode", authData.paranoia_mode == 1 ? true : false);
+			this->execute();
+                        this->create_button(securityPage.section.getObject(), LV_SYMBOL_SETTINGS, "Change Passcode", &callback_newPasscode);
+			this->execute();
+		}
+
+		void createFactoryResetPage(void){
+			resetPage.create(this->getObject(), NULL);
+                        resetPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
+                        resetPage.addSeparator();
+                        resetPage.section.create(resetPage.getObject());
+                        this->create_button(resetPage.section.getObject(), LV_SYMBOL_SETTINGS, "Factory Reset", &callback_factoryReset);
+			this->execute();
+		}
 	public:
+		palcom_config_t configData;
+		palcom_auth_t authData;
+
+		bool newPinMode(void){
+			return settingsMenu_newPin;
+		}
+		void reset(void){
+			settingsMenu_exit = false;
+			settingsMenu_newPin = false;
+			
+			uint8_t *configData_ptr = (uint8_t*)&configData;
+                	uint8_t *authData_ptr = (uint8_t*)&authData;
+			
+			for(int i=0; i<sizeof(palcom_config_t); i++){
+				configData_ptr[i] = 0x00;
+			}
+
+			for(int i=0; i<sizeof(palcom_auth_t); i++){
+				authData_ptr[i] = 0x00;
+			}
+		}
+
+		void fetchConfigData(void){
+			PalcomFS pfs;
+                        palcom_config_t *configData_ptr = pfs.getConfigData();
+			configData.lock_timer = configData_ptr->lock_timer;
+			for(int i=0; i<20; i++){
+				configData.user_name[i] = configData_ptr->user_name[i];
+			}
+		}
+
+		void fetchAuthData(void){
+			PalcomPartition pp;
+			if(!pp.fetchPartitionByName("app1")){
+				throw CoreException("SettingsMenu::fetchAuthData() - Failed to find auth data storage.", 0x01);
+			}
+
+			pp.readAuthData((const esp_partition_t *)pp.partition, &authData);
+			pp.freePartitions();
+		}
 		void make(lv_obj_t *parent, void (*exitFunc)(lv_event_t *)){
 			this->create(parent);
 
@@ -143,22 +283,10 @@ class SettingsMenu : public PalcomMenu{
 			PalcomSection section;
 
 			/* Create General Page */
-	    		generalPage.create(this->getObject(), NULL);
-	    		generalPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
-			generalPage.addSeparator();
-	    		generalPage.section.create(generalPage.getObject());
-	    		this->create_textarea(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Name");
-	    		this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "LockTimer", 0, 150, 50);
-	    		this->create_slider(generalPage.section.getObject(), LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 50);
+			this->createGeneralPage();
 
 			/* Create Security Page */
-			securityPage.create(this->getObject(), NULL);
-	    		securityPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
-	    		securityPage.addSeparator();
-	    		securityPage.section.create(securityPage.getObject());
-	    		this->create_switch(securityPage.section.getObject(), LV_SYMBOL_AUDIO, "PMode", false);
-	    		this->create_switch(securityPage.section.getObject(), LV_SYMBOL_AUDIO, "Change Passcode", false);
-			this->
+			this->createSecurityPage();
 
 			/* Create Relay Page */
 			relayPage.create(this->getObject(), NULL);
@@ -169,11 +297,7 @@ class SettingsMenu : public PalcomMenu{
 	    		this->create_slider(relayPage.section.getObject(), LV_SYMBOL_SETTINGS, "Relay Port", 0, 150, 100);
 
 			/* Create factory reset page */
-			resetPage.create(this->getObject(), NULL);
-	    		resetPage.setStylePaddingHor(this->getMainHeaderPaddingLeft());
-	    		resetPage.addSeparator();
-	    		resetPage.section.create(resetPage.getObject());
-			// Add button here.
+			this->createFactoryResetPage();
 
 	    		/*Create a root page*/
 			this->page.create(this->getObject(), "Settings");

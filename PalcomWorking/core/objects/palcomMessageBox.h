@@ -38,31 +38,4 @@ class PalcomMessageBox : public PalcomObject{
 			return false;
 		}
 
-/*		lv_obj_t *getMbTitle(void){
-			if(this->uninitalized()){
-				throw CoreException("Message Box object not initalized.", 0x01);
-			}
-			return lv_msgbox_get_title(this->getObject());
-		}
-
-		lv_obj_t *getMbCloseButton(void){
-			if(this->uninitalized()){
-				throw CoreException("Message Box object not initalized.", 0x01);
-			}
-			return lv_msgbox_get_close_buttons(this->getObject());
-		}
-
-		lv_obj_t *getMbText(void){
-			if(this->uninitalized()){
-				throw CoreException("Message Box object not initalized.", 0x01);
-			}
-			return lv_msgbox_get_text(this->getObject());
-		}
-*/
-	//	lv_obj_t *getMbBtns(void){
-	//		if(this->uninitalized()){
-	//			throw CoreException("Message Box object not initalized.", 0x01);
-	//		}
-	//		return lv_msgbox_get_buttons(this->getObject());
-	//	}
 };

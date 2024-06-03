@@ -9,7 +9,5 @@ This will also allow us to send messages bigger than the RSA state size.
 _______
 
 Current Mission : 
-- Finish testing pmode.
-- Write AES enc and dec funcs.
 - Write phone number generation algorithm.
 - Begin Contacts page

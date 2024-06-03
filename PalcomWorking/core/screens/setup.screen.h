@@ -284,10 +284,11 @@ class PalcomSetup : public PalcomScreen{
 					if(phash.getResultSize() != 32)
 						throw CoreException("PalcomSetup::run() - Invalid hash size.", 0x01);
 					for(int i=0; i<32; i++){
+						this->execute();
 						authData.pin_hash[i] = grab[i];
 					}
 
-					infoMsg += "Fetching paranoia mode and default secuity settings...\n";
+					infoMsg += "Fetching paranoia mode and\ndefault secuity settings...\n";
 					lab.setText(infoMsg.c_str());
 					this->execute();
 					// Fetch Pmode
@@ -302,56 +303,136 @@ class PalcomSetup : public PalcomScreen{
 					if(!aes.generate()){
 						throw CoreException("PalcomSetup::run() - Failed to generate AES keys.\n", 0x02);
 					}
-					for(int i=0; i<32; i++)
+					for(int i=0; i<32; i++){
+						this->execute();
 						authData.aes_key[i] = aes.key[i];
-					for(int i=0; i<16; i++)
+					}
+					for(int i=0; i<16; i++){
+						this->execute();
 						authData.aes_iv[i] = aes.iv[i];
+					}
 
-
-					infoMsg += "Storing security settings.\n";
-					lab.setText(infoMsg.c_str());
 					this->execute();
-					// Store sensitive data in flash memory.
-					pp.fetchPartitionByName("app1");
-					pp.writeAuthData((const esp_partition_t *)pp.partition, authData);
-					pp.freePartitions();
-					aes.clearKey();
-					aes.clearIv();
-				
 
-					infoMsg += "Storing generic settings...\n";
+					infoMsg += "Generating RSA key pairs...\nThis might take a while.\n";
 					lab.setText(infoMsg.c_str());
 					this->execute();
 					// Store non-sensitive config data (user name, lock timer, etc)
 					palcom_config_t configData;
 					configData.lock_timer = setupForm.lockTimer;
 					for(int i=0; i<setupForm.name.length(); i++){
+						this->execute();
 						if(i < 20 )
 							configData.user_name[i] = setupForm.name[i];
 					}
 					configData.screen_brightness = 100;
+					this->execute();
 					pfs.storeConfigData(configData);
 					this->execute();
-					delay(300);
-					
 
-					infoMsg += "Generating RSA key pairs...\n\tThis might take a while.\n";
+					pcry.rsaKeyGen.deleteKeyPair();
+					this->execute();
+                        		pcry.rsaKeyGen.initalizeVars();
+					this->execute();
+
+                        		infoMsg += "Generating RNG Seed...\n";
 					lab.setText(infoMsg.c_str());
 					this->execute();
-					if(!pcry.rsaKeyGen.genKeys()){
-                                		Serial.printf("Failed to generate keys.\n");
+                        		if(!pcry.rsaKeyGen.generateRngSeed()){
+                        		        return false;
                         		}
 
+					this->execute();
+                        		infoMsg += "Generating key pair...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                        		if(!pcry.rsaKeyGen.generateKeyPair()){
+                        		        return false;
+                        		}
+					this->execute();
+
+                        		infoMsg += "Exporting key pair..\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                        		if(!pcry.rsaKeyGen.exportKeys()){
+                        		        return false;
+                        		}
+					this->execute();
+
+                        		infoMsg += "Storing Public Key...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                        		if(!pcry.rsaKeyGen.storeExportedPublicKey()){
+                        		        return false;
+                        		}
+
+					this->execute();
+                        		infoMsg += "Storing private key...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                        		if(!pcry.rsaKeyGen.storeExportedPrivateKey()){
+                        		        return false;
+                        		}
+					this->execute();
+
+
+                        		infoMsg += "Key Generation Successful!\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                       		 	pcry.rsaKeyGen.freeVars();
+					this->execute();
+					//if(!pcry.rsaKeyGen.genKeys()){
+                                	//	Serial.printf("Failed to generate keys.\n");
+                        		//}
+
+					// Generating phone number.
+					infoMsg += "Generating Phone Number...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+
+					pfs.clearFileBuffer();
+					this->execute();
+					pfs.fd = SD.open(pfs_file_keysPrivate, FILE_READ);
+					size_t ksize = pfs.fd.size();
+					pfs.fd.read((unsigned char *)&fileData, ksize);
+					pfs.close();
+					this->execute();
+
+					PalcomAlgorithms pa;
+					String phoneNum = pa.PalPhoGen7(fileData, ksize);
+					this->execute();
+					for(int i=0; i<11; i++){
+						this->execute();
+						authData.phone_number[i] = phoneNum[i];
+					}
+
+					this->execute();
+					infoMsg += "Storing security settings.\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					// Store sensitive data in flash memory.
+					pp.fetchPartitionByName("app1");
+					this->execute();
+					pp.writeAuthData((const esp_partition_t *)pp.partition, authData);
+					this->execute();
+					pp.freePartitions();
+					this->execute();
+					aes.clearKey();
+					this->execute();
+					aes.clearIv();
+					this->execute();
 					
 					infoMsg += "Encrypting private key with master key...\n";
 					lab.setText(infoMsg.c_str());
 					this->execute();
 					encryptPrivateKey();
+					this->execute();
 					
 
 					infoMsg += "\n!SETUP COMPLETE!\n";
 					lab.setText(infoMsg.c_str());
 					this->execute();
+					delay(5000);
                         	        resetPage();
                         	        return 0; // change screen to login page.
 				}else{

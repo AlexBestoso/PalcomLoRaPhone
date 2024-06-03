@@ -36,7 +36,7 @@ class PalcomSetupForm : public PalcomObject{
 		static void helpFunc_pmode(lv_event_t* e){
                         if(lv_event_get_code(e) == LV_EVENT_RELEASED){
                                 PalcomMessageBox pmbox;
-                                pmbox.create(NULL, "Help", "P-mode or, 'paranoia mode', makes it so that after 10 failed login attempts your device's SD card is wiped.", true);
+                                pmbox.create(NULL, "Help", "P-mode or, 'paranoia mode', makes it so that after 10 failed login attempts your device's SD card and memory is wiped.", true);
                                 pmbox.setAlignment(LV_ALIGN_TOP_LEFT, 40, 40);
 
                         }
@@ -78,64 +78,82 @@ class PalcomSetupForm : public PalcomObject{
 		void createNameInput(lv_obj_t *parent){
 			defaultTextareaStyle.initStyle();
 			nameTextarea.create(parent);
+			this->execute();
 			nameTextarea.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
 			nameTextarea.setAnyStyle(defaultTextareaStyle.getCursorStyle(), LV_STATE_FOCUSED | LV_PART_CURSOR);
 			nameTextarea.setStylePlaceholder(defaultTextareaStyle.getPlaceHolderStyle());
 			nameTextarea.setOneLine(true);
 			nameTextarea.setMaxLength(20);
+			this->execute();
 			nameTextarea.setAlignment(LV_ALIGN_TOP_LEFT, 10, 40+20);
 			nameTextarea.setTextPlaceholder("Enter Your Name");
 			nameTextarea.setSize(this->getHorizontalResolution()-75, 35);
+			this->execute();
 
 			style_pinpadButton.initStyle();
 			helpButton.create(parent);
+			this->execute();
 			helpLabel.create(helpButton.getObject());
+			this->execute();
 			helpLabel.setText("?");
                         helpLabel.center();
 			helpButton.setLabel(helpLabel);
+			this->execute();
 			helpButton.setDefaultStyle(style_pinpadButton.getStyle());
                         helpButton.setPressedStyle(style_pinpadButton.getPressedStyle());
 			helpButton.setSize(10, 10);
 			helpButton.setAlignment(LV_ALIGN_OUT_TOP_RIGHT, 260, 40+23);
 			helpButton.setSimpleCallback(&helpFunc_name);
+			this->execute();
 		}
 
 		void createPModeInput(lv_obj_t *parent){
 			pcb.create(parent);
+			this->execute();
 			pcb.setText("P-Mode");
 			pcb.unsetChecked();
 			pcb.unsetDisabled();
 			pcb.setAlignment(LV_ALIGN_OUT_TOP_RIGHT,  40, 120-10);
+			this->execute();
 
 			style_pinpadButton.initStyle();
                         helpButton.create(parent);
+			this->execute();
                         helpLabel.create(helpButton.getObject());
+			this->execute();
                         helpLabel.setText("?");
                         helpLabel.center();
                         helpButton.setLabel(helpLabel);
                         helpButton.setDefaultStyle(style_pinpadButton.getStyle());
                         helpButton.setPressedStyle(style_pinpadButton.getPressedStyle());
+			this->execute();
                         helpButton.setSize(10, 10);
                         helpButton.setAlignment(LV_ALIGN_OUT_TOP_RIGHT, 190, 115-10);
                         helpButton.setSimpleCallback(&helpFunc_pmode);
+			this->execute();
 		}
 
 		void createLockTimerInput(lv_obj_t *parent){
 			defaultTextareaStyle.initStyle();
                         lockTimerTextarea.create(parent);
+			this->execute();
                         lockTimerTextarea.setStyle(defaultTextareaStyle.getStyle(), defaultTextareaStyle.getFocusedStyle());
                         lockTimerTextarea.setAnyStyle(defaultTextareaStyle.getCursorStyle(), LV_STATE_FOCUSED | LV_PART_CURSOR);
                         lockTimerTextarea.setStylePlaceholder(defaultTextareaStyle.getPlaceHolderStyle());
                         lockTimerTextarea.setOneLine(true);
+			this->execute();
                         lockTimerTextarea.setMaxLength(20);
                         lockTimerTextarea.setAlignment(LV_ALIGN_TOP_LEFT, 10, 150);
                         lockTimerTextarea.setTextPlaceholder("Screen Lock Time (default: 3)");
                         lockTimerTextarea.setSize(this->getHorizontalResolution()-75, 35);
 			lockTimerTextarea.setValidChars("0123456789");
+			this->execute();
 
 			style_pinpadButton.initStyle();
                         helpButton.create(parent);
+			this->execute();
                         helpLabel.create(helpButton.getObject());
+			this->execute();
                         helpLabel.setText("?");
                         helpLabel.center();
                         helpButton.setLabel(helpLabel);
@@ -144,13 +162,16 @@ class PalcomSetupForm : public PalcomObject{
                         helpButton.setSize(10, 10);
                         helpButton.setAlignment(LV_ALIGN_OUT_TOP_RIGHT, 260, 150+3);
                         helpButton.setSimpleCallback(&helpFunc_lock);
+			this->execute();
 		}
 
 		void createSubmitButton(lv_obj_t *parent){
 			style_pinpadButton.initStyle();
 			submitButton.create(parent);
+			this->execute();
 			PalcomLabel submitLabel;
 			submitLabel.create(submitButton.getObject());
+			this->execute();
 			submitLabel.setText("Complete Setup");
 			submitLabel.center();
 			submitButton.setLabel(submitLabel);
@@ -159,6 +180,7 @@ class PalcomSetupForm : public PalcomObject{
 			submitButton.setSize(50, 15);
 			submitButton.setAlignment(LV_ALIGN_OUT_TOP_RIGHT, 60, 193);
 			submitButton.setSimpleCallback(&submitForm);
+			this->execute();
 		}
 
 		void clearFlags(void){
@@ -181,6 +203,7 @@ class PalcomSetupForm : public PalcomObject{
 		void create(lv_obj_t *parent, String title){
 			this->generate(parent, pal_base);
 			this->setSize(this->getHorizontalResolution()-20, this->getVirticalResolution());
+			this->execute();
 			
 			PalcomLabel titleLabel;
 			titleLabel.create(parent);
@@ -216,6 +239,7 @@ class PalcomSetupForm : public PalcomObject{
 		}
 
 		bool formSubmitted(void){
+			this->execute();
 			if(setupForm_error == SETUPFORM_ERROR_NONE && setupForm_submitted){
 				this->paranoiaMode = lv_obj_get_state(pcb.getObject()) & LV_STATE_CHECKED ? true : false;
                                 this->name = nameTextarea.getText();

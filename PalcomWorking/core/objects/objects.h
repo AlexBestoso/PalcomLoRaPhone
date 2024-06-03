@@ -7,10 +7,13 @@
 #include "./palcomButton.h"
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
-#include "./menu/menu.h"
 #include "./palcomMessageBox.h"
 #include "./checkbox.object.h"
 #include "./slider/slider.h"
+#include "./switch.object.h"
+
+// Menu Depends on the above widgets.
+#include "./menu/menu.h"
 
 // Complex Objects
 #include "./palcomPopupMessage.h"

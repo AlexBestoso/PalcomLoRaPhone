@@ -11,7 +11,7 @@ class PalcomButton : public PalcomObject{
     	
 		void create(lv_obj_t *parent){
       			this->generate(parent, pal_button);
-			lv_obj_remove_style_all(this->getObject());
+			//lv_obj_remove_style_all(this->getObject());
     		}
 
     		void createGlobal(lv_obj_t *parent, int id){

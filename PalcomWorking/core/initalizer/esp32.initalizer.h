@@ -1,15 +1,5 @@
-#define LVGL_BUFFER_SIZE    (TFT_WIDTH * TFT_HEIGHT ) * sizeof(lv_color_t)
-lv_color_t *draw_buf = NULL;
-
-int Setup_setupControl = 0;
-int Sleep_interactionCtx = 0;
-int Sleep_maxBrightness = 256;
-int Sleep_brightness = 0;
-float Sleep_timer = millis();
-
-
 static void Setup_setRxFlag(void){
-      		rxFlag = true;
+      	rxFlag = true;
 }
 
 static void Setup_setTxFlag(void){
@@ -180,12 +170,13 @@ class ESP32Initalizer{
                         return;
                 }
 
+
 		static void keypad_read(lv_indev_t *indev_drv, lv_indev_data_t *data){
                         static uint32_t last_key = 0;
                         uint32_t act_key ;
                         act_key = keypad_get_key();
                         if(act_key != 0){
-                                data->state = LV_INDEV_STATE_PR;
+                                data->state = LV_INDEV_STATE_PRESSED;
                                 Sleep_interactionCtx = 0;
                                 Sleep_timer = millis();
                                 if(act_key == 0x20)
@@ -194,8 +185,19 @@ class ESP32Initalizer{
                                         screenLockConditionSpace = false;
 
                                 last_key = act_key;
+				if(keyboardFocusedObj != NULL){
+					PalcomTextarea kfo;
+					kfo.setObject(keyboardFocusedObj);
+					if(kfo.stateInUse(LV_STATE_FOCUSED)){
+						if(last_key == LV_KEY_BACKSPACE)
+							kfo.popCharLeft();
+						else
+							kfo.pushChar(last_key);
+					}
+
+				}
                         }else{
-                                data->state = LV_INDEV_STATE_REL;
+                                data->state = LV_INDEV_STATE_RELEASED;
                         }
                         data->key = last_key;
                 }
@@ -272,6 +274,29 @@ class ESP32Initalizer{
                         data->point.y = last_y;
                         data->state = left_button_down ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
                 }
+
+		void setupKeyboardDevice(void){
+			indev_keypad = lv_indev_create();
+                        if(indev_keypad == NULL){
+                                throw CoreException("ESP32Initalizer::lvglInit() - Failed to create keypad input device.", 0x04);
+                        }
+                        lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
+                        lv_indev_set_read_cb(indev_keypad, &keypad_read);
+                        lv_indev_set_group(indev_keypad, keyboardGroup);
+		}
+
+		void setupMouseDevice(void){
+			indev_mouse = lv_indev_create();
+                        lv_indev_set_type(indev_mouse, LV_INDEV_TYPE_POINTER);
+                        lv_indev_set_read_cb(indev_mouse, &mouse_read);
+                        //lv_indev_set_group(indev_mouse, lv_group_get_default());
+                        cursorImg = lv_img_create(lv_scr_act());
+                        if(cursorImg == NULL){
+                                throw CoreException("ESP32Initalizer::lvglInit() - Failed to create mouse cursor image.", 0x05);
+                        }
+                        lv_img_set_src(cursorImg, &mousePointerPng);
+                        lv_indev_set_cursor(indev_mouse, cursorImg);
+		}
 	public:	
 		void pinInit(void){
 			Serial.begin(115200);
@@ -340,23 +365,10 @@ class ESP32Initalizer{
 			lv_indev_set_read_cb(indev_touchpad, &touchpad_read);
 
 			Serial.printf("Creating keyboard input device.\n");
-			indev_keypad = lv_indev_create();
-			if(indev_keypad == NULL){
-				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create keypad input device.", 0x04);
-			}
-			lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
-			lv_indev_set_read_cb(indev_keypad, &keypad_read);
+			this->setupKeyboardDevice();
 
 			Serial.printf("Creating mouse input device.\n");
-			indev_mouse = lv_indev_create();
-			lv_indev_set_type(indev_mouse, LV_INDEV_TYPE_POINTER);
-			lv_indev_set_read_cb(indev_mouse, &mouse_read);
-			cursorImg = lv_img_create(lv_scr_act());
-			if(cursorImg == NULL){
-				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create mouse cursor image.", 0x05);
-			}
-			lv_img_set_src(cursorImg, &mousePointerPng);
-			lv_indev_set_cursor(indev_mouse, cursorImg);
+			this->setupMouseDevice();
 		}
 
 		bool setupSD(){
@@ -482,5 +494,13 @@ class ESP32Initalizer{
                         // Run listen mode by default
                         return true;
                 }
+
+		lv_group_t *getKeyboardGroup(void){
+			return keyboardGroup;
+		}
+
+		bool keyPressed(void){
+			return true;
+		}
 
 }initer;

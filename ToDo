@@ -5,3 +5,11 @@ We will use around 10-20 iterations before having to share a new key.
 This will allow us to send encrypted messages faster by reducing the number of bytes that have to be emitted.
 
 This will also allow us to send messages bigger than the RSA state size.
+
+_______
+
+Current Mission : 
+- Finish testing pmode.
+- Write AES enc and dec funcs.
+- Write phone number generation algorithm.
+- Begin Contacts page

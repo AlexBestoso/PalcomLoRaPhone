@@ -1,4 +1,4 @@
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch};
 class PalcomObject{
 	private:
 		lv_obj_t *object = NULL;
@@ -92,6 +92,10 @@ class PalcomObject{
 					break;
 				case pal_slider:
 					this->object = lv_slider_create(parent);
+					break;
+				case pal_switch:
+					this->object = lv_switch_create(parent);
+					break;
 			}
 		}
 
@@ -250,6 +254,9 @@ class PalcomObject{
 			lv_obj_add_event_cb(this->object, func, event, input);
 		}
 
+		void addFlag(lv_obj_flag_t f){
+			setFlag(f);
+		}
 		void setFlag(lv_obj_flag_t f){
 			lv_obj_add_flag(this->object, f);
 		}

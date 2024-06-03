@@ -2,10 +2,41 @@
 #define PALCOM_TA_CURSOR_DOWN 1
 #define PALCOM_TA_CURSOR_LEFT 2
 #define PALCOM_TA_CURSOR_RIGHT 3
+
+static void textarea_drive_keyboard(PalcomEvent e){
+	PalcomEvent event(e);
+	lv_obj_t *obj = (lv_obj_t*)event.getTarget();
+	char *data = (char *)event.getUserData();
+
+	if(event.getCode() == LV_EVENT_INSERT){
+	
+	}else if(event.getCode() == LV_EVENT_FOCUSED){
+		keyboardFocusedObj = obj;
+	}else if(event.getCode() == LV_EVENT_DEFOCUSED){
+		keyboardFocusedObj == NULL;
+	}
+}
 class PalcomTextarea : public PalcomObject{
   	private:
   		lv_style_t style;
 		lv_style_t focusedStyle;
+
+		static void simpleCb(lv_event_t *e){
+			PalcomEvent event(e);
+
+                        lv_obj_t *obj = (lv_obj_t*)event.getTarget();
+                        char *data = (char *)event.getUserData();
+
+                        if(event.getCode() == LV_EVENT_INSERT){
+                        }else if(event.getCode() == LV_EVENT_FOCUSED){
+                                keyboardFocusedObj = obj;
+                        }else if(event.getCode() == LV_EVENT_DEFOCUSED){
+                                keyboardFocusedObj == NULL;
+                        }
+
+
+                }
+
 	public:
     		lv_obj_t *getObj(void){
       			return this->getObject();
@@ -60,6 +91,8 @@ class PalcomTextarea : public PalcomObject{
 
     		void create(lv_obj_t *parent){
 			this->generate(parent, pal_textarea);
+			this->setParamCallback(&simpleCb, this->getObject());
+			lv_group_add_obj(keyboardGroup, this->getObject());
 			//lv_obj_remove_style_all(this->getObject());
     		}
 

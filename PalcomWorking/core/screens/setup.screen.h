@@ -1,9 +1,9 @@
 int systemSetup_contextControl = 0;
 class PalcomSetup : public PalcomScreen{
   	private:
-		//ESP32Initalizer initer;
 		PalcomPinpad pinpad;
 		PalcomSetupForm setupForm;
+		PalcomCrypto pcry;
     		bool initalized = false;
 		bool allocated = false;
 		bool loginFileExists = false;
@@ -61,102 +61,82 @@ class PalcomSetup : public PalcomScreen{
 
 
 	    	void keygenView(void){
-	        	lv_obj_t *screen = this->getScreen();
-	        	if(screen == NULL){
-		          	this->globalDestroy();
-		          	this->create();
-		          	screen = this->getScreen();
-	        	}
-	        	this->setFullScreen();
-	        	this->setScreenScrollDirection(LV_DIR_VER);
-			string msg = "Generating Key Pair\n";
-
-			int y = 8;
-			int x = 10;
-	        	PalcomLabel pLabel;
-	        	pLabel.create(screen);
-	        	pLabel.setLongMode(LV_LABEL_LONG_SCROLL);
-	        	pLabel.setWidth(320);
-			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-	        	pLabel.setText(msg.c_str());
-			this->execute();
-
-			PalcomCrypto pcry;
-	        	//generateKeyPair(true);
-			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Initalizing RSA Variables...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-			pcry.rsaKeyGen.initalizeVars();
-			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Generating RNG Seed...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-                        pcry.rsaKeyGen.generateRngSeed();
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Generating Key Pair...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-                        pcry.rsaKeyGen.generateKeyPair();
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Exporting Key Pair...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-                        pcry.rsaKeyGen.exportKeys();
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                       	this->execute();
-
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Writing Public Key To SD Card...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-                        pcry.rsaKeyGen.storeExportedPublicKey();
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Writing Private Key To SD Card...";
-                        pLabel.setText(msg.c_str());
-                       	this->execute();
-                        pcry.rsaKeyGen.storeExportedPrivateKey();
-                        pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-
-			pcry.rsaKeyGen.freeVars();
-
-			pLabel.setAlignment(LV_ALIGN_TOP_MID, x, y);
-			msg += "Generating public key hash file...";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-			pcry.generatePublicHash(true);
-			msg += "SUCCESS\n";
-                        pLabel.setText(msg.c_str());
-                        this->execute();
-       	 		Setup_setupControl = 1;
+			if(!pcry.rsaKeyGen.genKeys()){
+				throw CoreException("PalcomSetup::keygenView() - Failed to generate RSA key pair.", 0x01);
+			}
     		}
 
+		void encryptPrivateKey(void){
+			PalcomFS pfs;
+			pcry.aes.fetchMasterKey();
+			pfs.clearFileBuffer();
+			pfs.clearCompBuffer();
 
+			pfs.fd = SD.open(pfs_file_keysPrivate, FILE_READ);
+			if(!pfs.fd){
+				pfs.close();
+				throw CoreException("PalcomSetup::encryptPrivateKey() - Failed to open private key.", 0x01);
+			}
+			size_t keySize = pfs.fd.size();
+			size_t originalSize = keySize;
+			pfs.fd.read(fileData, keySize);
+			pfs.close();
+			// Key has been obtained as well as it's size.
+			Serial.printf("Private Key Size : %ld\n", keySize);
+
+			
+			// Determine the size of the output buffer.
+			size_t cipherTextSize = pcry.aes.calcOutputSize(keySize);
+			Serial.printf("Predicted Cipher Text Size: %ld\n", cipherTextSize);
+
+			String chalOne = (const char *)&fileData;
+
+			// Attempting Encryption.
+			pcry.aes.crypt(true, (unsigned char *)fileData, keySize, (unsigned char *)&compBuffer, cipherTextSize);
+
+
+			// Store the now encrypted private key.
+			pfs.fd = SD.open(pfs_file_keysPrivate, FILE_WRITE, O_TRUNC);
+			if(!pfs.fd){
+				pfs.close();
+				throw CoreException("PalcomSetup::encryptPrivateKey() - Failed to truncate the private key file.", 0x02);
+			}
+			pfs.fd.write((unsigned char *)compBuffer, cipherTextSize);
+			pfs.close();
+			
+			// Confirm encryption wa successful.
+			pcry.aes.fetchMasterKey();
+			pfs.clearFileBuffer();
+			pfs.clearCompBuffer();
+			pfs.fd = SD.open(pfs_file_keysPrivate, FILE_READ);
+                        if(!pfs.fd){
+                                pfs.close();
+                                throw CoreException("PalcomSetup::encryptPrivateKey() - Failed to open private key.", 0x03);
+                        }
+                        keySize = pfs.fd.size();
+                        pfs.fd.read(fileData, keySize);
+                        pfs.close();
+
+			// Attempt Decryption.
+			cipherTextSize = pcry.aes.calcOutputSize(keySize);
+			pcry.aes.crypt(false, (unsigned char *)fileData, keySize, (unsigned char *)&compBuffer, cipherTextSize);
+
+			String chalTwo = (const char *)&compBuffer;
+
+			if(chalOne.length() != chalTwo.length()){
+				throw CoreException("PalcomSetup::encryptPrivateKey() - Challenge lengths inequal.\n", 0x4);
+			}
+			
+			for(int i=0; i<chalOne.length(); i++){
+				if(chalOne[i] != chalTwo[i]){
+					Serial.printf("Failed on iteration '%d' at %x vs %x\n", i, chalOne[i], chalTwo[i]);
+					throw CoreException("PalcomSetup::encryptPrivateKey() - Failed to validate successful encryption of the private key.", 0x05);
+				}
+			}
+			
+			pfs.clearCompBuffer();
+			pfs.clearFileBuffer();
+		}
 	public:
 	    	bool buildRequired = true;
 		bool showPinpad = true;
@@ -167,34 +147,23 @@ class PalcomSetup : public PalcomScreen{
 			 * Initalize all the stuff required for the system to work.
 			 * */
 	      		if(!initalized){
-				try{
-					initer.pinInit();
-					initer.aceButtonInit();
-					initer.semaphoreInit();
-					initer.lcdInit();
-					initer.touchscreenInit();
-					kbDected = checkKb();
-					initer.lvglInit();
-					displaySplash();
-					initer.setupSD();
-                        		initer.setupRadio();
-
-					PalcomCrypto pcry;
-                        		pcry.generatePublicHash(true);
-
-        				initalized = true;
-					this->setBuildRequired(true);
-
-					Serial.printf("System Initalized.\n");
-					return;
-				}catch(CoreException e){
-					String msg = "PalcomSetup::generateObject() - Failed to initalize system.\n\t";
-					msg += e.what();
-					throw CoreException(msg.c_str(), 0x01);
-				}
+				initer.pinInit();
+				initer.aceButtonInit();
+				initer.semaphoreInit();
+				initer.lcdInit();
+				initer.touchscreenInit();
+				kbDected = checkKb();
+				initer.lvglInit();
+				displaySplash();
+				initer.setupSD();
+                        	initer.setupRadio();
+        			
+				initalized = true;
+				this->setBuildRequired(true);
+				Serial.printf("System Initalized.\n");
+				return;
       			}
 
-			displaySplash();
 
 			/*
 			 * Check if we need to setup the system
@@ -215,29 +184,14 @@ class PalcomSetup : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScrollMode(LV_SCROLLBAR_MODE_OFF);
-
-			if(pinpad.codeReady() && pinpad.transferReady()){
-				if(pinpad.compResults()){
-					showPinpad = false;
-				}else{
-					errorMsg = "Pins don't match\n";
-					pinpad.clearResult();
-					pinpad.clearEntry();
-				}
-			}
+			this->execute();
 			
 			if(showPinpad){
-				if(pinpad.codeReady() && !pinpad.transferReady()){
-					pinpad.transferResult();
-					pinpad.create(screen, "Confirm Passcode");
-				}else{
-					if(errorMsg == "")
-						pinpad.create(screen, "Create Passcode");
-					else
-						pinpad.create(screen, errorMsg.c_str());
-				}
+				this->pinpad.create(screen, "Create Passcode");
+				this->execute();
 			}else{
-				setupForm.create(screen, "Continue Setup");
+				this->setupForm.create(screen, "Continue Setup");
+				this->execute();
 			}
 			this->execute();
     		}
@@ -252,95 +206,163 @@ class PalcomSetup : public PalcomScreen{
     		}
 
     		int run(){
-			/*
-			 * Ensure page is setup
-			 * */
-      			if(this->getBuildRequired()){
-        			this->setBuildRequired(false);
-        			systemSetup_contextControl = 0;
-        			this->load();
-      			}
-      			this->execute();
+			try{
+				/*
+				 * Ensure page is setup
+				 * */
+      				if(this->getBuildRequired()){
+        				this->setBuildRequired(false);
+        				systemSetup_contextControl = 0;
+        				this->load();
+      				}
+      				this->execute();
 
-      			if(loginFileExists) {
-				Serial.printf("Loading Login Screen\n");
-        			resetPage();
-        			return 0; // change screen to login page.
-      			}
-      			this->execute();
+      				if(loginFileExists) {
+					Serial.printf("Loading Login Screen\n");
+        				resetPage();
+        				return 0; // change screen to login page.
+      				}
+				this->execute();
 
-			if(pinpad.codeReady() && showPinpad){
-				this->setBuildRequired(true);
-				this->destroy();
-			}
+				if(showPinpad && pinpad.codeReady()){
+					this->execute();
+					if(!pinpad.transferReady()){
+						pinpad.transferResult();
+						pinpad.setTitleText("Confirm Passcode");
+						this->execute();
+					}else if(pinpad.compResults()){
+						showPinpad = false;
+						this->setBuildRequired(true);
+						this->destroy();
+						this->execute(); // ?
+					}else{
+						pinpad.clear();
+						pinpad.setTitleText("Passcodes didn't match");
+						this->execute();
+					}
+				}else if(setupForm.formSubmitted()){
+					this->destroy();
+					lv_obj_t *screen = this->getScreen();
+                        		if(screen == NULL){
+                         		       	this->globalDestroy();
+                         		       	this->create();
+                         			screen = this->getScreen();
+                        		}
+                        		this->setFullScreen();
+					this->setScreenScrollDirection(LV_DIR_VER);
+                        		this->execute();
+					String infoMsg = "Setting up your device...\n";
+					PalcomLabel lab;
+					int x=10, y=9;
+					lab.create(screen);
+					lab.setLongMode(LV_LABEL_LONG_SCROLL);
+					lab.setWidth(320);
+					lab.setAlignment(LV_ALIGN_OUT_TOP_MID, x, y);
+					lab.setText(infoMsg.c_str());
+					this->execute();
 
-			if(setupForm.formSubmitted()){
-				PalcomFS pfs; 
-				PalcomPartition pp;
-				pp.getAllPartitions();
-				size_t writeSize = 6;
+
+					PalcomFS pfs; 
+					PalcomPartition pp;
+					size_t writeSize = 6;
 				
-				PalcomHash phash;
-				phash.useSHA256();
-				phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
-				palcom_auth_t authData;
+					infoMsg += "Creating passcode hash...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
 
-				// Fetch Pin Hash
-				String grab = phash.getResultStr();
-				if(phash.getResultSize() > 32)
-					throw CoreException("PalcomSetup::run() - Invalid hash size.", 0x01);
-				strncpy((char *)authData.pin_hash, grab.c_str(), phash.getResultSize());
+					PalcomHash phash;
+					phash.useSHA256();
+					phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
+					palcom_auth_t authData;
 
-				// Fetch Pmode
-				authData.paranoia_mode = setupForm.paranoiaMode;
+					infoMsg += "Validating passcode hash\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
 
-				// Generate AES Key and IV
-				PalcomAes aes;
-				if(!aes.generate()){
-					throw CoreException("PalcomSetup::run() - Failed to generate AES keys.\n", 0x02);
-				}
-				Serial.printf("AES Key Generated!\n");
-				for(int i=0; i<32; i++)
-					authData.aes_key[i] = aes.key[i];
-				for(int i=0; i<16; i++)
-					authData.aes_iv[i] = aes.iv[i];
-				aes.clearKey();
-				aes.clearIv();
+					// Fetch Pin Hash
+					String grab = phash.getResultStr();
+					if(phash.getResultSize() != 32)
+						throw CoreException("PalcomSetup::run() - Invalid hash size.", 0x01);
+					for(int i=0; i<32; i++){
+						authData.pin_hash[i] = grab[i];
+					}
 
-				// Store sensitive data in flash memory.
-				while(pp.fetchPartition()){
-					String comp = (const char *)pp.partition->label;
-					if(comp != "app1")
-						continue;
+					infoMsg += "Fetching paranoia mode and default secuity settings...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					// Fetch Pmode
+					authData.paranoia_mode = setupForm.paranoiaMode;
+					authData.fail_count = 0;
 
+					infoMsg += "Generating master AES key and IV...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					// Generate AES Key and IV
+					PalcomAes aes;
+					if(!aes.generate()){
+						throw CoreException("PalcomSetup::run() - Failed to generate AES keys.\n", 0x02);
+					}
+					for(int i=0; i<32; i++)
+						authData.aes_key[i] = aes.key[i];
+					for(int i=0; i<16; i++)
+						authData.aes_iv[i] = aes.iv[i];
+
+
+					infoMsg += "Storing security settings.\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					// Store sensitive data in flash memory.
+					pp.fetchPartitionByName("app1");
 					pp.writeAuthData((const esp_partition_t *)pp.partition, authData);
-					break;
+					pp.freePartitions();
+					aes.clearKey();
+					aes.clearIv();
+				
+
+					infoMsg += "Storing generic settings...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					// Store non-sensitive config data (user name, lock timer, etc)
+					palcom_config_t configData;
+					configData.lock_timer = setupForm.lockTimer;
+					for(int i=0; i<setupForm.name.length(); i++){
+						if(i < 20 )
+							configData.user_name[i] = setupForm.name[i];
+					}
+					configData.screen_brightness = 100;
+					pfs.storeConfigData(configData);
+					this->execute();
+					delay(300);
+					
+
+					infoMsg += "Generating RSA key pairs...\n\tThis might take a while.\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					if(!pcry.rsaKeyGen.genKeys()){
+                                		Serial.printf("Failed to generate keys.\n");
+                        		}
+
+					
+					infoMsg += "Encrypting private key with master key...\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+					encryptPrivateKey();
+					
+
+					infoMsg += "\n!SETUP COMPLETE!\n";
+					lab.setText(infoMsg.c_str());
+					this->execute();
+                        	        resetPage();
+                        	        return 0; // change screen to login page.
+				}else{
+					this->execute();
 				}
-				pp.freePartitions();
-				
-				// Store non-sensitive config data (user name, lock timer, etc)
-				palcom_config_t configData;
-				configData.lock_timer = setupForm.lockTimer;
-				strncpy((char *)configData.user_name, setupForm.name.c_str(), 20);
-				pfs.storeConfigData(configData);
-				
-				this->globalDestroy();
-                                this->destroy();
-                                this->execute();
-                                keygenView();
-                                PalcomCrypto pcry;
-                                pcry.generatePublicHash(true);
-                                resetPage();
-                                return 0; // change screen to login page.
-			}
 
-			this->execute();
-
-			/*
-			 * If login file exists, exit setup page.
-			 * */
+			}catch(CoreException e){
+				e.log("PalcomSetup::run()");
+				throw;
+			}	
 			
-
       			return -1; // loop the setup page.
     		}
 }palcomSetup;

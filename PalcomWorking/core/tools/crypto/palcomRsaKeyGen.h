@@ -16,12 +16,14 @@ class PalcomRsaKeyGen{
 		 * This must run before any other functions.
 		 * */
 		void initalizeVars(void){
+			Serial.printf("Initalizing Variables...\n");
 			mbedtls_ctr_drbg_init(&ctr_drbg);
   			mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
   			mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
   			mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
   			mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
 			mbedtls_entropy_init(&entropy);
+			Serial.printf("Variables Freed...\n");
 		}
 
 		/*
@@ -91,7 +93,9 @@ class PalcomRsaKeyGen{
 		bool storeExportedPublicKey(void){
 			// Open file.
 			pfs.clearFileBuffer();
-  			if(!pfs.openPublicKey(FILE_WRITE)){
+			pfs.fd = SD.open(pfs_file_keysPublic, FILE_WRITE, O_TRUNC);
+  			if(!pfs.fd){// pfs.openPublicKey(FILE_WRITE)){
+				Serial.printf("Failure a\n");
 				this->freeVars();
 				pfs.close();
     				return false;
@@ -99,6 +103,7 @@ class PalcomRsaKeyGen{
 			
 			// Process the N variable.
 			if((ret = mbedtls_mpi_write_string(&N, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0){
+				Serial.printf("Failure B\n");
     				pfs.close();
 				this->freeVars();
 				return false;
@@ -109,6 +114,7 @@ class PalcomRsaKeyGen{
 
 			// Process E variable.
 			if((ret = mbedtls_mpi_write_string(&E, 16, (char *)fileData, __GLOBAL_BUFFER_SIZE, &keySize)) != 0 ){
+				Serial.printf("Failure C\n");
 				this->freeVars();
     				pfs.close();
     				return false;
@@ -124,7 +130,8 @@ class PalcomRsaKeyGen{
 		 * Write the private key to a file for future use.
 		 * */
 		bool storeExportedPrivateKey(void){
-			if(!pfs.openPrivateKey(FILE_WRITE)){
+			pfs.fd = SD.open(pfs_file_keysPrivate, FILE_WRITE, O_TRUNC);
+			if(!pfs.fd){
 				this->freeVars();
     				pfs.close();
     				return false;

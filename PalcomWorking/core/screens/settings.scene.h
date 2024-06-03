@@ -3,38 +3,13 @@ int settings_context = CONTEXT_SETTINGS;
 class PalcomSettingsMenu : public PalcomScreen{
   	private:
 		SettingsMenu menu;
+		
+		PalcomPinpad pinpad;
+		int pinCtx = 0;
+
+		bool newPinMode = false;
+		bool pinAuthed = false;
     		
-		static void Settingsmenu_handleBackButton(lv_event_t *e){
-      			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-      			settings_context = 1;
-    		}
-    
-		static void Settingsmenu_handleResetButton(lv_event_t *e){
-      			if (lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-			PalcomScreenError = 2;
-    		}
-    
-		static void Settingsmenu_setCallsign(lv_event_t *e){
-      			if(lv_event_get_code(e) != LV_EVENT_CLICKED)
-        			return;
-      
-      			PalcomFS pfs;
-      			PalcomTextarea callsign;
-      			callsign.loadGlobal(1);
-
-      			pfs.setCallsign(callsign.getText());
-			PalcomScreenError = 1;
-    		}
-
-		static void Settingsmenu_closePopup(lv_event_t *e){
-			if(lv_event_get_code(e) != LV_EVENT_CLICKED){
-				return;
-			}
-			PalcomScreenError = 999;
-		}
-
 		static void Settingsmenu_yesPopup(lv_event_t *e){
                         if(lv_event_get_code(e) != LV_EVENT_CLICKED){
                                 return;
@@ -45,83 +20,6 @@ class PalcomSettingsMenu : public PalcomScreen{
                         PalcomScreenError = 0;
                 }
 
-		static void Settingsmenu_noPopup(lv_event_t *e){
-                        if(lv_event_get_code(e) != LV_EVENT_CLICKED){
-                                return;
-                        }
-                        PalcomScreenError = 999;
-                }
-
-		static void Settingsmenu_wiFiMenu(lv_event_t *e){
-			if(lv_event_get_code(e) != LV_EVENT_CLICKED){
-                                return;
-                        }
-
-			settings_context = CONTEXT_WIFI;
-			/*WiFi.mode(WIFI_STA);
-    			WiFi.disconnect();
-    			delay(100);
-
-			int n = WiFi.scanNetworks();
-    Serial.println("Scan done");
-    if (n == 0) {
-        Serial.println("no networks found");
-    } else {
-        Serial.print(n);
-        Serial.println(" networks found");
-        Serial.println("Nr | SSID                             | RSSI | CH | Encryption");
-        for (int i = 0; i < n; ++i) {
-            // Print SSID and RSSI for each network found
-            Serial.printf("%2d",i + 1);
-            Serial.print(" | ");
-            Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
-            Serial.print(" | ");
-            Serial.printf("%4d", WiFi.RSSI(i));
-            Serial.print(" | ");
-            Serial.printf("%2d", WiFi.channel(i));
-            Serial.print(" | ");
-            switch (WiFi.encryptionType(i))
-            {
-            case WIFI_AUTH_OPEN:
-                Serial.print("open");
-                break;
-            case WIFI_AUTH_WEP:
-                Serial.print("WEP");
-                break;
-            case WIFI_AUTH_WPA_PSK:
-                Serial.print("WPA");
-                break;
-            case WIFI_AUTH_WPA2_PSK:
-                Serial.print("WPA2");
-                break;
-            case WIFI_AUTH_WPA_WPA2_PSK:
-                Serial.print("WPA+WPA2");
-                break;
-            case WIFI_AUTH_WPA2_ENTERPRISE:
-                Serial.print("WPA2-EAP");
-                break;
-            case WIFI_AUTH_WPA3_PSK:
-                Serial.print("WPA3");
-                break;
-            case WIFI_AUTH_WPA2_WPA3_PSK:
-                Serial.print("WPA2+WPA3");
-                break;
-            case WIFI_AUTH_WAPI_PSK:
-                Serial.print("WAPI");
-                break;
-            default:
-                Serial.print("unknown");
-            }
-            Serial.println();
-            delay(10);
-        }
-    }
-    Serial.println("");
-
-    // Delete the scan result to free memory for code below.
-    WiFi.scanDelete();*/
-		}
-		
 
 		static void backButton(lv_event_t *e){
                         //if(lv_event_get_code(e) == LV_EVENT_RELEASED){
@@ -133,7 +31,88 @@ class PalcomSettingsMenu : public PalcomScreen{
                         //}
                 }
 
+		void processNewPinMode(void){
+			if(pinpad.codeReady() && !pinpad.transferReady()){
+                                if(this->pinCtx == 0){
+                                        pinpad.transferResult();
+                                        PalcomHash phash;
+                                        phash.useSHA256();
+                                        phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
+                                        String result = phash.getResultStr();
+                                        if(phash.getResultSize() > 32)
+                                                throw CoreException("PalcomSetup::run() - Invalid hash size.", 0x01);
+
+                                        for(int i=0; i<32; i++){
+                                                if(result[i] != menu.authData.pin_hash[i]){
+                                                        pinpad.clear();
+                                                        pinpad.setTitleText("Invalid Passcode");
+							this->execute();
+                                                        break;
+                                                }else{
+                                                        pinpad.clear();
+                                                        pinpad.setTitleText("Enter new passcode");
+							this->execute();
+                                                        errorMsg = "";
+                                                        this->pinCtx = 1;
+                                                }
+                                        }
+                                }else if(this->pinCtx == 1){
+					pinpad.transferResult();
+                                        pinpad.setTitleText("Confirm Passcode");
+					this->execute();
+                                        this->pinCtx = 2;
+                                }else{
+                                        return;
+                                }
+                        }else if(pinpad.codeReady() && pinpad.transferReady()){
+                                if(pinpad.compResults()){
+                                        PalcomHash phash;
+                                        phash.useSHA256();
+                                        phash.run((unsigned char *)pinpad.entryBuffer, pinpad.entryBufferCount);
+                                        String result = phash.getResultStr();
+                                        if(phash.getResultSize() > 32)
+                                                throw CoreException("PalcomSettings::run() - Invalid hash size.", 0x01);
+
+                                        menu.fetchAuthData();
+                                        for(int i=0; i<32; i++){
+                                                menu.authData.pin_hash[i] = result[i];
+                                        }
+
+                                        PalcomPartition pp;
+                                        if(!pp.fetchPartitionByName("app1")){
+                                                throw CoreException("PalcomSettings::run() - Failed to find security partition.", 0x02);
+                                        }
+
+                                        pp.writeAuthData((const esp_partition_t *)pp.partition, menu.authData);
+                                        pp.freePartitions();
+
+					this->pinCtx = 0;
+                                        newPinMode = false;
+                                        pinpad.clear();
+                                        menu.reset();
+                                        this->setBuildRequired(true);
+                                        this->destroy();
+					this->execute();
+                                }else{
+                                        pinpad.clear();
+                                        pinpad.setTitleText("Passcodes invalid.");
+					this->execute();
+                                        this->pinCtx = 1;
+                                }
+                        }
+		}
+
 	public:
+		String errorMsg = "";
+
+		bool updateTimer(void){
+			return menu.updateTimer();
+		}
+
+		bool updateBrightness(void){
+			return menu.updateBrightness();
+		}
+
     		void generateObjects(void){
 			// Establish screen descriptor
       			lv_obj_t *screen = this->getScreen();
@@ -144,8 +123,16 @@ class PalcomSettingsMenu : public PalcomScreen{
       			}
       			this->setFullScreen();
       			this->setScreenScrollDirection(LV_DIR_VER);
+			this->execute();
 
-			menu.make(screen, &backButton);
+
+			if(this->newPinMode){
+				this->pinpad.create(screen, "Enter Passcode");
+				this->execute();
+			}else{	
+				this->menu.make(screen, &backButton);
+				this->execute();
+			}
 			this->execute();
     		}
 
@@ -155,10 +142,17 @@ class PalcomSettingsMenu : public PalcomScreen{
       			this->globalDestroy();
       			this->destroy();
 			this->clearScreenError();
+			this->newPinMode = false;
+			this->menu.reset();
+			this->execute();
     		}
 
     		int run(void){
       			if(this->getBuildRequired()){
+				menu.fetchConfigData();
+				this->execute();
+				menu.fetchAuthData();
+				this->execute();
         			this->setBuildRequired(false);
         			settings_context = 2;
         			this->load();
@@ -166,6 +160,20 @@ class PalcomSettingsMenu : public PalcomScreen{
 
 			this->execute();
 
+			if(menu.newPinMode() && !newPinMode){
+				this->setBuildRequired(true);
+				this->destroy();
+				newPinMode = true;
+				errorMsg = "";
+				this->execute();
+				return settings_context;
+			}
+
+			if(newPinMode){
+				this->processNewPinMode();
+				this->execute();
+			}
+			
       			return settings_context;
     		}
 }settingsMenu;

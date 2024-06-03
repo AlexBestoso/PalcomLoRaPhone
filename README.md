@@ -21,4 +21,5 @@
 <li>Implemented AES encryption and decryption.</li>
 <li>Refactored setup page's crypto system.</li>
 <li>Corrected graphics fragments in the setup page.</li>
+<li>Added phone number generation and storage.</li>
 </ol>

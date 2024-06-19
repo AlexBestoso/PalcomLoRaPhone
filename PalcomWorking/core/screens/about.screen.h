@@ -11,6 +11,26 @@ class PalcomAboutScreen : public PalcomScreen{
 			exitPalcomAboutScreen = false;
 		}
 		void generateObjects(void){
+			PalcomPartition pp;
+			pp.fetchPartitionByName("app1");
+			palcom_auth_t authData;
+			pp.readAuthData((const esp_partition_t *)pp.partition, &authData);
+			pp.freePartitions();
+
+			sprintf((char *)fileData, "%d (%d%d%d) %d%d%d-%d%d%d%d", 
+					authData.phone_number[0],
+					authData.phone_number[1],
+					authData.phone_number[2],
+					authData.phone_number[3],
+					authData.phone_number[4],
+					authData.phone_number[5],
+					authData.phone_number[6],
+					authData.phone_number[7],
+					authData.phone_number[8],
+					authData.phone_number[9],
+					authData.phone_number[10]
+				);
+
 			lv_obj_t *screen = this->getScreen();
 			if(screen == NULL){
 				this->globalDestroy();
@@ -34,6 +54,8 @@ class PalcomAboutScreen : public PalcomScreen{
 
 			String info = "Version : ";
 			info += SOFTWARE_VERSION;
+			info += "\n\nNumber : ";
+			info += (const char *)fileData;
 			info += "\n\nSecured LoRa Texting Device\nmade By BestosoTech.";
 			PalcomLabel infoLabel;
 			infoLabel.create(screen);

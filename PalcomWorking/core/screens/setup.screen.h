@@ -392,14 +392,14 @@ class PalcomSetup : public PalcomScreen{
 
 					pfs.clearFileBuffer();
 					this->execute();
-					pfs.fd = SD.open(pfs_file_keysPrivate, FILE_READ);
+					pfs.fd = SD.open(pfs_file_keysPublic, FILE_READ);
 					size_t ksize = pfs.fd.size();
 					pfs.fd.read((unsigned char *)&fileData, ksize);
 					pfs.close();
 					this->execute();
 
 					PalcomAlgorithms pa;
-					String phoneNum = pa.PalPhoGen7(fileData, ksize);
+					String phoneNum = pa.PalPhoGen7Shrink(fileData, ksize);
 					this->execute();
 					for(int i=0; i<11; i++){
 						this->execute();

@@ -46,10 +46,11 @@ class PalcomCore{
       			loginScreen.resetPage();
       			palcomSetup.resetPage();
       			mainMenu.resetPage();
+			contactsScreen.resetPage();
+      			settingsMenu.resetPage();
 			this->execute();
 
       			palcomPlaintextMessaging.resetPage();
-      			settingsMenu.resetPage();
       			palcomKeySharing.resetPage();
       			palcomEncryptedMessaging.resetPage();
 			wifiMenu.resetPage();
@@ -124,6 +125,13 @@ class PalcomCore{
 		void _wifiSettingsiMenu(void){
 			viewContext = wifiMenu.run();
 			if(viewContext != CONTEXT_WIFI){
+				_resetAllPages(viewContext);
+			}
+		}
+
+		void _contactsMenu(void){
+			viewContext = contactsScreen.run();
+			if(viewContext != CONTEXT_CONTACTS){
 				_resetAllPages(viewContext);
 			}
 		}
@@ -213,7 +221,7 @@ class PalcomCore{
         	  				this->_settingsMenu();
         	  				break;
 					case CONTEXT_CONTACTS:
-						
+						this->_contactsMenu();
 						break;
 					case CONTEXT_ABOUT:
 						this->_aboutScreen();

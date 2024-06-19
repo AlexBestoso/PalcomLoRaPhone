@@ -30,6 +30,10 @@ class PalcomButton : public PalcomObject{
     		void setLabel(PalcomLabel label){
       			this->label = label;
     		}
+
+		const char *getLabelText(void){
+			return this->label.getText();
+		}
     
     		void setSimpleCallback(void(*func)(lv_event_t*)){
       			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_ALL, 0);

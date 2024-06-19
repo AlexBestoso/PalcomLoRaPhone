@@ -4,9 +4,10 @@ class PalcomAlgorithms{
 	public:
 
 		/*
-		 * This algorithm takes the systems's deciphered private key, 
+		 * This algorithm takes the systems's deciphered public key, 
 		 * */
-		String PalPhoGen7(unsigned char *data, size_t dataSize){
+		String PalPhoGen7Shrink(unsigned char *data, size_t dataSize){
+			Serial.printf("PalPhoGen7Shrink debug : Size %ld\n", dataSize);
 			String ret = "79876501234";
 			size_t sectionCount = dataSize / 10; // 10 is the number of digits in a phone number.
 			
@@ -35,6 +36,12 @@ class PalcomAlgorithms{
 			ret[0] = 0x7;
 			
 			// Enjoy your new number :)
+			return ret;
+		}
+
+		String PalPhoGen7Expand(String phoneNumber, size_t *outSize){
+			String ret = "";
+
 			return ret;
 		}
 };

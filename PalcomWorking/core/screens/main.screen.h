@@ -126,7 +126,7 @@ class PalcomMainMenu : public PalcomScreen{
 			
   		}
 
-  		void resetPage(){
+  		void resetPage(void){
   			this->setBuildRequired(true);
     			mainMenu_contextControl = 0;
     			this->globalDestroy();
@@ -134,7 +134,7 @@ class PalcomMainMenu : public PalcomScreen{
 			this->clearScreenError();
   		}
 
-  		int run(){
+  		int run(void){
     			if(this->getBuildRequired()){
       				this->setBuildRequired(false);
       				mainMenu_contextControl = 0;
@@ -171,9 +171,6 @@ class PalcomMainMenu : public PalcomScreen{
       				return CONTEXT_LOGIN;
     			}
 
-
-
-
-   			return 1;
+   			return CONTEXT_MAINMENU;
   		}
 }mainMenu;

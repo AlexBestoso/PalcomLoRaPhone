@@ -8,6 +8,7 @@
 #include "./plaintextMessaging.class.h"
 #include "./encryptedMessaging.class.h"
 #include "./login.screen.h"
-#include "./settings.scene.h"
+#include "./settings.screen.h"
 #include "./about.screen.h"
+#include "./contacts.screen.h"
 #include "./wifiMenu.class.h"

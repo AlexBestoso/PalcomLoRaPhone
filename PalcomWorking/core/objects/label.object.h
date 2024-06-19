@@ -30,4 +30,8 @@ class PalcomLabel : public PalcomObject{
       			lv_label_set_text(this->getObject(), text);
     		}
 
+		const char *getText(void){
+			return (const char *)lv_label_get_text(this->getObject());
+		}
+
 };

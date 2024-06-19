@@ -284,4 +284,16 @@ class PalcomObject{
 		void setFlexGrow(int v){
 			lv_obj_set_flex_grow(this->getObject(), v);
 		}
+
+		void setStyleRadius(lv_style_selector_t rType, int amt){
+			lv_obj_set_style_radius(this->getObject(), rType, amt);
+		}
+
+		void setStyleBgImageSrc(void *sType, int amt){
+			lv_obj_set_style_bg_image_src(this->getObject(), sType, amt);
+		}
+
+		void setStyleTextFont(int amt){
+			lv_obj_set_style_text_font(this->getObject(), lv_theme_get_font_large(this->getObject()), amt);
+		}
 };

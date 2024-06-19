@@ -4,29 +4,6 @@ enum {
 };
 typedef uint8_t lv_menu_builder_variant_t;
 
-//static void back_event_handler(lv_event_t * e);
-//static void switch_handler(lv_event_t * e);
-//lv_obj_t * root_page;
-
-/*static void switch_handler(lv_event_t * e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * menu = (lv_obj_t *)lv_event_get_user_data(e);
-    lv_obj_t * obj = (lv_obj_t *)lv_event_get_target(e);
-    if(code == LV_EVENT_VALUE_CHANGED) {
-        if(lv_obj_has_state(obj, LV_STATE_CHECKED)) {
-            lv_menu_set_page(menu, NULL);
-            lv_menu_set_sidebar_page(menu, root_page);
-            lv_obj_send_event(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(menu), 0), 0), LV_EVENT_CLICKED, NULL);
-        }
-        else {
-            lv_menu_set_sidebar_page(menu, NULL);
-            lv_menu_clear_history(menu); /* Clear history because we will be showing the root page later */
-    /*        lv_menu_set_page(menu, root_page);
-        }
-    }
-}*/
-
 
 bool settingsMenu_exit = false;
 bool settingsMenu_newPin = false;

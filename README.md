@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 0.2.8 Beta</code>
+<code>version 0.2.10 Beta</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -22,4 +22,5 @@
 <li>Refactored setup page's crypto system.</li>
 <li>Corrected graphics fragments in the setup page.</li>
 <li>Added phone number generation and storage.</li>
+<li>Implemented contact management system</li>
 </ol>

@@ -17,6 +17,7 @@ const char *pfs_folder_sendQueue = "/sendQueue";
 const char *pfs_folder_recvQueue = "/recvQueue";
 const char *pfs_error_log = "/error.log";
 const char *pfs_config = "/settings.conf";
+const char *pfs_dir_contacts = "/contacts";
 
 #define __GLOBAL_BUFFER_SIZE 100000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};

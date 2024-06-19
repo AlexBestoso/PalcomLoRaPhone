@@ -150,6 +150,10 @@ class PalcomTextarea : public PalcomObject{
 			}
 		}
 
+		void setNumbersOnly(void){
+			this->setValidChars("0123456789");	
+		}
+
 		void setValidChars(const char *s){
 			lv_textarea_set_accepted_chars(this->getObject(), s);
 		}

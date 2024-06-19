@@ -1,4 +1,4 @@
-#define SOFTWARE_VERSION "0.2.8 Beta"
+#define SOFTWARE_VERSION "0.2.10 Beta"
 
 #define SCREEN_HOR 320
 #define SCREEN_VIR 240

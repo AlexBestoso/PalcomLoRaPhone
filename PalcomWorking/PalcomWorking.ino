@@ -46,25 +46,33 @@ void setup(void){
       delay(1000);
     }
   }
+
+  loraSnake.listenStart();
 }
 
 
 void loop(){
-  if(Serial.available() == 0){
-    if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
-      Serial.printf("Received the message : [%d] ", loraSnake.lrsPacket.data_size);
-      for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
-        Serial.printf("%c", loraSnake.lrsPacket.data[i]);
-      }
-      Serial.printf("\n");
-    }
-  }else{
+  if(Serial.available() != 0){
     String v = Serial.readString();
     if(!loraSnake.send((uint8_t *)v.c_str(), v.length())){
       Serial.printf("Failed to send message.\n");
     }else{
       Serial.printf("Sent : [%d] %s\n", v.length(), v.c_str());
     }
+    loraSnake.listenStart();
+  }
+  
+  if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
+    Serial.printf("Received the message : [%d] ", 
+                  loraSnake.lrsPacket.data_size);
+
+    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
+      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
+    }
+    Serial.printf("\n");
+    for(int i=0; i<256; i++)
+      loraSnake.lrsPacket.data[i] = 0;
+    loraSnake.lrsPacket.data_size = 0;
   }
   delay(1000);
 }

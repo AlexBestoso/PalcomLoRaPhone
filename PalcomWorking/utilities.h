@@ -58,3 +58,65 @@
 #define MESSAGE_LOCAL_END 0x6
 #define MESSAGE_REMOTE_START 0x7
 #define MESSAGE_REMOTE_END 0x8
+
+#define LVGL_BUFFER_SIZE    (TFT_WIDTH * TFT_HEIGHT ) * sizeof(lv_color_t)
+
+#define SCREEN_HOR 320
+#define SCREEN_VIR 240
+
+bool checkKb(){
+  Wire.requestFrom(0x55, 1);
+  return Wire.read() != -1;
+}
+
+void handleEvent(AceButton * /* button */, uint8_t eventType,
+                 uint8_t /* buttonState */);
+
+TFT_eSPI        tft;
+size_t          bytes_read;
+uint8_t         status;
+TaskHandle_t    playHandle = NULL;
+TaskHandle_t    radioHandle = NULL;
+
+AceButton   button;
+bool        clicked = false;
+bool        txFlag =  true;
+bool        rxFlag = false;
+bool        transmissionFlag = true;
+bool        transmitting = false;
+int         transmissionState ;
+bool        hasRadio = false;
+bool        touchDected = false;
+bool        kbDected = false;
+bool        sender = true;
+uint32_t    sendCount = 0;
+uint32_t    runningMillis = 0;
+uint8_t     touchAddress = GT911_SLAVE_ADDRESS2;
+
+lv_indev_t  *kb_indev = NULL;
+lv_indev_t  *mouse_indev = NULL;
+lv_indev_t  *touch_indev = NULL;
+lv_group_t  *kb_indev_group;
+lv_obj_t    *hw_ta;
+lv_obj_t    *radio_ta;
+lv_obj_t    *tv ;
+SemaphoreHandle_t xSemaphore = NULL;
+
+bool screenLockConditionSpace = false;
+bool screenLockConditionBall = false;
+
+lv_color_t *draw_buf = NULL;
+
+lv_group_t *keyboardGroup = NULL;
+
+lv_obj_t *keyboardFocusedObj = NULL;
+
+int Setup_setupControl = 0;
+int Sleep_interactionCtx = 0;
+int Sleep_maxBrightness = 256;
+int Sleep_brightness = 0;
+float Sleep_timer = millis();
+
+TouchLib *touch = NULL;
+
+LV_IMG_DECLARE(mousePointerPng);

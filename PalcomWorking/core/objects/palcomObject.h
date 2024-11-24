@@ -187,7 +187,7 @@ class PalcomObject{
                  * LV_ALIGN_IN_RIGHT_MID, LV_ALIGN_IN_BOTTOM_RIGHT, LV_ALIGN_IN_BOTTOM_MID,
                  * LV_ALIGN_IN_BOTTOM_LEFT, LV_ALIGN_IN_LEFT_MID, LV_ALIGN_CENTER
                  */
-		void setAlignment(int ref, int x, int y){
+		void setAlignment(lv_align_t ref, int x, int y){
                         lv_obj_align(this->object, ref, x, y);
                 }
 
@@ -209,7 +209,7 @@ class PalcomObject{
                  * LV_DIR_VER,
                  * LV_DIR_ALL
                  */
-                void setScreenScrollDirection(int direction){
+                void setScreenScrollDirection(lv_dir_t direction){
                         lv_obj_set_scroll_dir(this->object, direction);
                 }
 
@@ -241,7 +241,7 @@ class PalcomObject{
 		}
 
 		void execute(){
-                        lv_task_handler();
+                        //lv_task_handler();
 			lv_timer_handler();
 			lv_tick_inc(5);
                 }

@@ -1,10 +1,12 @@
 /*
  * Useage : Error code of 0x00 means that the error can be ignored.
  * */
+#define CORE_ERR_TASK 0x100
+#define ERR_TASK_CREATE (CORE_ERR_TASK + 0x1)
+#define ERR_TASK_SEMAPHORE (CORE_ERR_TASK + 0x2)
 
-class CoreException : public exception{
+class CoreException : public std::exception{
 	private:
-		PalcomFS pfs;
 		String errorMessage = "";
 		uint8_t _errorCode = 0x00;
 	public:
@@ -24,19 +26,10 @@ class CoreException : public exception{
 		Serial.printf("[%d] %s", this->errorCode(), this->what().c_str());
 	}
 
-	void log(String catcher){
-		#ifdef DEBUG_OUTPUT == 1
-			this->out();
-		#endif
-		String tmp = "[";
-		string tmp2 = to_string(_errorCode);
-		for(int i=0; i<tmp2.length(); i++)
-			tmp += tmp2[i];
-		tmp += "] ";
-		tmp += catcher;
-		tmp += "() - ";
-		tmp += errorMessage;
-		pfs.fileAppend(pfs_error_log, (uint8_t*)tmp.c_str(), tmp.length());
-	}
-
+  void halt(void){
+    while(1){
+      this->out();
+      delay(1000);
+    }
+  }
 };

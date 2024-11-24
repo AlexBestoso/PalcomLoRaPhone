@@ -1,6 +1,8 @@
 #include "./palcomScreen.h"
 
-#include "./setup.screen.h"
+#include "./debug.screen.h"
+
+/*#include "./setup.screen.h"
 #include "./radio.class.h"
 
 #include "./main.screen.h"
@@ -10,4 +12,4 @@
 #include "./login.screen.h"
 #include "./settings.scene.h"
 #include "./about.screen.h"
-#include "./wifiMenu.class.h"
+#include "./wifiMenu.class.h"*/

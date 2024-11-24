@@ -121,7 +121,7 @@ class PalcomTextarea : public PalcomObject{
       			lv_textarea_set_one_line(this->getObject(), val);
     		}
 
-    		void setAlignment(int ref, int x, int y){
+    		void setAlignment(lv_align_t ref, int x, int y){
       			lv_obj_align(this->getObject(), ref, x, y);
     		}
 

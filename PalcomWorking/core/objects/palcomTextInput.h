@@ -11,7 +11,7 @@ class PalcomTextInput : public PalcomObject{
 		size_t inputHeight = 50;
 		int inputX = 0;
 		int inputY = 0;
-		int inputAlignment = LV_ALIGN_OUT_TOP_LEFT;
+		lv_align_t inputAlignment = LV_ALIGN_OUT_TOP_LEFT;
 
 		void (*submitHandler)(lv_event_t*);
 		void (*closePopupHandler)(lv_event_t*);

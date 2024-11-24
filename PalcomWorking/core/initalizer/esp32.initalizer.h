@@ -1,3 +1,6 @@
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
 static void Setup_setRxFlag(void){
       	rxFlag = true;
 }
@@ -21,6 +24,9 @@ static uint32_t keypad_get_key(void){
                         }
                         return key_ch;
                 }
+
+		SPIClass vvpi(VSPI);
+    		SPISettings vvpiSettings(2000000, MSBFIRST, SPI_MODE0);
 class ESP32Initalizer{
 	private:
 		lv_timer_t *timer = NULL;
@@ -29,6 +35,9 @@ class ESP32Initalizer{
 		lv_indev_t *indev_keypad = NULL;
 		lv_indev_t *indev_mouse = NULL;
 		lv_obj_t *cursorImg = NULL;
+
+		
+
 		/*
 		 * Private functions
 		 * */
@@ -47,6 +56,7 @@ class ESP32Initalizer{
 			
 			pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
 			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+			//vvpi.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
 		}
 
 		void miscInit(void){
@@ -125,6 +135,7 @@ class ESP32Initalizer{
                 }
 
 		static uint32_t callback_calcTick(void){
+			return millis();
 			lv_tick_inc(5);
 			return esp_timer_get_time() / 1000;
 		}
@@ -138,10 +149,11 @@ class ESP32Initalizer{
                                 Serial.printf("Semaphore is null\n");
                                 return;
                         }
-
                         if( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ){
+				//SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+			//	tft.init();
+				tft.begin();
 				lv_draw_sw_rgb565_swap((void *)color_p, s);
-
                                 tft.startWrite();
                                 tft.setAddrWindow( area->x1, area->y1, w, h );
 				tft.pushPixels((void *)color_p, w*h);
@@ -297,15 +309,13 @@ class ESP32Initalizer{
                         //lv_indev_set_group(indev_mouse, lv_group_get_default());
                         cursorImg = lv_img_create(lv_scr_act());
                         if(cursorImg == NULL){
-                                //throw CoreException("ESP32Initalizer::lvglInit() - Failed to create mouse cursor image.", 0x05);
-				Serial.printf("Failed to setup mouse cursor.\n");
+                                throw CoreException("ESP32Initalizer::lvglInit() - Failed to create mouse cursor image.", 0x05);
                         }
                         lv_img_set_src(cursorImg, &mousePointerPng);
                         lv_indev_set_cursor(indev_mouse, cursorImg);
 		}
 	public:	
 		void pinInit(void){
-			Serial.begin(115200);
 			this->powerInit();
 			this->spiInit();
 			this->miscInit();
@@ -330,7 +340,7 @@ class ESP32Initalizer{
 		void lcdInit(void){
 			tft.begin();
                         tft.setRotation( 1 );
-                        tft.fillScreen(TFT_BLACK);
+                        tft.fillScreen(TFT_PURPLE);
                         Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
 		}
 
@@ -345,47 +355,50 @@ class ESP32Initalizer{
 		}
 
 		void lvglInit(void){
-			lv_tick_set_cb(&callback_calcTick);
 			lv_init();
-			Serial.printf("Creating display...\n");
+			lv_tick_set_cb(&callback_calcTick);
+			draw_buf = (lv_color_t *)ps_malloc(LVGL_BUFFER_SIZE);
+			if(draw_buf == NULL){
+				throw CoreException("ESP32Initalizer::lvglInit() - Failed to allowcate draw buffer in PSRAM.", 0x02);
+			}
 			display = lv_display_create(TFT_WIDTH, TFT_HEIGHT);
 			if(display == NULL){
-				//throw CoreException("ESP32Initalizer::lvglInit() - Failed to create Display", 0x01);
+				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create Display", 0x01);
 			}
 			lv_display_set_resolution(display, SCREEN_HOR, SCREEN_VIR);
 			lv_display_set_color_format(display, LV_COLOR_FORMAT_RGB565);
-			Serial.printf("Creating draw buffer...\n");
-			draw_buf = (lv_color_t *)ps_malloc(LVGL_BUFFER_SIZE);
-			if(draw_buf == NULL){
-				//throw CoreException("ESP32Initalizer::lvglInit() - Failed to allowcate draw buffer in PSRAM.", 0x02);
-			}
 			lv_display_set_buffers(display, draw_buf, NULL, sizeof(draw_buf)*LVGL_BUFFER_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
 			lv_display_set_flush_cb(display, &disp_flush);
 
-			Serial.printf("Creating touchpad input device.\n");
 			indev_touchpad = lv_indev_create();
 			if(indev_touchpad == NULL){
-				//throw CoreException("ESP32Initalizer::lvglInit() - Failed to create touchpad input device.", 0x03);
+				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create touchpad input device.", 0x03);
 			}
 			lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
 			lv_indev_set_read_cb(indev_touchpad, &touchpad_read);
 
-			Serial.printf("Creating keyboard input device.\n");
 			this->setupKeyboardDevice();
 
-			Serial.printf("Creating mouse input device.\n");
-			this->setupMouseDevice();
+			//this->setupMouseDevice();
 		}
 
 		bool setupSD(){
                         digitalWrite(BOARD_SDCARD_CS, HIGH);
                         digitalWrite(RADIO_CS_PIN, HIGH);
                         digitalWrite(BOARD_TFT_CS, HIGH);
+			
 
 			Serial.printf("Setting up SD card.\n");
                         if(SD.begin(BOARD_SDCARD_CS, SPI, 800000U)){
-				Serial.printf("nigger\n");
                                 uint8_t cardType = SD.cardType();
+                                uint32_t cardSize = SD.cardSize() / (1024 * 1024);
+                                uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
+                                uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
+
+				digitalWrite(BOARD_SDCARD_CS, HIGH);
+                        	digitalWrite(RADIO_CS_PIN, HIGH);
+                        	digitalWrite(BOARD_TFT_CS, HIGH);
+
                                 if(cardType == CARD_NONE){
                                         Serial.println("No SD_MMC card attached");
                                         return false;
@@ -400,20 +413,29 @@ class ESP32Initalizer{
                                         }else{
                                                 Serial.println("UNKNOWN");
                                         }
-                                        uint32_t cardSize = SD.cardSize() / (1024 * 1024);
-                                        uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
-                                        uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
                                         Serial.printf("SD Card Size: %lu MB\n", cardSize);
                                         Serial.printf("Total space: %lu MB\n",  cardTotal);
                                         Serial.printf("Used space: %lu MB\n",   cardUsed);
                                         return true;
                                 }
-                        }
-			Serial.printf("nogger\n");
+                        }else{
+				Serial.printf("Failed to start SD card.\n");
+			}
                         return false;
                 }
 
 		bool setupRadio(){
+			Serial.printf("Starting lora snake.\n");
+   			bool err = loraSnake.init();
+			if(err == false){
+    				while(1){
+      					Serial.printf("Failed to initalize LoRa system.\n");
+      					delay(1000);
+    				}
+  			}else{
+				Serial.printf("Setup Victorious.\n");
+			}
+			return true;
                 }
 
 		lv_group_t *getKeyboardGroup(void){

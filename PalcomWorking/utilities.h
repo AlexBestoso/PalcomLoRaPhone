@@ -72,7 +72,7 @@ bool checkKb(){
 void handleEvent(AceButton * /* button */, uint8_t eventType,
                  uint8_t /* buttonState */);
 
-TFT_eSPI        tft;
+TFT_eSPI        tft = TFT_eSPI();
 size_t          bytes_read;
 uint8_t         status;
 TaskHandle_t    playHandle = NULL;
@@ -119,4 +119,13 @@ float Sleep_timer = millis();
 
 TouchLib *touch = NULL;
 
+#define USER_BUF_SIZE 256
+uint8_t userBuffer[USER_BUF_SIZE] = {0};
+int userBufferIdx = 0;
+size_t userBufferSize = 0;
+
+#define GLOBAL_GUI_OBJECT_COUNT 1
+lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
+
 LV_IMG_DECLARE(mousePointerPng);
+

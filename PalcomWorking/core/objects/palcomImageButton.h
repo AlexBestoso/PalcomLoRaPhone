@@ -39,7 +39,7 @@ class PalcomImageButton : public PalcomObject{
       			lv_obj_add_event_cb(this->getObject(), func, LV_EVENT_ALL, val);
     		}
     	
-		void setRelativeAlignment(int ref, int x, int y){
+		void setRelativeAlignment(lv_align_t ref, int x, int y){
       			lv_obj_align_to(this->getObject(), this->label.getObject(), ref, x,  y);
     		}
 

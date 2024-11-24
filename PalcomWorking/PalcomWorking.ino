@@ -173,13 +173,15 @@ bool dbgc3(){
 }
 bool coreOne = false;
 bool coreTwo = false;
+String loraListenRes = "";
 void setup(void){
-  Serial.begin(115200);
+  //Serial.begin(115200);
+  Serial.begin(9600);
   initer.pinInit();
   delay(2000);
   Serial.printf("[Fresh Reboot]\n");
   delay(2000);
-  initer.setupRadio();
+  
 
   spi2_a.setSpiMode(2);
   spi2_b.setSpiMode(2);
@@ -206,8 +208,8 @@ void setup(void){
       throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
     }
 
-    if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create Storage Task", ERR_TASK_CREATE);
+    if(xTaskCreatePinnedToCore(UserInputTask, "user_input", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
     }
 
 
@@ -243,21 +245,18 @@ void setup(void){
 
   USBSerial.begin();
   USB.begin();
-  Serial.printf("USB interface Successfully set up\n");
-
+  /*Serial.printf("USB interface Successfully set up\n");
   bool err = loraSnake.listenStart();
-  loraSnake.listenStop();
-  
   if(err){
     Serial.printf("LoRa System Listening for messages.\n");
   }else{
     Serial.printf("LoRa System FAILED to listen for messages.\n");
-  }
+  }*/
   Serial.printf("At the end of init function\n");
 }
 
 static void GraphicsTask(void *parm){
-  
+  while(!coreTwo){delay(1000);}
   //initer.semaphoreInit();
 
   initer.aceButtonInit();
@@ -292,6 +291,9 @@ static void GraphicsTask(void *parm){
    }
 }
 static void CommsTask(void *parm){
+  initer.setupRadio();
+
+  
   /*if(loraSnake.listenStart()){
     Serial.printf("LoRa System Listening for messages.\n");
   }else{
@@ -339,7 +341,7 @@ static void CommsTask(void *parm){
     delay(2000);
   }
 }
-static void StorageTask(void *parm){
+static void UserInputTask(void *parm){
   Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
   initer.touchscreenInit();
   
@@ -405,5 +407,5 @@ void loop(){
     loraSnake.lrsPacket.data_size = 0;
   }*/
 
-  delay(100);
+  delay(1000);
 }

@@ -317,12 +317,17 @@ class ESP32Initalizer{
 	public:	
 		void pinInit(void){
 			this->powerInit();
+			delay(20);
 			this->spiInit();
+			delay(20);
 			this->miscInit();
+			delay(20);
 			this->wakupTouchInit();
+			delay(20);
 		}
 		
 		void aceButtonInit(void){
+			delay(20);
 			button.init();
 			ButtonConfig *buttonConfig = button.getButtonConfig();
                         buttonConfig->setEventHandler(callback_acebutton);
@@ -338,6 +343,7 @@ class ESP32Initalizer{
 		}
 
 		void lcdInit(void){
+			delay(20);
 			tft.begin();
                         tft.setRotation( 1 );
                         tft.fillScreen(TFT_PURPLE);
@@ -383,21 +389,15 @@ class ESP32Initalizer{
 		}
 
 		bool setupSD(){
-                        digitalWrite(BOARD_SDCARD_CS, HIGH);
-                        digitalWrite(RADIO_CS_PIN, HIGH);
-                        digitalWrite(BOARD_TFT_CS, HIGH);
-			
-
-			Serial.printf("Setting up SD card.\n");
-                        if(SD.begin(BOARD_SDCARD_CS, SPI, 800000U)){
+			while(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) != pdTRUE){delay(100);}
+			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+			delay(2000);
+                        if(SD.begin(BOARD_SDCARD_CS)){
+				xSemaphoreGive(xSemaphore);
                                 uint8_t cardType = SD.cardType();
                                 uint32_t cardSize = SD.cardSize() / (1024 * 1024);
                                 uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
                                 uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
-
-				digitalWrite(BOARD_SDCARD_CS, HIGH);
-                        	digitalWrite(RADIO_CS_PIN, HIGH);
-                        	digitalWrite(BOARD_TFT_CS, HIGH);
 
                                 if(cardType == CARD_NONE){
                                         Serial.println("No SD_MMC card attached");
@@ -421,6 +421,7 @@ class ESP32Initalizer{
                         }else{
 				Serial.printf("Failed to start SD card.\n");
 			}
+			xSemaphoreGive(xSemaphore);
                         return false;
                 }
 

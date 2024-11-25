@@ -18,8 +18,6 @@
  */
 #include <Arduino.h>
 #include <SPI.h>
-//SPIClass hhhpi(HSPI);
-//SPISettings hhhpiSettings(40000000, MSBFIRST, SPI_MODE0);
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
 #include <lvgl.h>
@@ -40,9 +38,6 @@ USBCDC USBSerial;
 #include <AceButton.h>
 using namespace ace_button;
 using namespace std;
-
-#include "./src/spiDebug/spiDebug.class.h"
-SpiDebug spi2_a, spi2_b, spi3_a, spi3_b;
 
 #include "utilities.h"
 #include "./core/structs/structs.h"
@@ -72,7 +67,7 @@ LoRaSnake loraSnake;
 static void GraphicsTask(void *parm);
 static void CommsTask(void *parm);
 static void StorageTask(void *parm);
-
+static void UserInputTask(void *parm);
 
 
 bool getInput(void){
@@ -152,44 +147,16 @@ static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t eve
 }
 
 
-
-bool autoComp(int spiInf, bool refresh=true){
-  if(spiInf != 2 || spiInf != 3)
-    spiInf = 2;
-
-  if(refresh && spiInf == 2)
-    spi2_b.refresh();
-  else if(refresh){
-    spi3_b.refresh();
-  }
-  
-
-  return spiInf == 2 ? spi2_a.compAll(spi2_b, true) : spi3_a.compAll(spi3_b, true);
-}
-
-
-bool dbgc3(){
-  return autoComp(3, true);
-}
 bool coreOne = false;
 bool coreTwo = false;
+bool coreThree = false;
+
 String loraListenRes = "";
 void setup(void){
-  //Serial.begin(115200);
-  Serial.begin(9600);
+  Serial.begin(115200);
   initer.pinInit();
   delay(2000);
-  Serial.printf("[Fresh Reboot]\n");
-  delay(2000);
-  
-
-  spi2_a.setSpiMode(2);
-  spi2_b.setSpiMode(2);
-  spi3_a.setSpiMode(3);
-  spi3_b.setSpiMode(3);
-
-
-  Serial.printf("Starting Semaphores\n");
+  Serial.printf("[Palcoms L1.0]\n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
@@ -205,51 +172,23 @@ void setup(void){
       throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
     }
 
-    if(xTaskCreatePinnedToCore(UserInputTask, "user_input", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
+    if(xTaskCreatePinnedToCore(UserTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
     }
 
+    if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
+    }
 
-    //SPI.end();
-    //SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    while(!coreOne || !coreTwo || !coreThree){delay(100);}
+    USBSerial.onEvent(usbEventCallback);
+    USB.onEvent(usbEventCallback);
 
+    USBSerial.begin();
+    USB.begin();
   }catch(CoreException &ce){
       ce.halt();
   }
-  
-
-
-
-   //xTaskCreatePinnedToCore(noggerTask, "gui", 4096*2, NULL, 1, NULL, 1);
-  
-
- 
-  //delay(1000);
-
-  //initer.setupRadio();
-
-  
-    //initer.setupSD();  
-
-  
-
- 
-  
-  while(!coreOne || !coreTwo){delay(100);}
-  Serial.printf("initlaizing USB interface.\n");
-  USBSerial.onEvent(usbEventCallback);
-  USB.onEvent(usbEventCallback);
-
-  USBSerial.begin();
-  USB.begin();
-  /*Serial.printf("USB interface Successfully set up\n");
-  bool err = loraSnake.listenStart();
-  if(err){
-    Serial.printf("LoRa System Listening for messages.\n");
-  }else{
-    Serial.printf("LoRa System FAILED to listen for messages.\n");
-  }*/
-  Serial.printf("At the end of init function\n");
 }
 
 static void GraphicsTask(void *parm){
@@ -287,6 +226,28 @@ static void GraphicsTask(void *parm){
     delay(500);
    }
 }
+
+static void StorageTask(void *parm){  
+  Serial.printf("Setting up Storage\n");
+  if(!initer.setupSD()){
+    while(1){
+        Serial.printf("SD FAILURE.\n");
+        delay(2000);
+    }
+  }
+  coreThree = true;
+  while(1){
+    if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+      vTaskDelay(pdMS_TO_TICKS(10));
+      //Serial.printf("%d Comms Task\n", xPortGetCoreID());
+      xSemaphoreGive(xSemaphore);
+    }else{
+      Serial.printf("%d semaphore failed\n", xPortGetCoreID());
+    }
+    delay(2000);
+  }
+}
+
 static void CommsTask(void *parm){
   initer.setupRadio();
 
@@ -303,6 +264,7 @@ static void CommsTask(void *parm){
     delay(2000);
   }
 }
+
 static void UserInputTask(void *parm){
   Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
   initer.touchscreenInit();
@@ -314,7 +276,7 @@ static void UserInputTask(void *parm){
   }else{
     Serial.printf("No Keyboard found.\n");
   }
-
+  
   while(1){
   getInput();
   if(userBufferSize > 0){
@@ -338,6 +300,7 @@ static void UserInputTask(void *parm){
 }
 
 void loop(){
+  
       //pds.run();
  /* getInput();
   if(userBufferSize > 0){

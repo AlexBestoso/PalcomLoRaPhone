@@ -188,10 +188,7 @@ void setup(void){
   spi3_a.setSpiMode(3);
   spi3_b.setSpiMode(3);
 
-  spi2_a.init();
-  spi2_b.init();
-  spi3_a.init();
-  spi3_b.init();
+
   Serial.printf("Starting Semaphores\n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
@@ -293,41 +290,6 @@ static void GraphicsTask(void *parm){
 static void CommsTask(void *parm){
   initer.setupRadio();
 
-  
-  /*if(loraSnake.listenStart()){
-    Serial.printf("LoRa System Listening for messages.\n");
-  }else{
-    Serial.printf("LoRa System FAILED to listen for messages.\n");
-  }*/
-  /*  initer.pinInit();
-    spi2_a.refresh();
-    spi2_b.refresh();
-
-  while(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) != pdTRUE){delay(100);}
-
-    Serial.printf("Starting lora snake.\n");
-    if(!loraSnake.init()){
-      delay(2000);
-      if(spi2_a.compAll(spi2_b, true))
-        Serial.printf("SPI2 : No Change\n");
-      else
-        Serial.printf("SPI2 : Change Detected\n");
-      xSemaphoreGive(xSemaphore);
-      coreTwo = true;
-      while(1){
-              Serial.printf("Failed to initalize LoRa system.\n");
-
-              delay(1000);
-      }
-    }
-      if(spi2_a.compAll(spi2_b, true))
-        Serial.printf("SPI2 : No Change\n");
-      else
-        Serial.printf("SPI2 : Change Detected\n");
-
-    xSemaphoreGive(xSemaphore);
-    coreTwo = true;
-  */
   coreTwo = true;
 
   while(1){

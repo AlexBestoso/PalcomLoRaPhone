@@ -21,15 +21,12 @@ class PalcomDebugScreen : public PalcomScreen{
 
 		void generateObjects(void){
 
-			Serial.printf("Generating Screen Objects...\n");
 			lv_obj_t *screen = this->genScreen();
-			Serial.printf("Setting full screen.\n");
 			this->setFullScreen();
 			this->unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 			//Serial.printf("Executing...\n");
 			//this->e();
 
-			Serial.printf("Creating Title...\n");
 			PalcomLabel title;
 			title.create(screen);
 			title.setLongMode(LV_LABEL_LONG_SCROLL);

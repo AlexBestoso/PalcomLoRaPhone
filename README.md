@@ -10,4 +10,5 @@
 <li>Device initaliziation successfully implemented.</li>
 <li>SPI Bugs fixed. Core slave devices seperated by CPU Core</li>
 <li>ROS Tasks implemented</li>
+<li>Major Code Refactor</li>
 </ol>

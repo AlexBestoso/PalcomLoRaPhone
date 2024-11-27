@@ -6,25 +6,28 @@
 #define TASK_SPACE_GOD 99
 
 struct task_queue_task{ // 32 bits in size
-	uint16_t id;
-	uint8_t to;
-	uint8_t from;
-	uint8_t instruction;
+	bool active=false;
+	uint8_t to=0;
+	uint8_t from=0;
+	uint8_t instruction=0;
 };
 
 #define TASK_QUEUE_MAX 1024
-SemaphoreHandle_t queueSemaphore = NULL;
 class TaskQueue{
 	private:
+		bool locked;
 		struct task_queue_task tasks[TASK_QUEUE_MAX];
+		size_t taskCount;
 		bool lock(void);
-		bool unlock(void);
+		void unlock(void);
 	public:
 		TaskQueue(void);
 		~TaskQueue();
 	
+		bool mine(int spaceID);
 		void push(struct task_queue_task task);
-		struct task_queue_task pop(int id);
+		void push(uint8_t to, uint8_t from, uint8_t instruction);
+		struct task_queue_task pop(int spaceId);
 		void exec(void);
 		void clear(void);
 		int getTaskCount(void);

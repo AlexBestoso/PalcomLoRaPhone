@@ -57,9 +57,7 @@ bool LoRaSnake::init(void){
   //ssspi.end();
   //ssspi.begin(_sck, _miso, _mosi);
   int err = 0;
-  Serial.printf("Lora Snake Begins....\n");
   SPI.begin(this->_sck, this->_miso, this->_mosi);
-  Serial.printf("Spi...Cejhcl\n");
   err = _radio.begin(freq);
   if(err == RADIOLIB_ERR_NONE){
     _radio.setPacketSentAction(loraSnakeSetTxFlag);
@@ -72,8 +70,6 @@ bool LoRaSnake::init(void){
   	if (s == RADIOLIB_ERR_NONE){
 		Serial.printf("LoRa Listening...\n");
   	}
-    Serial.printf("Returning Success from Radio Init\n");
-    delay(2000);
     return true;
   }else{
     Serial.printf("Error no : %d\n", err);
@@ -82,7 +78,6 @@ bool LoRaSnake::init(void){
 }
 
 bool LoRaSnake::listenStart(void){
-  Serial.printf("Starting receiver...\n");
 	delay(1000);
   int s = _radio.startReceive();
   delay(3000);

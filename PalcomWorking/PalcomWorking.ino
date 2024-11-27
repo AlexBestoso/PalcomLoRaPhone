@@ -42,11 +42,16 @@ using namespace std;
 #include "utilities.h"
 #include "./core/structs/structs.h"
 #include "./core/tools/PalcomFS.h"
-#include "./core/error/error.h"
+#include "./src/error/error.h"
 
 #include "./src/LoRaSnake/LoRaSnake.class.h"
 LoRaSnake loraSnake;
 
+#include "./src/taskQueue/taskQueue.h"
+TaskQueue taskQueue;
+
+#include "./src/core/storage/storage.h"
+Storage storage;
 #include "./core/initalizer/initalizer.h"
 
 
@@ -57,10 +62,11 @@ LoRaSnake loraSnake;
 
 
 #include "./core/event/event.h"
-#include "./core/tools/colors.tool.h"
+//#include "./src/PalcomColors/PalcomColors.h"
 #include "./core/partition/partition.h"
 #include "./core/styles/styles.h"
 
+#include "./src/PalcomObject/PalcomObject.h"
 #include "./core/objects/objects.h"
 #include "./core/screens/screens.h"
 
@@ -172,8 +178,8 @@ void setup(void){
       throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
     }
 
-    if(xTaskCreatePinnedToCore(UserTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
+    if(xTaskCreatePinnedToCore(UserInputTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
     }
 
     if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
@@ -186,6 +192,8 @@ void setup(void){
 
     USBSerial.begin();
     USB.begin();
+
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_INITALIZE));
   }catch(CoreException &ce){
       ce.halt();
   }
@@ -238,8 +246,11 @@ static void StorageTask(void *parm){
   coreThree = true;
   while(1){
     if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+      if(storage.fetchTask()){
+        storage.runTask();
+      }
+
       vTaskDelay(pdMS_TO_TICKS(10));
-      //Serial.printf("%d Comms Task\n", xPortGetCoreID());
       xSemaphoreGive(xSemaphore);
     }else{
       Serial.printf("%d semaphore failed\n", xPortGetCoreID());
@@ -300,7 +311,7 @@ static void UserInputTask(void *parm){
 }
 
 void loop(){
-  
+  pds.test = true;
       //pds.run();
  /* getInput();
   if(userBufferSize > 0){

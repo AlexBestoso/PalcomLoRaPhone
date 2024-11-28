@@ -126,6 +126,8 @@ size_t userBufferSize = 0;
 
 #define GLOBAL_GUI_OBJECT_COUNT 1
 lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
+int PalcomScreenError=0;
+
 
 LV_IMG_DECLARE(mousePointerPng);
 

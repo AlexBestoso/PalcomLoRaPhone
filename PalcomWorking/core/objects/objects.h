@@ -2,9 +2,9 @@
 //#include "./palcomObject.h"
 
 // Children Objects
-#include "./label.object.h"
+//#include "./label.object.h"
 #include "./textarea.object.h"
-#include "./palcomButton.h"
+//#include "./palcomButton.h"
 #include "./palcomTabMenu.h"
 #include "./palcomImageButton.h"
 #include "./palcomMessageBox.h"

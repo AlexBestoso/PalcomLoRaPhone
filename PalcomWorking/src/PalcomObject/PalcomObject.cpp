@@ -270,7 +270,6 @@ void PalcomObject::fullScreen(void){
 
 void PalcomObject::execute(){
 	lv_timer_handler();
-	lv_tick_inc(5);
 }
 
 void PalcomObject::setSimpleCallback(void(*func)(lv_event_t*)){

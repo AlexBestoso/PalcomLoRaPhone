@@ -1,4 +1,4 @@
-#include "./palcomScreen.h"
+//#include "./palcomScreen.h"
 
 #include "./debug.screen.h"
 

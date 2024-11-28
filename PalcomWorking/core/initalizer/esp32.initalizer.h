@@ -25,8 +25,6 @@ static uint32_t keypad_get_key(void){
                         return key_ch;
                 }
 
-		SPIClass vvpi(VSPI);
-    		SPISettings vvpiSettings(2000000, MSBFIRST, SPI_MODE0);
 class ESP32Initalizer{
 	private:
 		lv_timer_t *timer = NULL;
@@ -65,6 +63,8 @@ class ESP32Initalizer{
                         pinMode(BOARD_TBOX_G01, INPUT_PULLUP);
                         pinMode(BOARD_TBOX_G04, INPUT_PULLUP);
                         pinMode(BOARD_TBOX_G03, INPUT_PULLUP);
+			pinMode(42, OUTPUT); // TFT BACKLIGHT
+			digitalWrite(42, HIGH); // Force backlight to stay on.
 		}
 
 		void wakupTouchInit(void){
@@ -136,8 +136,6 @@ class ESP32Initalizer{
 
 		static uint32_t callback_calcTick(void){
 			return millis();
-			lv_tick_inc(5);
-			return esp_timer_get_time() / 1000;
 		}
 
 		static void disp_flush( lv_display_t *disp, const lv_area_t *area, unsigned char *color_p ){
@@ -150,8 +148,7 @@ class ESP32Initalizer{
                                 return;
                         }
                         if( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ){
-				//SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-			//	tft.init();
+				Serial.printf("Flushign...\n");
 				tft.begin();
 				lv_draw_sw_rgb565_swap((void *)color_p, s);
                                 tft.startWrite();

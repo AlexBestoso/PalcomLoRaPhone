@@ -47,11 +47,6 @@ using namespace std;
 #include "./src/LoRaSnake/LoRaSnake.class.h"
 LoRaSnake loraSnake;
 
-#include "./src/taskQueue/taskQueue.h"
-TaskQueue taskQueue;
-
-#include "./src/core/storage/storage.h"
-Storage storage;
 #include "./core/initalizer/initalizer.h"
 
 
@@ -64,11 +59,25 @@ Storage storage;
 #include "./core/event/event.h"
 //#include "./src/PalcomColors/PalcomColors.h"
 #include "./core/partition/partition.h"
+#include "./src/PalcomStyle/PalcomStyle.h"
 #include "./core/styles/styles.h"
 
 #include "./src/PalcomObject/PalcomObject.h"
+#include "./src/PalcomObject/Label/Label.h"
+#include "./src/PalcomObject/Button/Button.h"
+#include "./src/PalcomScreen/PalcomScreen.h"
+#include "./src/PalcomScreen/DebugScreen/DebugScreen.h"
 #include "./core/objects/objects.h"
-#include "./core/screens/screens.h"
+//#include "./core/screens/screens.h"
+
+#include "./src/taskQueue/taskQueue.h"
+TaskQueue taskQueue;
+
+#include "./src/core/storage/storage.h"
+Storage storage;
+
+#include "./src/core/graphics/graphics.h"
+Graphics graphics;
 
 static void GraphicsTask(void *parm);
 static void CommsTask(void *parm);
@@ -104,7 +113,7 @@ bool processInput(void){
   return false;
 }
 
-PalcomDebugScreen pds;
+
 
 static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == ARDUINO_USB_EVENTS) {
@@ -141,8 +150,7 @@ static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t eve
             for(int i=0; i<len; i++)
               test+=(char)buffer[i];
             Serial.printf("USB : %s\n", test.c_str());
-            if(test == "aaaaa" || test == "aaaaa\n")
-            pds.test = true;
+           
         }
         break;
       case ARDUINO_USB_CDC_RX_OVERFLOW_EVENT: Serial.printf("CDC RX Overflow of %d bytes", data->rx_overflow.dropped_bytes); break;
@@ -166,6 +174,8 @@ void setup(void){
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
+
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 
     if(xSemaphore == NULL || xSemaphore == nullptr)
       throw CoreException("Failed to create Semaphore.", ERR_TASK_SEMAPHORE);
@@ -193,6 +203,7 @@ void setup(void){
     USBSerial.begin();
     USB.begin();
 
+    
     taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_INITALIZE));
   }catch(CoreException &ce){
       ce.halt();
@@ -209,40 +220,28 @@ static void GraphicsTask(void *parm){
   initer.touchscreenInit();
   
 
-   initer.lvglInit();
-
+  initer.lvglInit();
   coreOne = true;
-  bool ddbg = false;
+  
   while (1) {
+    graphics.exec(false);
     
-   pds.run();
-    if(pds.test == true){
-      //pds.test = true;
-      if(ddbg == false)
-        pds.reset();
-      ddbg = true;
+    if(graphics.fetchTask()){
+      graphics.runTask();
+      graphics.exec(true);
     }
-    if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
-      /* Delay 1 tick (assumes FreeRTOS tick is 10ms */
-      vTaskDelay(pdMS_TO_TICKS(10));
-      //Serial.printf("%d Gui Task\n", xPortGetCoreID());
-      //pds.run();
-      xSemaphoreGive(xSemaphore);
-    }else{
-      Serial.printf("%d semaphore failed\n", xPortGetCoreID());
-    }
-    delay(500);
+    
    }
 }
 
 static void StorageTask(void *parm){  
   Serial.printf("Setting up Storage\n");
-  if(!initer.setupSD()){
+  /*if(!initer.setupSD()){
     while(1){
         Serial.printf("SD FAILURE.\n");
         delay(2000);
     }
-  }
+  }*/
   coreThree = true;
   while(1){
     if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
@@ -250,27 +249,27 @@ static void StorageTask(void *parm){
         storage.runTask();
       }
 
-      vTaskDelay(pdMS_TO_TICKS(10));
+      //vTaskDelay(pdMS_TO_TICKS(10));
       xSemaphoreGive(xSemaphore);
     }else{
-      Serial.printf("%d semaphore failed\n", xPortGetCoreID());
+      Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
     }
     delay(2000);
   }
 }
 
 static void CommsTask(void *parm){
-  initer.setupRadio();
+  //initer.setupRadio();
 
   coreTwo = true;
 
   while(1){
     if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
-      vTaskDelay(pdMS_TO_TICKS(10));
+      //vTaskDelay(pdMS_TO_TICKS(10));
       //Serial.printf("%d Comms Task\n", xPortGetCoreID());
       xSemaphoreGive(xSemaphore);
     }else{
-      Serial.printf("%d semaphore failed\n", xPortGetCoreID());
+      Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
     }
     delay(2000);
   }
@@ -311,7 +310,7 @@ static void UserInputTask(void *parm){
 }
 
 void loop(){
-  pds.test = true;
+    lv_tick_inc(5);
       //pds.run();
  /* getInput();
   if(userBufferSize > 0){

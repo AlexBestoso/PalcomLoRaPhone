@@ -47,7 +47,7 @@ void TaskQueue::push(struct task_queue_task task){
 	if(taskCount >= TASK_QUEUE_MAX)
 		throw CoreException("Task count causes overflow", ERR_TQ_POP);
 
-	while(!this->lock()){delay(1000);}
+	while(!this->lock()){delay(10);}
 	if(this->taskCount > 0){
 		int i=(this->tasks[this->taskCount].active) ? 0 : this->taskCount;
 		for(i=0; i<TASK_QUEUE_MAX; i++){
@@ -67,7 +67,7 @@ void TaskQueue::push(struct task_queue_task task){
 struct task_queue_task TaskQueue::pop(int spaceId){
 	struct task_queue_task ret;
 	
-	while(!this->lock()){delay(1000);}
+	while(!this->lock()){delay(10);}
 
 	if(!this->mine(spaceId) || !this->tasks[0].active){
 		this->unlock();

@@ -2,7 +2,6 @@ class PalcomDebugScreen : public PalcomScreen{
 	private:
 
 	public:
-		bool test = false;
 
 		PalcomDebugScreen(){
 
@@ -31,10 +30,7 @@ class PalcomDebugScreen : public PalcomScreen{
 			title.create(screen);
 			title.setLongMode(LV_LABEL_LONG_SCROLL);
 			title.setWidth(300);
-			if(!test)
-				title.setText("Debug Screen");
-			else
-				title.setText("Filthy niggers...");
+			title.setText("New DBG Screen");
 			title.setAlignment(LV_ALIGN_OUT_TOP_MID, 80, 20);
 		}
 	

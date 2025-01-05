@@ -64,6 +64,7 @@
 #define SCREEN_HOR 320
 #define SCREEN_VIR 240
 
+
 bool checkKb(){
   Wire.requestFrom(0x55, 1);
   return Wire.read() != -1;
@@ -128,6 +129,8 @@ size_t userBufferSize = 0;
 lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
 int PalcomScreenError=0;
 
-
 LV_IMG_DECLARE(mousePointerPng);
+LV_IMG_DECLARE(spaceAI2);
+const lv_img_dsc_t *spaceImg[1] = {&spaceAI2};
 
+int palcome_message_mode=-1;

@@ -2,26 +2,52 @@
 #include <lvgl.h>
 #include <cstdint>
 
+#include "../../PalcomStyle/PalcomStyle.h"
+#include "../../PalcomStyle/styles/styles.h"
 #include "../../PalcomObject/PalcomObject.h"
 #include "../../PalcomObject/Label/Label.h"
 #include "../../PalcomObject/Button/Button.h"
-#include "../../PalcomStyle/PalcomStyle.h"
+#include "../../PalcomObject/Tileview/Tileview.h"
+#include "../../PalcomObject/Image/Image.h"
+
 #include "../../PalcomScreen/PalcomScreen.h"
+#include "../../taskQueue/taskQueue.h"
 
+extern const lv_image_dsc_t spaceAI2;
 extern int PalcomScreenError;
+extern int palcome_message_mode;
+extern TaskQueue taskQueue;
 #include "./DebugScreen.h"
-
-void PalcomDebugScreen::buttonCallback(lv_event_t *e){
-	if(lv_event_get_code(e) == LV_EVENT_RELEASED)
-		Serial.printf("Button Released.\n");
-}
 
 PalcomDebugScreen::PalcomDebugScreen(void){
 	this->buttonStyle.initStyle();
+	PalcomScreenError = 0;
 }
 
 PalcomDebugScreen::~PalcomDebugScreen(){
 
+}
+
+void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
+	PalcomObject msgContainer;
+	PalcomObject msgLogContainer;
+
+	msgLogContainer.generate(target, pal_base);
+	msgLogContainer.setDefaultStyle(this->msgSenderStyle.getStyle2());
+	msgLogContainer.setSize(101, 100);
+	msgLogContainer.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);	
+
+	msgContainer.generate(target, pal_base);
+	msgContainer.setDefaultStyle(this->msgSenderStyle.getStyle());
+	msgContainer.setSize(90, 25);
+	msgContainer.setAlignment(LV_ALIGN_BOTTOM_LEFT, 10, -13);
+	
+	//PalcomLabel label;
+	//label.create(target);
+        //label.setText("Home page");
+        //label.center();
+	// Create background image
+	// 
 }
 
 void PalcomDebugScreen::reset(void){
@@ -31,29 +57,48 @@ void PalcomDebugScreen::reset(void){
 	this->clearScreenError();
 }
 
+/*
+ TODO: 	1) Create classes for controlling each of the specific screens.
+ 	2) Starting with message viewm, create the following:
+		- logic to control which medium send messages use
+		- Logic for controlling which folder to store respective received messages
+		- generate default encryption keys for each mode of messaging
+		- diffientiate between received messages and sent messages.
+		- Message pagination for when there's large amounts of data.
+*/
 void PalcomDebugScreen::generateObjects(void){
 	lv_obj_t *screen = this->genScreen();
 	this->setFullScreen();
 	this->unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 
-	PalcomLabel title;
-	title.create(screen);
-	title.setLongMode(LV_LABEL_LONG_SCROLL);
-	title.setWidth(300);
-	title.setText("Debug Screen");
-	title.setAlignment(LV_ALIGN_OUT_TOP_MID, 80, 20);
+	PalcomLabel label;
+	PalcomTileview tileView;
+	
+	const lv_img_dsc_t *img_src[1] = {&spaceAI2};
+        this->setBgImage(img_src);
 
-	PalcomButton button;
-	button.create(screen);
-	title.create(button.getObject());
-	title.setText("LoRa");
-	title.center();
-	button.setLabel(title);
-	button.setDefaultStyle(this->buttonStyle.getStyle());	
-	//button.setPressedStyle(this->buttonStyle.getPressedStyle());
-	button.setSize(50, 15);
-	button.setAlignment(LV_ALIGN_OUT_TOP_RIGHT, 80, 190);
-	button.setSimpleCallback(&buttonCallback);
+	tileView.create(screen);
+	tileView.setDefaultStyle(this->tileStyle.getStyle());
+	
+	lv_obj_t *tile1 = tileView.newTile(1, 1, LV_DIR_TOP | LV_DIR_LEFT | LV_DIR_RIGHT);
+	this->buildHomepage(tile1);
+
+	lv_obj_t *tile2 = tileView.newTile(1, 0, LV_DIR_BOTTOM);
+	label.create(tile2);
+    	label.setText("Mode Select");
+    	label.center();
+
+	lv_obj_t *tile3 = tileView.newTile(0, 1, LV_DIR_RIGHT);
+	label.create(tile3);
+    	label.setText("About");
+    	label.center();
+
+	lv_obj_t *tile4 = tileView.newTile(2, 1, LV_DIR_LEFT);
+	label.create(tile4);
+    	label.setText("Settings");
+    	label.center();
+
+	tileView.setTile(1, 1, false);
 }
 
 int PalcomDebugScreen::run(void){

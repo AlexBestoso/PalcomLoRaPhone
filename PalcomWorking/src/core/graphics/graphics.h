@@ -1,4 +1,3 @@
-#define GRAPHICS_INSTR_SETUP 1
 
 class Graphics{
         private:
@@ -9,6 +8,7 @@ class Graphics{
                 bool pop();
 
 		PalcomDebugScreen pds;
+		SetMsgModeScreen setMsgModeScreen;
 
         public:
         	Graphics();

@@ -9,6 +9,9 @@
 void PalcomStyle::setStyle(lv_style_t *s){
 	this->targetStyle = s;
 }
+lv_style_t *PalcomStyle::getStyle(void){
+	return this->targetStyle;
+}
 
 void PalcomStyle::init(void){
 	lv_style_init(this->targetStyle);
@@ -43,7 +46,7 @@ lv_state_t PalcomStyle::getStatePressed(void){
 }
 
 lv_state_t PalcomStyle::getStateScrolled(void){
-return LV_STATE_SCROLLED;
+	return LV_STATE_SCROLLED;
 }
 
 lv_state_t PalcomStyle::getStateDisabled(void){
@@ -355,6 +358,9 @@ void PalcomStyle::setShadowColor(lv_color_t c){
 
 void PalcomStyle::setShadowOffsetY(int offset){
 	lv_style_set_shadow_ofs_y(this->targetStyle, offset);
+}
+void PalcomStyle::setShadowSpread(int s){
+	lv_style_set_shadow_spread(this->targetStyle, s);
 }
 
 void PalcomStyle::setOutlineOpacity(int o){

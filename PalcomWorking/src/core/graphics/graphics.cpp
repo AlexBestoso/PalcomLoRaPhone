@@ -2,9 +2,11 @@
 #include <cstdint>
 #include <lvgl.h>
 #include "../../taskQueue/taskQueue.h"
+#include "../../PalcomStyle/PalcomStyle.h"
+#include "../../PalcomStyle/styles/styles.h"
 #include "../../PalcomObject/PalcomObject.h"
 #include "../../PalcomScreen/PalcomScreen.h"
-#include "../../PalcomStyle/PalcomStyle.h"
+#include "../../PalcomScreen/setMsgMode/setMsgMode.h"
 #include "../../PalcomScreen/DebugScreen/DebugScreen.h"
 #include "./graphics.h"
 
@@ -36,6 +38,10 @@ bool Graphics::runTask(void){
 			this->activePage = GRAPHICS_INSTR_SETUP;
                         return true;
                 break;
+		case GRAPHICS_INSTR_HOMEPAGE:
+			this->activePage = GRAPHICS_INSTR_HOMEPAGE;
+			return true;
+		break;
         }
         return false;
 }
@@ -43,6 +49,13 @@ bool Graphics::runTask(void){
 bool Graphics::exec(bool destroy){
 	switch(this->activePage){
 		case GRAPHICS_INSTR_SETUP:{
+			if(destroy)
+				this->setMsgModeScreen.reset();
+			this->setMsgModeScreen.run();
+		}
+		return true;
+		
+		case GRAPHICS_INSTR_HOMEPAGE:{
 			if(destroy)
 				pds.reset();
 			pds.run();

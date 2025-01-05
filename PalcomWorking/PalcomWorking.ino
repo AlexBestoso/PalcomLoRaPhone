@@ -50,7 +50,6 @@ LoRaSnake loraSnake;
 #include "./core/initalizer/initalizer.h"
 
 
-
 /*
  * These may be refactored to be less dependant on each other.
  */
@@ -59,14 +58,17 @@ LoRaSnake loraSnake;
 #include "./core/event/event.h"
 //#include "./src/PalcomColors/PalcomColors.h"
 #include "./core/partition/partition.h"
-#include "./src/PalcomStyle/PalcomStyle.h"
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
 #include "./core/styles/styles.h"
 
-#include "./src/PalcomObject/PalcomObject.h"
-#include "./src/PalcomObject/Label/Label.h"
-#include "./src/PalcomObject/Button/Button.h"
-#include "./src/PalcomScreen/PalcomScreen.h"
-#include "./src/PalcomScreen/DebugScreen/DebugScreen.h"
+#include <src/PalcomObject/PalcomObject.h>
+#include <src/PalcomObject/Label/Label.h>
+#include <src/PalcomObject/Button/Button.h>
+#include <src/PalcomObject/Image/Image.h>
+#include <src/PalcomScreen/PalcomScreen.h>
+#include <src/PalcomScreen/DebugScreen/DebugScreen.h>
+#include <src/PalcomScreen/setMsgMode/setMsgMode.h>
 #include "./core/objects/objects.h"
 //#include "./core/screens/screens.h"
 

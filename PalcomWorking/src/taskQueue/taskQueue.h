@@ -5,6 +5,9 @@
 #define TASK_SPACE_USB 5
 #define TASK_SPACE_GOD 99
 
+#define GRAPHICS_INSTR_SETUP 1
+#define GRAPHICS_INSTR_HOMEPAGE 2
+
 struct task_queue_task{ // 32 bits in size
 	bool active=false;
 	uint8_t to=0;

@@ -84,6 +84,9 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 		case pal_base:
 			this->object = lv_obj_create(parent);
 			break;
+		case pal_image:
+			this->object = lv_image_create(parent);
+			break;
 		case pal_menu:
 			this->object = lv_menu_create(parent);
 			break;
@@ -104,6 +107,9 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 			break;
 		case pal_switch:
 			this->object = lv_switch_create(parent);
+			break;
+		case pal_tileview:
+			this->object = lv_tileview_create(parent);
 			break;
 	}
 }

@@ -148,12 +148,11 @@ class ESP32Initalizer{
                                 return;
                         }
                         if( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ){
-				Serial.printf("Flushign...\n");
-				tft.begin();
-				lv_draw_sw_rgb565_swap((void *)color_p, s);
+				//tft.begin();
+				//lv_draw_sw_rgb565_swap((void *)color_p, s);
                                 tft.startWrite();
                                 tft.setAddrWindow( area->x1, area->y1, w, h );
-				tft.pushPixels((void *)color_p, w*h);
+				tft.pushPixelsDMA((uint16_t *)color_p, w*h);
                                 tft.endWrite();
                                 lv_disp_flush_ready( disp );
                                 xSemaphoreGive( xSemaphore );
@@ -343,7 +342,9 @@ class ESP32Initalizer{
 			delay(20);
 			tft.begin();
                         tft.setRotation( 1 );
-                        tft.fillScreen(TFT_PURPLE);
+			tft.setSwapBytes(false);
+                        tft.fillScreen(TFT_BLACK);
+			tft.initDMA();
                         Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
 		}
 

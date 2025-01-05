@@ -9,33 +9,22 @@ class PalcomStyle{
 		 * You must call this function before running any other functions.
 		 * */
 		void setStyle(lv_style_t *s);
+		lv_style_t *getStyle(void);
 
 		void init(void);
 
 		lv_state_t getStateDefault(void);
-
 		lv_state_t getStateChecked(void);
-
 		lv_state_t getStateFocused(void);
-
 		lv_state_t getStateFocusKey(void);
-
 		lv_state_t getStateEdited(void);
-
 		lv_state_t getStateHovered(void);
-
 		lv_state_t getStatePressed(void);
-
 		lv_state_t getStateScrolled(void);
-
 		lv_state_t getStateDisabled(void);
-
 		lv_state_t getStateCustomOne(void);
-
 		lv_state_t getStateCustomTwo(void);
-
 		lv_state_t getStateCustomThree(void);
-
 		lv_state_t getStateCustomFour(void);
 
 		void setColorFilter(lv_color_filter_dsc_t *f, lv_color_t (*colorFilterHandler)(const lv_color_filter_dsc_t *, lv_color_t, lv_opa_t));
@@ -47,23 +36,14 @@ class PalcomStyle{
 		
 
 		lv_color_t makeColor(int r, int g, int b);
-
 		lv_color_t makeColorHex(int h);
-
 		lv_color_t makeColorHex3(int h);
 
 		void setBgColor(lv_color_t c);
-
 		void setBgGradientColor(lv_color_t c);
-
 		void setBgGradientDirection(int d);
-		
-
 		void setBorderColor(lv_color_t c);
-
 		void setBorderOpacity(int o);
-			
-
 		void setAnimationTime(int t);
 		void setBorderWidth(int w);
 
@@ -72,7 +52,6 @@ class PalcomStyle{
 		 *  Can be ORed '||' to use multiple.
 		 *  */
 		void setBorderSide(lv_border_side_t s);
-
 		void setTextColor(lv_color_t c);
 
 		/*
@@ -82,11 +61,8 @@ class PalcomStyle{
 		 * LV_TEXT_ALIGN_RIGHT
 		 * */
 		void setTextAlign(lv_text_align_t a);
-
 		void applyColorFilter();
-
 		void setColorFilterOpacity(int o);
-
 		void recolorImgOpacity(int o);
 
 		/*
@@ -106,28 +82,17 @@ class PalcomStyle{
 		 */
 
 		void recolorImg(lv_color_t c);
-
 		void setShadowWidth(int w);
-
 		void setShadowColor(lv_color_t c);
-
 		void setShadowOffsetY(int offset);
-
+		void setShadowSpread(int s);
 		void setOutlineOpacity(int o);
-	
 		void setOutlineColor(lv_color_t c);
-
 		void setOutlineWidth(int w);
-
 		void setAllPadding(int p);
-		
 		void setHorizontalPadding(int p);
-
 		void setVirticalPadding(int p);
-
 		void setPaddingGap(int p);
-
 		void setTranslateY(int y);
-
 		void setTransition(lv_style_transition_dsc_t *t);
 };

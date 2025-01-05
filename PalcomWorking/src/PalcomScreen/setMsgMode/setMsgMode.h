@@ -5,23 +5,19 @@
 #define PALMSG_MODE_USB 2
 #define PALMSG_MODE_RELAY 3
 
-class PalcomDebugScreen : public PalcomScreen{
+class SetMsgModeScreen : public PalcomScreen{
         private:
-		DebugScreenButtonStyle buttonStyle;
-		TileStyle tileStyle;
-		MsgSenderStyle msgSenderStyle;
+		SetMsgModeButtonStyle buttonStyle;
 
 		static void toggleMeshMode(lv_event_t *e);
 		static void toggleNodeMode(lv_event_t *e);
 		static void toggleUsbMode(lv_event_t *e);
 
-		void buildHomepage(lv_obj_t *target);
-
 		bool debugBool = false;
         public:
-                PalcomDebugScreen(void);
+                SetMsgModeScreen(void);
 
-                ~PalcomDebugScreen();
+                ~SetMsgModeScreen();
 
                 void reset(void);
                 void generateObjects(void);

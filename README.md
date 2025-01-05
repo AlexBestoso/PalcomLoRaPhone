@@ -14,4 +14,5 @@
 <li>Added new tile system</li>
 <li>updated all code libraries in use</li>
 <li>added secret picture of my penis</li>
+<li>added gitignore</li>
 </ol>

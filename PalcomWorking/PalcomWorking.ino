@@ -42,12 +42,12 @@ using namespace std;
 #include "utilities.h"
 #include "./core/structs/structs.h"
 #include "./core/tools/PalcomFS.h"
-#include "./src/error/error.h"
+#include <src/error/error.h>
 
 #include "./src/LoRaSnake/LoRaSnake.class.h"
 LoRaSnake loraSnake;
 
-#include "./core/initalizer/initalizer.h"
+
 
 
 /*
@@ -55,7 +55,7 @@ LoRaSnake loraSnake;
  */
 
 
-#include "./core/event/event.h"
+#include <src/PalcomEvent/PalcomEvent.h>
 //#include "./src/PalcomColors/PalcomColors.h"
 #include "./core/partition/partition.h"
 #include <src/PalcomStyle/PalcomStyle.h>
@@ -66,6 +66,10 @@ LoRaSnake loraSnake;
 #include <src/PalcomObject/Label/Label.h>
 #include <src/PalcomObject/Button/Button.h>
 #include <src/PalcomObject/Image/Image.h>
+#include <src/PalcomObject/Textarea/Textarea.h>
+
+#include "./core/initalizer/initalizer.h"
+
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/PalcomScreen/DebugScreen/DebugScreen.h>
 #include <src/PalcomScreen/setMsgMode/setMsgMode.h>
@@ -91,11 +95,18 @@ bool getInput(void){
   
   if(userBufferIdx >= 0 && userBufferIdx < USER_BUF_SIZE){
     int v = keypad_get_key();
-    if(v == 0x00)
+   
+    if(v == 0x00){
       return false;
-    userBuffer[userBufferIdx] = v;
-    userBufferIdx++;
-    userBufferSize = userBufferIdx;
+    }else if (v == 8){
+      userBuffer[userBufferIdx] = 0x0;
+      userBufferIdx = userBufferIdx == 0 ? 0 : userBufferIdx-1;
+      userBufferSize = userBufferIdx;
+    }else{
+      userBuffer[userBufferIdx] = v;
+      userBufferIdx++;
+      userBufferSize = userBufferIdx;
+    }
     return true;
   }
   return false;
@@ -290,16 +301,23 @@ static void UserInputTask(void *parm){
   }
   
   while(1){
-  getInput();
-  if(userBufferSize > 0){
-    Serial.printf("input : ");
-    for(int i=0;  i<userBufferSize; i++)
-      Serial.printf("%c", userBuffer[i]);
-    Serial.printf("\n");
+  /*getInput();
+  /*if(userBufferSize > 0){
+    if(keyboardFocusedObj != NULL){
+      Serial.printf("input : ");
+      for(int i=0;  i<userBufferSize; i++)
+        Serial.printf("%c", userBuffer[i]);
+      Serial.printf("\n");
+      PalcomTextarea textarea;
+      textarea.setObject(keyboardFocusedObj);
+      textarea.setText((const char *)userBuffer);
+    }
   }
   if(processInput()){
     clearInput();
-  }
+  }*/
+    
+    
     /*if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
       vTaskDelay(pdMS_TO_TICKS(10));
       //Serial.printf("%d Storage Task\n", xPortGetCoreID());

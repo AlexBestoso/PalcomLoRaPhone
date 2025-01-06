@@ -7,6 +7,7 @@
 #include "./msgSenderStyle.h"
 
 MsgSenderStyle::MsgSenderStyle(void){
+	this->initStyle3();
 	this->initStyle2();
 	this->initStyle();
 }
@@ -16,6 +17,11 @@ MsgSenderStyle::~MsgSenderStyle(){}
 lv_style_t *MsgSenderStyle::getStyle2(void){
 	return &this->style2;
 }
+
+lv_style_t *MsgSenderStyle::getStyle3(void){
+        return &this->style3;
+}
+
 
 void MsgSenderStyle::initStyle(void){
 	this->setStyle(&this->style);
@@ -37,4 +43,13 @@ void MsgSenderStyle::initStyle2(void){
 	this->setBgOpacity(8);
 }
 
+void MsgSenderStyle::initStyle3(void){
+	this->setStyle(&this->style3);
+        this->init();
+	this->setShadowWidth(0);
+	this->setShadowSpread(0);
+	this->setShadowColor(this->makeColor(0xff, 0xff, 0xff));
+
+	this->setBgOpacity(-1);
+}
 

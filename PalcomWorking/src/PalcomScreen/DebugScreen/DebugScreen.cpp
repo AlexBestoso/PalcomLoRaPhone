@@ -7,16 +7,23 @@
 #include "../../PalcomObject/PalcomObject.h"
 #include "../../PalcomObject/Label/Label.h"
 #include "../../PalcomObject/Button/Button.h"
+#include <src/PalcomObject/Textarea/Textarea.h>
 #include "../../PalcomObject/Tileview/Tileview.h"
 #include "../../PalcomObject/Image/Image.h"
 
 #include "../../PalcomScreen/PalcomScreen.h"
 #include "../../taskQueue/taskQueue.h"
 
+#define USER_BUF_SIZE 256
+
 extern const lv_image_dsc_t spaceAI2;
 extern int PalcomScreenError;
 extern int palcome_message_mode;
 extern TaskQueue taskQueue;
+extern uint8_t userBuffer[USER_BUF_SIZE];
+extern size_t userBufferSize;
+extern lv_obj_t *keyboardFocusedObj;
+
 #include "./DebugScreen.h"
 
 PalcomDebugScreen::PalcomDebugScreen(void){
@@ -31,6 +38,7 @@ PalcomDebugScreen::~PalcomDebugScreen(){
 void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	PalcomObject msgContainer;
 	PalcomObject msgLogContainer;
+	PalcomTextarea textarea;
 
 	msgLogContainer.generate(target, pal_base);
 	msgLogContainer.setDefaultStyle(this->msgSenderStyle.getStyle2());
@@ -41,6 +49,14 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	msgContainer.setDefaultStyle(this->msgSenderStyle.getStyle());
 	msgContainer.setSize(90, 25);
 	msgContainer.setAlignment(LV_ALIGN_BOTTOM_LEFT, 10, -13);
+	msgContainer.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+	msgContainer.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	
+	textarea.create(msgContainer.getObject());
+	textarea.setDefaultStyle(this->msgSenderStyle.getStyle3());
+	textarea.setOneLine(false);
+	textarea.setSize(280, 50);
+	textarea.setAlignment(LV_ALIGN_BOTTOM_LEFT, -10, 10);
 	
 	//PalcomLabel label;
 	//label.create(target);

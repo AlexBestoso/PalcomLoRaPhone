@@ -206,18 +206,18 @@ class ESP32Initalizer{
                                         screenLockConditionSpace = false;
 
                                 last_key = act_key;
-				//if(keyboardFocusedObj != NULL){
-					//PalcomTextarea kfo;
-					//kfo.setObject(keyboardFocusedObj);
-				//	if(kfo.stateInUse(LV_STATE_FOCUSED)){
+				if(keyboardFocusedObj != NULL){
+					PalcomTextarea kfo;
+					kfo.setObject(keyboardFocusedObj);
+					if(kfo.stateInUse(LV_STATE_FOCUSED)){
 						if(last_key == LV_KEY_BACKSPACE){
-						//	kfo.popCharLeft();
+							kfo.popCharLeft();
 						}else{
-						//	kfo.pushChar(last_key);
+							kfo.pushChar(last_key);
 						}
-				//	}
+					}
 
-				//}
+				}
                         }else{
                                 data->state = LV_INDEV_STATE_RELEASED;
                         }

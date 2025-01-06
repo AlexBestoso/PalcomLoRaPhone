@@ -2,7 +2,11 @@
 #include <lvgl.h>
 #include <cstdint>
 
+#include <src/PalcomEvent/PalcomEvent.h>
 #include <src/PalcomObject/PalcomObject.h>
+
+extern lv_obj_t *keyboardFocusedObj;
+extern lv_group_t *keyboardGroup;
 
 #include "./Textarea.h"
 
@@ -19,18 +23,19 @@
 		keyboardFocusedObj == NULL;
 	}
 }*/
-static void PalcomTextarea::simpleCb(lv_event_t *e){
+void PalcomTextarea::simpleCb(lv_event_t *e){
 	PalcomEvent event(e);
 
 	lv_obj_t *obj = (lv_obj_t*)event.getTarget();
 	char *data = (char *)event.getUserData();
 	
 	if(event.getCode() == LV_EVENT_INSERT){
-	
 	}else if(event.getCode() == LV_EVENT_FOCUSED){
+		Serial.printf("FOCUSED\n");
 		keyboardFocusedObj = obj;
 	}else if(event.getCode() == LV_EVENT_DEFOCUSED){
-		keyboardFocusedObj == NULL;
+		Serial.printf("DEFUOCUSED\n");
+		keyboardFocusedObj = NULL;
 	}
 }
 

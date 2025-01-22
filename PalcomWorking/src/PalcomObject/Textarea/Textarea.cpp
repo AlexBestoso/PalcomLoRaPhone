@@ -10,19 +10,6 @@ extern lv_group_t *keyboardGroup;
 
 #include "./Textarea.h"
 
-/*static void textarea_drive_keyboard(PalcomEvent e){
-	PalcomEvent event(e);
-	lv_obj_t *obj = (lv_obj_t*)event.getTarget();
-	char *data = (char *)event.getUserData();
-
-	if(event.getCode() == LV_EVENT_INSERT){
-	
-	}else if(event.getCode() == LV_EVENT_FOCUSED){
-		keyboardFocusedObj = obj;
-	}else if(event.getCode() == LV_EVENT_DEFOCUSED){
-		keyboardFocusedObj == NULL;
-	}
-}*/
 void PalcomTextarea::simpleCb(lv_event_t *e){
 	PalcomEvent event(e);
 
@@ -31,10 +18,8 @@ void PalcomTextarea::simpleCb(lv_event_t *e){
 	
 	if(event.getCode() == LV_EVENT_INSERT){
 	}else if(event.getCode() == LV_EVENT_FOCUSED){
-		Serial.printf("FOCUSED\n");
 		keyboardFocusedObj = obj;
 	}else if(event.getCode() == LV_EVENT_DEFOCUSED){
-		Serial.printf("DEFUOCUSED\n");
 		keyboardFocusedObj = NULL;
 	}
 }
@@ -132,6 +117,12 @@ void PalcomTextarea::setPasswordMode(bool val){
 
 const char *PalcomTextarea::getText(void){
 	return lv_textarea_get_text(this->getObject());
+}
+
+size_t PalcomTextarea::getTextSize(void){
+	if(this->getText() == NULL)
+		return 0;
+	return (size_t)strlen(this->getText());
 }
 
 void PalcomTextarea::moveCursor(int direction){

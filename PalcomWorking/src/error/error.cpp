@@ -24,6 +24,8 @@ const char *CoreException::codeTranslate(void){
 			return "ERR_TASK_CREATE";
 		case ERR_TASK_SEMAPHORE:
 			return "ERR_TASK_SEMAPHORE";
+		case ERR_TASK_NULL:
+			return "ERR_TASK_NULL";
 		case CORE_ERR_TQ:
 			return "CORE_ERR_TQ";
 		case ERR_TQ_SEMAPHORE:

@@ -8,14 +8,18 @@
 #define GRAPHICS_INSTR_SETUP 1
 #define GRAPHICS_INSTR_HOMEPAGE 2
 
-struct task_queue_task{ // 32 bits in size
+#define COMMS_INSTR_SEND 11
+#define COMMS_INSTR_RECV 12
+
+struct task_queue_task{
 	bool active=false;
 	uint8_t to=0;
 	uint8_t from=0;
 	uint8_t instruction=0;
+	uint8_t msg[256] = {0};
 };
 
-#define TASK_QUEUE_MAX 1024
+#define TASK_QUEUE_MAX 20
 class TaskQueue{
 	private:
 		bool locked;
@@ -29,10 +33,13 @@ class TaskQueue{
 	
 		bool mine(int spaceID);
 		void push(struct task_queue_task task);
+		void push(struct task_queue_task *task);
 		void push(uint8_t to, uint8_t from, uint8_t instruction);
 		struct task_queue_task pop(int spaceId);
 		void exec(void);
 		void clear(void);
 		int getTaskCount(void);
+
 		struct task_queue_task buildTask(uint8_t to, uint8_t from, uint8_t instruction);
+		struct task_queue_task buildTask(uint8_t to, uint8_t from, uint8_t instruction, uint8_t msg[256]); 
 };

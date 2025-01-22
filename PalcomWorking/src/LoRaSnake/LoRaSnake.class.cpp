@@ -1,12 +1,13 @@
 #include "./LoRaSnake.class.h"
 
-extern bool loraSnakeTransmit = false;
-extern bool loraSnakeReceive = false;
-extern SPIClass ssspi(HSPI);
-extern SPISettings ssspiSettings(2000000, MSBFIRST, SPI_MODE0);
-extern SX1262 _radio = new Module(9, 45, 17, 13);
+extern bool loraSnakeTransmit;
+extern bool loraSnakeReceive;
+//extern SPIClass ssspi(HSPI);
+//extern SPISettings ssspiSettings(2000000, MSBFIRST, SPI_MODE0);
+extern SX1262 _radio;
 
 static void loraSnakeSetTxFlag(void){
+	Serial.printf("Running Lora TX Call back.\n");
   loraSnakeTransmit = true;
 }
 static void loraSnakeSetRxFlag(void){
@@ -47,21 +48,16 @@ LoRaSnake::~LoRaSnake(){
 
 bool LoRaSnake::init(void){ 
   float freq=868.0;
-  //this->_radio = new Module(9, 45, 17, 13);
   //digitalWrite(BOARD_SDCARD_CS, HIGH);
   //digitalWrite(BOARD_TFT_CS, HIGH);
   // digitalWrite(RADIO_CS_PIN, HIGH);  
-  //SPI.end();
   
-  ////SPI.begin(_sck, _miso, _mosi);
-  //ssspi.end();
-  //ssspi.begin(_sck, _miso, _mosi);
   int err = 0;
-  SPI.begin(this->_sck, this->_miso, this->_mosi);
+  //SPI.begin(this->_sck, this->_miso, this->_mosi);
   err = _radio.begin(freq);
   if(err == RADIOLIB_ERR_NONE){
-    _radio.setPacketSentAction(loraSnakeSetTxFlag);
     _radio.setPacketReceivedAction(loraSnakeSetRxFlag);
+    _radio.setPacketSentAction(loraSnakeSetTxFlag);
 
 	//_radio.sleep(true)
     //_radio.standby();
@@ -69,6 +65,8 @@ bool LoRaSnake::init(void){
 	delay(3000);
   	if (s == RADIOLIB_ERR_NONE){
 		Serial.printf("LoRa Listening...\n");
+		running = true;
+		loraSnakeReceive = false;
   	}
     return true;
   }else{
@@ -86,6 +84,7 @@ bool LoRaSnake::listenStart(void){
     loraSnakeReceive = false;
     return true;
   }
+	Serial.printf("LISTEN ERROR CODE %d\n", s);
   return false;
 }
 
@@ -127,11 +126,12 @@ void LoRaSnake::forceSendMode(void){
 }
 
 void LoRaSnake::sendStart(String v){
+
   txState = _radio.startTransmit(v.c_str());
 }
 
 void LoRaSnake::sendStart(unsigned char *v, size_t l){
-  txState = _radio.startTransmit(v, l);
+  	txState = _radio.startTransmit(v, l, 0);
 }
 
 bool LoRaSnake::send(uint8_t *d, size_t s){

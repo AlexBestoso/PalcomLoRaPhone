@@ -323,6 +323,7 @@ class ESP32Initalizer{
 		}
 		
 		void aceButtonInit(void){
+                        Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
 			delay(20);
 			button.init();
 			ButtonConfig *buttonConfig = button.getButtonConfig();
@@ -345,7 +346,6 @@ class ESP32Initalizer{
 			tft.setSwapBytes(false);
                         tft.fillScreen(TFT_BLACK);
 			tft.initDMA();
-                        Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
 		}
 
 		void touchscreenInit(void){

@@ -14,6 +14,7 @@ class PalcomDebugScreen : public PalcomScreen{
 		static void toggleMeshMode(lv_event_t *e);
 		static void toggleNodeMode(lv_event_t *e);
 		static void toggleUsbMode(lv_event_t *e);
+		static void sendMessage(lv_event_t *e);
 
 		void buildHomepage(lv_obj_t *target);
 

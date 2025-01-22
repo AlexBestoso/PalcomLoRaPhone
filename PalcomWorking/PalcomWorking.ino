@@ -18,6 +18,8 @@
  */
 #include <Arduino.h>
 #include <SPI.h>
+
+
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
 #include <lvgl.h>
@@ -44,7 +46,7 @@ using namespace std;
 #include "./core/tools/PalcomFS.h"
 #include <src/error/error.h>
 
-#include "./src/LoRaSnake/LoRaSnake.class.h"
+#include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
 
 
@@ -76,14 +78,17 @@ LoRaSnake loraSnake;
 #include "./core/objects/objects.h"
 //#include "./core/screens/screens.h"
 
-#include "./src/taskQueue/taskQueue.h"
+#include <src/taskQueue/taskQueue.h>
 TaskQueue taskQueue;
 
 #include "./src/core/storage/storage.h"
 Storage storage;
 
-#include "./src/core/graphics/graphics.h"
+#include <src/core/graphics/graphics.h>
 Graphics graphics;
+
+#include <src/core/comms/comms.h>
+Comms comms;
 
 static void GraphicsTask(void *parm);
 static void CommsTask(void *parm);
@@ -181,23 +186,33 @@ bool coreThree = false;
 String loraListenRes = "";
 void setup(void){
   Serial.begin(115200);
-  initer.pinInit();
+
   delay(2000);
-  Serial.printf("[Palcoms L1.0]\n");
+  Serial.printf("[Palcoms L1.0] \n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
+    initer.pinInit();
+    
+    initer.setupRadio();
+    initer.lcdInit();
+
+    initer.aceButtonInit();
+    initer.touchscreenInit();
+    
+
+    initer.lvglInit();
 
     taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 
-    if(xSemaphore == NULL || xSemaphore == nullptr)
+   /* if(xSemaphore == NULL || xSemaphore == nullptr)
       throw CoreException("Failed to create Semaphore.", ERR_TASK_SEMAPHORE);
 
     if(xTaskCreatePinnedToCore(GraphicsTask, "graphics", 4096*2, NULL, 5, NULL, 1) != pdPASS){
       throw CoreException("Failed to create Graphics Task", ERR_TASK_CREATE);
     }
 
-    if(xTaskCreatePinnedToCore(CommsTask, "communication", 4096*2, NULL, 5, NULL, 0) != pdPASS){
+    if(xTaskCreatePinnedToCore(CommsTask, "communication", 4096*2, NULL, 5, NULL, 1) != pdPASS){
       throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
     }
 
@@ -207,9 +222,9 @@ void setup(void){
 
     if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
       throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
-    }
+    }*/
 
-    while(!coreOne || !coreTwo || !coreThree){delay(100);}
+    //while(!coreOne || !coreTwo || !coreThree){delay(100);}
     USBSerial.onEvent(usbEventCallback);
     USB.onEvent(usbEventCallback);
 
@@ -217,7 +232,7 @@ void setup(void){
     USB.begin();
 
     
-    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_INITALIZE));
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
   }catch(CoreException &ce){
       ce.halt();
   }
@@ -227,24 +242,24 @@ static void GraphicsTask(void *parm){
   while(!coreTwo){delay(1000);}
   //initer.semaphoreInit();
 
-  initer.aceButtonInit();
   
-  initer.lcdInit();
-  initer.touchscreenInit();
   
 
-  initer.lvglInit();
+  
   coreOne = true;
   
   while (1) {
-    graphics.exec(false);
-    
-    if(graphics.fetchTask()){
-      graphics.runTask();
-      graphics.exec(true);
-    }
-    
-   }
+    //if(xSemaphoreTake(xSemaphore, 0) == pdTRUE){
+
+      
+      
+      //vTaskDelay(pdMS_TO_TICKS(10));
+      //Serial.printf("%d Comms Task\n", xPortGetCoreID());
+      //xSemaphoreGive(xSemaphore);
+   // }else{
+    //  Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
+    //}
+  }
 }
 
 static void StorageTask(void *parm){  
@@ -257,40 +272,41 @@ static void StorageTask(void *parm){
   }*/
   coreThree = true;
   while(1){
-    if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
       if(storage.fetchTask()){
         storage.runTask();
       }
-
-      //vTaskDelay(pdMS_TO_TICKS(10));
-      xSemaphoreGive(xSemaphore);
-    }else{
-      Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
-    }
-    delay(2000);
+    delay(150);
   }
 }
 
 static void CommsTask(void *parm){
-  //initer.setupRadio();
-
+  
+  
   coreTwo = true;
 
   while(1){
-    if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+    //if(comms.fetchTask()){
+    //  comms.runTask();
+    //}
+   // if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+      
+     /*
+      if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
+        Serial.printf("Received the message : [%d] ", loraSnake.lrsPacket.data_size);
+      }*/
       //vTaskDelay(pdMS_TO_TICKS(10));
       //Serial.printf("%d Comms Task\n", xPortGetCoreID());
-      xSemaphoreGive(xSemaphore);
+     /* xSemaphoreGive(xSemaphore);
     }else{
       Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
-    }
+    }*/
     delay(2000);
   }
 }
 
 static void UserInputTask(void *parm){
   Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
-  initer.touchscreenInit();
+  //initer.touchscreenInit();
   
   
   kbDected = checkKb();
@@ -330,7 +346,36 @@ static void UserInputTask(void *parm){
 }
 
 void loop(){
-    lv_tick_inc(5);
+  
+    
+      if(graphics.fetchTask()){
+        graphics.runTask();
+        graphics.exec(true);
+      }else{
+        graphics.exec(false);
+      }
+      lv_tick_inc(5);
+
+      
+      if(comms.fetchTask()){
+        Serial.printf("Halting and restarting SPI bus...\n");
+        tft.deInitDMA();
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
+        Serial.printf("Running Comms Task\n");
+        comms.runTask();
+
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+        tft.initDMA();
+        
+        //Serial.printf("Starting up TFT again...\n");
+        //tft.begin();
+      }
+   /* if(comms.fetchTask()){
+      comms.runTask();
+    }*/
       //pds.run();
  /* getInput();
   if(userBufferSize > 0){
@@ -362,5 +407,5 @@ void loop(){
     loraSnake.lrsPacket.data_size = 0;
   }*/
 
-  delay(1000);
+  delay(5);
 }

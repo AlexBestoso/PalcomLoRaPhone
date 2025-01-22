@@ -134,3 +134,8 @@ LV_IMG_DECLARE(spaceAI2);
 const lv_img_dsc_t *spaceImg[1] = {&spaceAI2};
 
 int palcome_message_mode=-1;
+
+SX1262 _radio = new Module(9, 45, 17, 13);
+volatile bool loraSnakeTransmit = false;
+volatile bool loraSnakeReceive = false;
+

@@ -2,11 +2,13 @@
 #include <lvgl.h>
 #include <cstdint>
 
+#include <src/error/error.h>
+#include <src/PalcomEvent/PalcomEvent.h>
 #include "../../PalcomStyle/PalcomStyle.h"
 #include "../../PalcomStyle/styles/styles.h"
 #include "../../PalcomObject/PalcomObject.h"
 #include "../../PalcomObject/Label/Label.h"
-#include "../../PalcomObject/Button/Button.h"
+#include <src/PalcomObject/Button/Button.h>
 #include <src/PalcomObject/Textarea/Textarea.h>
 #include "../../PalcomObject/Tileview/Tileview.h"
 #include "../../PalcomObject/Image/Image.h"
@@ -26,6 +28,35 @@ extern lv_obj_t *keyboardFocusedObj;
 
 #include "./DebugScreen.h"
 
+void PalcomDebugScreen::sendMessage(lv_event_t *e){
+	try{
+		PalcomEvent event(e);
+		if(keyboardFocusedObj == NULL){
+			return;
+		}
+
+		PalcomTextarea textarea;
+		textarea.setObject(keyboardFocusedObj);
+		if(strlen(textarea.getText()) <= 0)
+			return;
+		
+		struct task_queue_task t;
+		t.active = true;
+		t.to = TASK_SPACE_COMMS;
+		t.from = TASK_SPACE_GRAPHICS;
+		t.instruction = COMMS_INSTR_SEND;
+		const char *msg = textarea.getText();
+		for(int i=0; i<256 && i<textarea.getTextSize(); i++){
+			t.msg[i] = msg[i];
+		}
+		taskQueue.push(&t);
+	
+		textarea.setText("");
+	}catch(CoreException e){
+		e.out();
+	}
+}
+
 PalcomDebugScreen::PalcomDebugScreen(void){
 	this->buttonStyle.initStyle();
 	PalcomScreenError = 0;
@@ -39,12 +70,23 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	PalcomObject msgContainer;
 	PalcomObject msgLogContainer;
 	PalcomTextarea textarea;
+	PalcomButton button;
+	PalcomLabel label;
 
+	/*
+	 * Message log box
+	 * */
 	msgLogContainer.generate(target, pal_base);
 	msgLogContainer.setDefaultStyle(this->msgSenderStyle.getStyle2());
 	msgLogContainer.setSize(101, 100);
 	msgLogContainer.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);	
+	msgLogContainer.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+	msgLogContainer.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 
+
+	/*
+	 * Message sender box
+	 * */
 	msgContainer.generate(target, pal_base);
 	msgContainer.setDefaultStyle(this->msgSenderStyle.getStyle());
 	msgContainer.setSize(90, 25);
@@ -55,9 +97,19 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	textarea.create(msgContainer.getObject());
 	textarea.setDefaultStyle(this->msgSenderStyle.getStyle3());
 	textarea.setOneLine(false);
-	textarea.setSize(280, 50);
+	textarea.setSize(250, 50);
 	textarea.setAlignment(LV_ALIGN_BOTTOM_LEFT, -10, 10);
-	
+
+	button.create(msgContainer.getObject());
+	button.setDefaultStyle(this->msgSenderStyle.getStyle4());
+	button.setSize(10, 100);
+	button.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 10, 0);
+	button.setSimpleCallback(&this->sendMessage);
+
+	label.create(button.getObject());
+	label.center();
+	label.setText(LV_SYMBOL_RIGHT);
+
 	//PalcomLabel label;
 	//label.create(target);
         //label.setText("Home page");
@@ -95,6 +147,7 @@ void PalcomDebugScreen::generateObjects(void){
 
 	tileView.create(screen);
 	tileView.setDefaultStyle(this->tileStyle.getStyle());
+	tileView.setScrollMode(LV_SCROLLBAR_MODE_OFF);
 	
 	lv_obj_t *tile1 = tileView.newTile(1, 1, LV_DIR_TOP | LV_DIR_LEFT | LV_DIR_RIGHT);
 	this->buildHomepage(tile1);

@@ -3,19 +3,6 @@
 #define PALCOM_TA_CURSOR_LEFT 2
 #define PALCOM_TA_CURSOR_RIGHT 3
 
-/*static void textarea_drive_keyboard(PalcomEvent e){
-	PalcomEvent event(e);
-	lv_obj_t *obj = (lv_obj_t*)event.getTarget();
-	char *data = (char *)event.getUserData();
-
-	if(event.getCode() == LV_EVENT_INSERT){
-	
-	}else if(event.getCode() == LV_EVENT_FOCUSED){
-		keyboardFocusedObj = obj;
-	}else if(event.getCode() == LV_EVENT_DEFOCUSED){
-		keyboardFocusedObj == NULL;
-	}
-}*/
 class PalcomTextarea : public PalcomObject{
   	private:
   		lv_style_t style;
@@ -48,6 +35,7 @@ class PalcomTextarea : public PalcomObject{
     		void setAlignment(lv_align_t ref, int x, int y);
     		void setPasswordMode(bool val);
    		const char *getText(void);
+		size_t getTextSize(void);
 		void moveCursor(int direction);
 		void setValidChars(const char *s);
 };

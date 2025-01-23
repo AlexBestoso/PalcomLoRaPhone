@@ -23,6 +23,8 @@ bool Comms::pop(void){
 }
 
 bool Comms::sendMsg(void){
+	loraSnake.modeSend();
+
 	bool ret = false;
 	size_t msgSize = strlen((const char *)this->task.msg);
 	msgSize = msgSize > 256 ? 256 : msgSize;
@@ -32,14 +34,26 @@ bool Comms::sendMsg(void){
       		Serial.printf("Sent : [%d] \n", msgSize);
 		ret = true;
     	}
-	/*Serial.printf("Starting listener.\n");
-    	if(!loraSnake.listenStart()){
-		Serial.printf("not listening...\n");
-	}else{
-		Serial.printf("Listener enabled\n");
-	}*/
 	
+	loraSnake.modeRecv();
 
+    	if(!loraSnake.listenStart()){
+		Serial.printf("Failed to start listener.\n");
+	}
+
+	return ret;
+}
+bool Comms::recvMsg(void){
+	bool ret = false;
+	Serial.printf("Processing recv task.\n");
+	if(loraSnake.readRecv() == 1){
+		Serial.printf("Received %ld bytes : \n\t", loraSnake.lrsPacket.data_size);
+		for(int i=0; i<loraSnake.lrsPacket.data_size; i++)
+			Serial.printf("%c", loraSnake.lrsPacket.data[i]);
+		Serial.printf("\n");
+	}else{
+		Serial.printf("Receive Failed.\n");
+	}
 	return ret;
 }
 
@@ -61,7 +75,7 @@ bool Comms::runTask(void){
 			return this->sendMsg();
                 break;
 		case COMMS_INSTR_RECV:
-			return true;
+			return this->recvMsg();
 		break;
         }
         return false;

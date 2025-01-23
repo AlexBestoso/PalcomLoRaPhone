@@ -59,4 +59,7 @@ class LoRaSnake{
     bool send(uint8_t *d, size_t s);
     void sendStop(void);
 
+	void modeSend(void);
+	void modeRecv(void);
+
 };

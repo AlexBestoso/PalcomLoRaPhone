@@ -24,6 +24,7 @@
 #include <RadioLib.h>
 #include <lvgl.h>
 #include <string>
+#include <cstdint>
 
 #include "USB.h"
 
@@ -45,6 +46,9 @@ using namespace std;
 #include "./core/structs/structs.h"
 #include "./core/tools/PalcomFS.h"
 #include <src/error/error.h>
+
+#include <src/taskQueue/taskQueue.h>
+TaskQueue taskQueue;
 
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
@@ -78,8 +82,7 @@ LoRaSnake loraSnake;
 #include "./core/objects/objects.h"
 //#include "./core/screens/screens.h"
 
-#include <src/taskQueue/taskQueue.h>
-TaskQueue taskQueue;
+
 
 #include "./src/core/storage/storage.h"
 Storage storage;
@@ -358,7 +361,6 @@ void loop(){
 
       
       if(comms.fetchTask()){
-        Serial.printf("Halting and restarting SPI bus...\n");
         tft.deInitDMA();
         SPI.end();
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);

@@ -9,6 +9,7 @@ class Comms{
 
                 bool pop();
 		bool sendMsg(void);
+		bool recvMsg(void);	
 	
 		LoRaSnake *lsnake;
 

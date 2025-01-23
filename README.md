@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.0.88 Gamma</code>
+<code>version 1.0.89 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -16,4 +16,5 @@
 <li>added secret picture of my penis</li>
 <li>added gitignore</li>
 <li>Fixed bug that prevented TFT and RADIOLIB libraries from working togeather.</li>
+<li>Implemented simulated transiver mode for the lora chip. lora send/recv now wroks more reliably.</li>
 </ol>

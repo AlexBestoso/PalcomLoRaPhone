@@ -1,3 +1,4 @@
+#include <src/taskQueue/taskQueue.h>
 #include "./LoRaSnake.class.h"
 
 extern bool loraSnakeTransmit;
@@ -5,13 +6,15 @@ extern bool loraSnakeReceive;
 //extern SPIClass ssspi(HSPI);
 //extern SPISettings ssspiSettings(2000000, MSBFIRST, SPI_MODE0);
 extern SX1262 _radio;
+extern TaskQueue taskQueue;
+
 
 static void loraSnakeSetTxFlag(void){
-	Serial.printf("Running Lora TX Call back.\n");
   loraSnakeTransmit = true;
 }
 static void loraSnakeSetRxFlag(void){
   loraSnakeReceive = true;
+	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_COMMS, COMMS_INSTR_RECV));
 }
 
 // Private
@@ -57,7 +60,6 @@ bool LoRaSnake::init(void){
   err = _radio.begin(freq);
   if(err == RADIOLIB_ERR_NONE){
     _radio.setPacketReceivedAction(loraSnakeSetRxFlag);
-    _radio.setPacketSentAction(loraSnakeSetTxFlag);
 
 	//_radio.sleep(true)
     //_radio.standby();
@@ -75,11 +77,20 @@ bool LoRaSnake::init(void){
   return false;
 }
 
+void LoRaSnake::modeSend(void){
+    _radio.clearPacketReceivedAction();
+    _radio.setPacketSentAction(loraSnakeSetTxFlag);
+}
+void LoRaSnake::modeRecv(void){
+    _radio.clearPacketSentAction();
+    _radio.setPacketReceivedAction(loraSnakeSetRxFlag);
+}
+
 bool LoRaSnake::listenStart(void){
-	delay(1000);
   int s = _radio.startReceive();
-  delay(3000);
+  delay(300);
   if (s == RADIOLIB_ERR_NONE){
+	Serial.printf("Listening\n");
     running = true;
     loraSnakeReceive = false;
     return true;
@@ -126,7 +137,6 @@ void LoRaSnake::forceSendMode(void){
 }
 
 void LoRaSnake::sendStart(String v){
-
   txState = _radio.startTransmit(v.c_str());
 }
 

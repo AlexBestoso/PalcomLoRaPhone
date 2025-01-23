@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #define TASK_SPACE_COMMS 1
 #define TASK_SPACE_GRAPHICS 2
 #define TASK_SPACE_STORAGE 3

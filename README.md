@@ -21,6 +21,7 @@
 </ol>
 
 <h3>TODO:</h3>
+<hr/>
 <ul>
 <li>Create a wrapper class for the SD object</li>
 <li>Implement the message storage process</li>

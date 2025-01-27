@@ -1,13 +1,13 @@
 #include <Arduino.h>
 #include <cstdint>
 #include <lvgl.h>
-#include "../../taskQueue/taskQueue.h"
-#include "../../PalcomStyle/PalcomStyle.h"
-#include "../../PalcomStyle/styles/styles.h"
-#include "../../PalcomObject/PalcomObject.h"
-#include "../../PalcomScreen/PalcomScreen.h"
-#include "../../PalcomScreen/setMsgMode/setMsgMode.h"
-#include "../../PalcomScreen/DebugScreen/DebugScreen.h"
+#include <src/taskQueue/taskQueue.h>
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+#include <src/PalcomObject/PalcomObject.h>
+#include <src/PalcomScreen/PalcomScreen.h>
+#include <src/PalcomScreen/setMsgMode/setMsgMode.h>
+#include <src/PalcomScreen/DebugScreen/DebugScreen.h>
 #include "./graphics.h"
 
 extern TaskQueue taskQueue;

@@ -12,6 +12,7 @@
 extern TaskQueue taskQueue;
 extern LoRaSnake loraSnake;
 extern int palcome_message_mode;
+extern SemaphoreHandle_t xSemaphore;
 
 //Private
 bool Comms::pop(void){
@@ -23,6 +24,12 @@ bool Comms::pop(void){
 }
 
 bool Comms::sendMsg(void){
+	if(xSemaphore == NULL){
+       		Serial.printf("Comms::sendMsg - Semaphore is null\n");
+        	return false;
+        }else if(xSemaphoreTake(xSemaphore, portMAX_DELAY) != pdTRUE){
+		return false;
+	}
 	loraSnake.modeSend();
 
 	bool ret = false;
@@ -40,20 +47,35 @@ bool Comms::sendMsg(void){
     	if(!loraSnake.listenStart()){
 		Serial.printf("Failed to start listener.\n");
 	}
-
+	xSemaphoreGive( xSemaphore );
 	return ret;
 }
 bool Comms::recvMsg(void){
+	if(xSemaphore == NULL){
+                Serial.printf("Comms::sendMsg - Semaphore is null\n");
+                return false;
+        }else if(xSemaphoreTake(xSemaphore, portMAX_DELAY) != pdTRUE){
+                return false;
+        }
 	bool ret = false;
 	Serial.printf("Processing recv task.\n");
 	if(loraSnake.readRecv() == 1){
-		Serial.printf("Received %ld bytes : \n\t", loraSnake.lrsPacket.data_size);
-		for(int i=0; i<loraSnake.lrsPacket.data_size; i++)
-			Serial.printf("%c", loraSnake.lrsPacket.data[i]);
-		Serial.printf("\n");
-	}else{
-		Serial.printf("Receive Failed.\n");
+		struct task_queue_task tmp;
+		tmp.to = TASK_SPACE_STORAGE;
+		tmp.from = TASK_SPACE_COMMS;
+		tmp.active = true;
+		tmp.instruction = COMMS_INSTR_PUSH_MSG;
+		memset(tmp.msg, '\0', 256);
+		for(int i=0; i<loraSnake.lrsPacket.data_size && i < 256; i++)
+			tmp.msg[i] = loraSnake.lrsPacket.data[i];
+		
+		Serial.printf("Pushing storage task...\n");
+		taskQueue.push(tmp);
+		Serial.printf("Message storage queued. - ");		
+
+		Serial.printf("%ld bytes : \n\t", loraSnake.lrsPacket.data_size);
 	}
+	xSemaphoreGive( xSemaphore );
 	return ret;
 }
 

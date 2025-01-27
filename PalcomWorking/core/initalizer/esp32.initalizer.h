@@ -388,6 +388,8 @@ class ESP32Initalizer{
 
 		bool setupSD(){
 			while(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) != pdTRUE){delay(100);}
+			tft.deInitDMA();
+			SPI.end();
 			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
 			delay(2000);
                         if(SD.begin(BOARD_SDCARD_CS)){
@@ -398,6 +400,9 @@ class ESP32Initalizer{
                                 uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
 
                                 if(cardType == CARD_NONE){
+					SPI.end();
+					SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+					tft.initDMA();
                                         Serial.println("No SD_MMC card attached");
                                         return false;
                                 }else{
@@ -414,12 +419,18 @@ class ESP32Initalizer{
                                         Serial.printf("SD Card Size: %lu MB\n", cardSize);
                                         Serial.printf("Total space: %lu MB\n",  cardTotal);
                                         Serial.printf("Used space: %lu MB\n",   cardUsed);
+					SPI.end();
+					SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+					tft.initDMA();
                                         return true;
                                 }
                         }else{
 				Serial.printf("Failed to start SD card.\n");
 			}
 			xSemaphoreGive(xSemaphore);
+			SPI.end();
+			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+			tft.initDMA();
                         return false;
                 }
 

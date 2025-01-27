@@ -6,11 +6,13 @@ class Storage{
 		int spaceType;
 
 		bool pop();
-	public:
-	Storage();
-	~Storage();
+		bool storeMessage(void);
 
-	void initalize(void);
-	bool fetchTask(void);
-	bool runTask(void);
+		File _fd; // This variable should be swapped with a pointer to an initalized file management class.
+	public:
+		Storage();
+		~Storage();
+
+		bool fetchTask(void);
+		bool runTask(void);
 };

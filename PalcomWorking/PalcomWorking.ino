@@ -206,6 +206,8 @@ void setup(void){
 
     initer.lvglInit();
 
+    initer.setupSD();
+
     taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 
    /* if(xSemaphore == NULL || xSemaphore == nullptr)
@@ -371,9 +373,19 @@ void loop(){
         SPI.end();
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
         tft.initDMA();
-        
-        //Serial.printf("Starting up TFT again...\n");
-        //tft.begin();
+      }
+
+      if(storage.fetchTask()){
+        tft.deInitDMA();
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
+        Serial.printf("Running Storage Task\n");
+        storage.runTask();
+
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+        tft.initDMA();
       }
    /* if(comms.fetchTask()){
       comms.runTask();

@@ -13,6 +13,7 @@
 
 #define COMMS_INSTR_SEND 11
 #define COMMS_INSTR_RECV 12
+#define COMMS_INSTR_PUSH_MSG 13
 
 struct task_queue_task{
 	bool active=false;

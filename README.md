@@ -25,8 +25,7 @@
 <li>Create a wrapper class for the SD object</li>
 <li>Implement the message storage process</li>
 <li>Design logic for when there is and is not a SD card</li>
-<li>Rafactor code to use proper #include syntax<li>
-<li>Move graphics, comms, and storage task handlers into concurrent callbacks<li>
+<li>Rafactor code to use proper #include syntax</li>
+<li>Move graphics, comms, and storage task handlers into concurrent callbacks</li>
 <li>Implement node mode, usb mode, and the rest of the GUI screens.</li>
-<li></li>
 </ul>

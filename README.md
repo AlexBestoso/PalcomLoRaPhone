@@ -6,7 +6,7 @@
 <ol>
 <li>Major changes to entire system archetecture</li>
 <li>Phone currently can only send messages using the serial interface</li>
-<li>Uses updated RadioLib library; implemented as the LoRaSnake class, library refinement<li>
+<li>Uses updated RadioLib library; implemented as the LoRaSnake class, library refinement</li>
 <li>Device initaliziation successfully implemented.</li>
 <li>SPI Bugs fixed. Core slave devices seperated by CPU Core</li>
 <li>ROS Tasks implemented</li>

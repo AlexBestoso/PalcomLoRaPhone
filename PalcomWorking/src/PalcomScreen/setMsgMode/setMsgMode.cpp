@@ -2,12 +2,14 @@
 #include <lvgl.h>
 #include <cstdint>
 
-#include "../../PalcomObject/PalcomObject.h"
-#include "../../PalcomObject/Label/Label.h"
-#include "../../PalcomObject/Button/Button.h"
-#include "../../PalcomStyle/PalcomStyle.h"
-#include "../../PalcomScreen/PalcomScreen.h"
-#include "../../taskQueue/taskQueue.h"
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+
+#include <src/PalcomObject/PalcomObject.h>
+#include <src/PalcomObject/Label/Label.h>
+#include <src/PalcomObject/Button/Button.h>
+#include <src/PalcomScreen/PalcomScreen.h>
+#include <src/taskQueue/taskQueue.h>
 
 extern int PalcomScreenError;
 extern int palcome_message_mode;

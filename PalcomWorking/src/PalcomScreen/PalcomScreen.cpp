@@ -2,8 +2,12 @@
 #include <Arduino.h>
 #include <cstdint>
 
-#include "../error/error.h"
-#include "../PalcomObject/PalcomObject.h"
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+
+#include <src/error/error.h>
+#include <src/PalcomObject/PalcomObject.h>
+
 #if !defined GLOBAL_GUI_OBJECT_COUNT
 	#define GLOBAL_GUI_OBJECT_COUNT 1
 #endif

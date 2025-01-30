@@ -3,18 +3,22 @@
 #include <cstdint>
 
 #include <src/error/error.h>
+
 #include <src/PalcomEvent/PalcomEvent.h>
-#include "../../PalcomStyle/PalcomStyle.h"
-#include "../../PalcomStyle/styles/styles.h"
-#include "../../PalcomObject/PalcomObject.h"
-#include "../../PalcomObject/Label/Label.h"
+
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+
+#include <src/PalcomObject/PalcomObject.h>
+#include <src/PalcomObject/Label/Label.h>
 #include <src/PalcomObject/Button/Button.h>
 #include <src/PalcomObject/Textarea/Textarea.h>
-#include "../../PalcomObject/Tileview/Tileview.h"
-#include "../../PalcomObject/Image/Image.h"
+#include <src/PalcomObject/Tileview/Tileview.h>
+#include <src/PalcomObject/Image/Image.h>
+#include <src/PalcomObject/Line/Line.h>
 
-#include "../../PalcomScreen/PalcomScreen.h"
-#include "../../taskQueue/taskQueue.h"
+#include <src/PalcomScreen/PalcomScreen.h>
+#include <src/taskQueue/taskQueue.h>
 
 #define USER_BUF_SIZE 256
 
@@ -57,6 +61,23 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 	}
 }
 
+void PalcomDebugScreen::toggleMeshMode(lv_event_t *e){
+	PalcomEvent event(e);
+	if(event.getCode() == LV_EVENT_VALUE_CHANGED)
+		palcome_message_mode = 0;
+}
+
+void PalcomDebugScreen::toggleNodeMode(lv_event_t *e){
+	PalcomEvent event(e);
+	if(event.getCode() == LV_EVENT_VALUE_CHANGED)
+		palcome_message_mode = 1;
+}
+
+void PalcomDebugScreen::toggleUsbMode(lv_event_t *e){
+	PalcomEvent event(e);
+	if(event.getCode() == LV_EVENT_VALUE_CHANGED)
+		palcome_message_mode = 2;
+}
 PalcomDebugScreen::PalcomDebugScreen(void){
 	this->buttonStyle.initStyle();
 	PalcomScreenError = 0;
@@ -64,6 +85,74 @@ PalcomDebugScreen::PalcomDebugScreen(void){
 
 PalcomDebugScreen::~PalcomDebugScreen(){
 
+}
+
+void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
+	PalcomObject background;
+
+	background.generate(target, pal_base);
+        background.setDefaultStyle(this->msgSenderStyle.getStyle2());
+        background.setSize(100, 100);
+        background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
+        background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
+	meshButton.create(background.getObject());
+        //meshButton.setDefaultStyle(this->msgSenderStyle.getStyle4());
+        meshButton.setSize(25, 25);
+        meshButton.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 10, 0);
+	meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+        meshButton.setSimpleCallback(&this->toggleMeshMode);
+	if(palcome_message_mode == 0)
+		meshButton.addState(LV_STATE_CHECKED);
+	else
+		meshButton.removeState(LV_STATE_CHECKED);
+
+	nodeButton.create(background.getObject());
+        nodeButton.setSize(25, 25);
+	nodeButton.setAlignment(LV_ALIGN_BOTTOM_LEFT, 10, 0);
+	nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+        nodeButton.setSimpleCallback(&this->toggleNodeMode);
+	if(palcome_message_mode == 1)
+		nodeButton.addState(LV_STATE_CHECKED);
+	else
+		nodeButton.removeState(LV_STATE_CHECKED);
+	
+	usbButton.create(background.getObject());
+        usbButton.setSize(25, 25);
+	usbButton.setAlignment(LV_ALIGN_TOP_LEFT, 10, 0);
+	usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+        usbButton.setSimpleCallback(&this->toggleUsbMode);
+	if(palcome_message_mode == 2)
+		usbButton.addState(LV_STATE_CHECKED);
+	else
+		usbButton.removeState(LV_STATE_CHECKED);
+
+	static lv_style_t style_line;
+    lv_style_init(&style_line);
+    lv_style_set_line_width(&style_line, 8);
+    lv_style_set_line_color(&style_line, lv_palette_main(LV_PALETTE_BLUE));
+    lv_style_set_line_rounded(&style_line, true);
+
+	PalcomLine line;
+	line.create(target);
+	static lv_point_precise_t triVertex[] = { {0, 0}, {20, 20}};
+/*
+	{
+		{0, 20},
+		{20, 0},
+		{20, 20}
+	};*/
+	line.vertexPush(triVertex, 2);
+	line.setDefaultStyle(&style_line);
+	line.setFlag(LV_OBJ_FLAG_CHECKABLE);
+	line.addState(LV_STATE_CHECKED);
+	line.center();
+	
+	/*PalcomLabel label;
+	label.create(target);
+        label.setText("Select a nigger");
+        label.center();*/
 }
 
 void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
@@ -78,7 +167,7 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	 * */
 	msgLogContainer.generate(target, pal_base);
 	msgLogContainer.setDefaultStyle(this->msgSenderStyle.getStyle2());
-	msgLogContainer.setSize(101, 100);
+	msgLogContainer.setSize(100, 100);
 	msgLogContainer.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);	
 	msgLogContainer.setScrollMode(LV_SCROLLBAR_MODE_OFF);
 	msgLogContainer.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
@@ -109,13 +198,6 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	label.create(button.getObject());
 	label.center();
 	label.setText(LV_SYMBOL_RIGHT);
-
-	//PalcomLabel label;
-	//label.create(target);
-        //label.setText("Home page");
-        //label.center();
-	// Create background image
-	// 
 }
 
 void PalcomDebugScreen::reset(void){
@@ -125,15 +207,6 @@ void PalcomDebugScreen::reset(void){
 	this->clearScreenError();
 }
 
-/*
- TODO: 	1) Create classes for controlling each of the specific screens.
- 	2) Starting with message viewm, create the following:
-		- logic to control which medium send messages use
-		- Logic for controlling which folder to store respective received messages
-		- generate default encryption keys for each mode of messaging
-		- diffientiate between received messages and sent messages.
-		- Message pagination for when there's large amounts of data.
-*/
 void PalcomDebugScreen::generateObjects(void){
 	lv_obj_t *screen = this->genScreen();
 	this->setFullScreen();
@@ -153,9 +226,7 @@ void PalcomDebugScreen::generateObjects(void){
 	this->buildHomepage(tile1);
 
 	lv_obj_t *tile2 = tileView.newTile(1, 0, LV_DIR_BOTTOM);
-	label.create(tile2);
-    	label.setText("Mode Select");
-    	label.center();
+	this->buildModeSelect(tile2);
 
 	lv_obj_t *tile3 = tileView.newTile(0, 1, LV_DIR_RIGHT);
 	label.create(tile3);
@@ -168,10 +239,27 @@ void PalcomDebugScreen::generateObjects(void){
     	label.center();
 
 	tileView.setTile(1, 1, false);
+
+	this->currentMode = palcome_message_mode;
 }
 
 int PalcomDebugScreen::run(void){
 	this->buildCheck();
 	this->execute();
+	if(this->currentMode != palcome_message_mode){
+		this->currentMode = palcome_message_mode;
+		if(this->currentMode == 0){
+			nodeButton.removeState(LV_STATE_CHECKED);
+			usbButton.removeState(LV_STATE_CHECKED);
+		}else if(this->currentMode == 1){
+	                meshButton.removeState(LV_STATE_CHECKED);
+			usbButton.removeState(LV_STATE_CHECKED);
+		}else if(this->currentMode == 2){
+	                meshButton.removeState(LV_STATE_CHECKED);
+			nodeButton.removeState(LV_STATE_CHECKED);
+		}
+
+		
+	}
 	return 0;
 }

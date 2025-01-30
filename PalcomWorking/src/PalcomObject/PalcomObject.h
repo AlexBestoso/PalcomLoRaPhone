@@ -2,14 +2,18 @@
 
 #define GLOBAL_GUI_OBJECT_COUNT 1
 
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch, pal_tileview, pal_image};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch, pal_tileview, pal_image, pal_line};
 
-class PalcomObject{
+class PalcomObject : public PalcomStyle{
 	private:
 		lv_obj_t *object = NULL;
 		int id = -1;
 	public:
 		PalcomColors colors;
+
+		PalcomObject(void);
+		PalcomObject(bool useBaseStyle);
+		PalcomObject(lv_style_t baseStyle);
 
 		lv_obj_t *getObject(void);
 

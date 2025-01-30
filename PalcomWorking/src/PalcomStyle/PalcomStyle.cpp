@@ -6,6 +6,19 @@
 /*
 * You must call this function before running any other functions.
 * */
+PalcomStyle::PalcomStyle(void){
+
+}
+PalcomStyle::PalcomStyle(bool useBaseStyle){
+	if(useBaseStyle)
+		this->setStyle(&this->baseStyle);
+}
+PalcomStyle::PalcomStyle(lv_style_t baseStyle){
+	this->baseStyle = baseStyle;
+	this->setStyle(&this->baseStyle);
+}
+
+
 void PalcomStyle::setStyle(lv_style_t *s){
 	this->targetStyle = s;
 }

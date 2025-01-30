@@ -34,7 +34,7 @@ bool Storage::fetchTask(void){
 bool Storage::runTask(void){
 	switch(this->task.instruction){
 		case COMMS_INSTR_PUSH_MSG:
-			return this->storeMessage;
+			return this->storeMessage();
 	}
 	return false;
 }

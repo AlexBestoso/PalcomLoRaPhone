@@ -3,11 +3,23 @@
 #include <cstdint>
 
 
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
 #include "./PalcomObject.h"
 extern lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT];
 // Private
 // Public
 		
+PalcomObject::PalcomObject(void) : PalcomStyle(){
+
+}
+PalcomObject::PalcomObject(bool useBaseStyle) : PalcomStyle(useBaseStyle){
+
+}
+PalcomObject::PalcomObject(lv_style_t baseStyle) : PalcomStyle(baseStyle){
+
+}
+
 lv_obj_t* PalcomObject::getObject(void){
 	return this->object;
 }
@@ -111,10 +123,15 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 		case pal_tileview:
 			this->object = lv_tileview_create(parent);
 			break;
+		case pal_line:
+			this->object = lv_line_create(parent);
+			break;
 	}
 }
 
-		
+/*
+ * Depreciated Concept
+ * */	
 void PalcomObject::generateGlobal(lv_obj_t *parent, uint id, PalcomObjectType objtype){
                         
 	if(id >= GLOBAL_GUI_OBJECT_COUNT){

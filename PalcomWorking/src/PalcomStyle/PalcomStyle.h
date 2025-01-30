@@ -1,6 +1,7 @@
 class PalcomStyle{
 	private:
 		lv_style_t *targetStyle = NULL;
+		lv_style_t baseStyle;
 		lv_color_filter_dsc_t *targetColorFilter = NULL;
 									  /*dsc         color     opa */
 		lv_color_t (*colorFilterHandler)(const lv_color_filter_dsc_t *, lv_color_t, lv_opa_t);
@@ -8,6 +9,11 @@ class PalcomStyle{
 		/*
 		 * You must call this function before running any other functions.
 		 * */
+		PalcomStyle(void);
+		PalcomStyle(bool useBaseStyle);
+		PalcomStyle(lv_style_t baseStyle);
+	
+		
 		void setStyle(lv_style_t *s);
 		lv_style_t *getStyle(void);
 

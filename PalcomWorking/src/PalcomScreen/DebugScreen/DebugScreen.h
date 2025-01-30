@@ -10,6 +10,10 @@ class PalcomDebugScreen : public PalcomScreen{
 		DebugScreenButtonStyle buttonStyle;
 		TileStyle tileStyle;
 		MsgSenderStyle msgSenderStyle;
+		
+		PalcomButton meshButton;
+		PalcomButton nodeButton;
+		PalcomButton usbButton;
 
 		static void toggleMeshMode(lv_event_t *e);
 		static void toggleNodeMode(lv_event_t *e);
@@ -17,8 +21,10 @@ class PalcomDebugScreen : public PalcomScreen{
 		static void sendMessage(lv_event_t *e);
 
 		void buildHomepage(lv_obj_t *target);
+		void buildModeSelect(lv_obj_t *target);
 
 		bool debugBool = false;
+		int currentMode = 0;
         public:
                 PalcomDebugScreen(void);
 

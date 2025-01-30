@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <cstdint>
-#include "../error/error.h"
+#include <src/error/error.h>
 #include "./taskQueue.h"
 
 extern SemaphoreHandle_t queueSemaphore = NULL;

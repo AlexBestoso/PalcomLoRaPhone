@@ -2,6 +2,9 @@
 #include <lvgl.h>
 #include <cstdint>
 
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+
 #include <src/PalcomEvent/PalcomEvent.h>
 #include <src/PalcomObject/PalcomObject.h>
 

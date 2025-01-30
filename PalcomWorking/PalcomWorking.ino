@@ -73,6 +73,7 @@ LoRaSnake loraSnake;
 #include <src/PalcomObject/Button/Button.h>
 #include <src/PalcomObject/Image/Image.h>
 #include <src/PalcomObject/Textarea/Textarea.h>
+#include <src/PalcomObject/Line/Line.h>
 
 #include "./core/initalizer/initalizer.h"
 
@@ -189,16 +190,22 @@ bool coreThree = false;
 String loraListenRes = "";
 void setup(void){
   Serial.begin(115200);
-
   delay(2000);
   Serial.printf("[Palcoms L1.0] \n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
+
     initer.pinInit();
-    
-    initer.setupRadio();
     initer.lcdInit();
+
+    tft.deInitDMA();
+    SPI.end();
+    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+      initer.setupRadio();
+    SPI.end();
+    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    tft.initDMA();
 
     initer.aceButtonInit();
     initer.touchscreenInit();

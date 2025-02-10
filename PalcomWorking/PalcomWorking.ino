@@ -74,6 +74,7 @@ LoRaSnake loraSnake;
 #include <src/PalcomObject/Image/Image.h>
 #include <src/PalcomObject/Textarea/Textarea.h>
 #include <src/PalcomObject/Line/Line.h>
+#include <src/PalcomObject/Triangle/Triangle.h>
 
 #include "./core/initalizer/initalizer.h"
 

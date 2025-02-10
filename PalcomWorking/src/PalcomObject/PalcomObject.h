@@ -2,7 +2,7 @@
 
 #define GLOBAL_GUI_OBJECT_COUNT 1
 
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch, pal_tileview, pal_image, pal_line};
+enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch, pal_tileview, pal_image, pal_line, pal_triangle};
 
 class PalcomObject : public PalcomStyle{
 	private:
@@ -13,7 +13,7 @@ class PalcomObject : public PalcomStyle{
 
 		PalcomObject(void);
 		PalcomObject(bool useBaseStyle);
-		PalcomObject(lv_style_t baseStyle);
+		PalcomObject(lv_style_t *baseStyle);
 
 		lv_obj_t *getObject(void);
 
@@ -63,6 +63,8 @@ class PalcomObject : public PalcomStyle{
 		void fullScreen(void);
 
 		void execute();
+
+		void setDrawMainEndCallback(void(*func)(lv_event_t*), void*input);
 
 		void setSimpleCallback(void(*func)(lv_event_t*));
 		void setParamCallback(void(*func)(lv_event_t *), void *input, lv_event_code_t event);

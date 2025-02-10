@@ -126,7 +126,7 @@
 		}
 
 		void *PalcomEvent::getUserData(void){
-			return this->getUserData(NULL);
+			return this->getUserData(targetEvent);
                 }
 
 		void PalcomEvent::stopBubbling(lv_event_t *src){

@@ -10,12 +10,13 @@ PalcomStyle::PalcomStyle(void){
 
 }
 PalcomStyle::PalcomStyle(bool useBaseStyle){
-	if(useBaseStyle)
+	if(useBaseStyle){
+		Serial.printf("Setting Style to base Style...\n");
 		this->setStyle(&this->baseStyle);
+	}
 }
-PalcomStyle::PalcomStyle(lv_style_t baseStyle){
-	this->baseStyle = baseStyle;
-	this->setStyle(&this->baseStyle);
+PalcomStyle::PalcomStyle(lv_style_t *baseStyle){
+	this->setStyle(baseStyle);
 }
 
 

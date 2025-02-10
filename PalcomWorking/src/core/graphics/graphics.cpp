@@ -9,6 +9,7 @@
 #include <src/PalcomObject/PalcomObject.h>
 #include <src/PalcomObject/Label/Label.h>
 #include <src/PalcomObject/Button/Button.h>
+#include <src/PalcomObject/Triangle/Triangle.h>
 
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/PalcomScreen/setMsgMode/setMsgMode.h>

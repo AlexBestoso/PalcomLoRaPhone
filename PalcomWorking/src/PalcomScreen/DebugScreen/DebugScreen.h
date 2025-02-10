@@ -14,6 +14,8 @@ class PalcomDebugScreen : public PalcomScreen{
 		PalcomButton meshButton;
 		PalcomButton nodeButton;
 		PalcomButton usbButton;
+		
+		PalcomTriangle triangle;
 
 		static void toggleMeshMode(lv_event_t *e);
 		static void toggleNodeMode(lv_event_t *e);

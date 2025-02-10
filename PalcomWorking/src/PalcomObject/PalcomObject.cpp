@@ -14,10 +14,11 @@ PalcomObject::PalcomObject(void) : PalcomStyle(){
 
 }
 PalcomObject::PalcomObject(bool useBaseStyle) : PalcomStyle(useBaseStyle){
+	this->init();
 
 }
-PalcomObject::PalcomObject(lv_style_t baseStyle) : PalcomStyle(baseStyle){
-
+PalcomObject::PalcomObject(lv_style_t *baseStyle) : PalcomStyle(baseStyle){
+	this->init();
 }
 
 lv_obj_t* PalcomObject::getObject(void){
@@ -126,6 +127,9 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 		case pal_line:
 			this->object = lv_line_create(parent);
 			break;
+		case pal_triangle:
+			this->object = lv_obj_create(parent);
+			break;
 	}
 }
 
@@ -181,6 +185,10 @@ void PalcomObject::setAnyStyle(lv_style_t *s, lv_style_selector_t sel){
 
 
 void PalcomObject::setDefaultStyle(lv_style_t *s){
+	if(s == NULL){
+		Serial.printf("NULL STYLE DETECTED\n");
+		return;
+	}
 	lv_obj_add_style(this->object, s, LV_STATE_DEFAULT);
 }
 
@@ -293,6 +301,34 @@ void PalcomObject::fullScreen(void){
 
 void PalcomObject::execute(){
 	lv_timer_handler();
+}
+
+
+/*
+ * dtaw events:
+ 
+
+    LV_EVENT_COVER_CHECK: Check if Widget fully covers an area. The event parameter is lv_cover_check_info_t *.
+
+    LV_EVENT_REFR_EXT_DRAW_SIZE: Get the required extra draw area around Widget (e.g. for shadow). The event parameter is int32_t * to store the size.
+
+    LV_EVENT_DRAW_MAIN_BEGIN: Starting the main drawing phase
+
+    LV_EVENT_DRAW_MAIN: Perform the main drawing
+
+    LV_EVENT_DRAW_MAIN_END: Finishing the main drawing phase
+
+    LV_EVENT_DRAW_POST_BEGIN: Starting the post draw phase (when all children are drawn)
+
+    LV_EVENT_DRAW_POST: Perform the post draw phase (when all children are drawn)
+
+    LV_EVENT_DRAW_POST_END: Finishing the post draw phase (when all children are drawn)
+
+    LV_EVENT_DRAW_TASK_ADDED: Adding a draw task
+
+*/
+void PalcomObject::setDrawMainEndCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_MAIN_END, input);
 }
 
 void PalcomObject::setSimpleCallback(void(*func)(lv_event_t*)){

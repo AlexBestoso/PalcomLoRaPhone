@@ -16,6 +16,7 @@
 #include <src/PalcomObject/Tileview/Tileview.h>
 #include <src/PalcomObject/Image/Image.h>
 #include <src/PalcomObject/Line/Line.h>
+#include <src/PalcomObject/Triangle/Triangle.h>
 
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/taskQueue/taskQueue.h>
@@ -128,26 +129,69 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
 	else
 		usbButton.removeState(LV_STATE_CHECKED);
 
-	static lv_style_t style_line;
-    lv_style_init(&style_line);
-    lv_style_set_line_width(&style_line, 8);
-    lv_style_set_line_color(&style_line, lv_palette_main(LV_PALETTE_BLUE));
-    lv_style_set_line_rounded(&style_line, true);
 
-	PalcomLine line;
-	line.create(target);
-	static lv_point_precise_t triVertex[] = { {0, 0}, {20, 20}};
-/*
-	{
-		{0, 20},
-		{20, 0},
-		{20, 20}
-	};*/
-	line.vertexPush(triVertex, 2);
-	line.setDefaultStyle(&style_line);
-	line.setFlag(LV_OBJ_FLAG_CHECKABLE);
-	line.addState(LV_STATE_CHECKED);
-	line.center();
+
+	int screenW = 320;
+	int screenH = 240;
+	lv_value_precise_t pointB[2] = {screenW, 0};
+	lv_value_precise_t pointC[2] = {screenW/2, screenH/2};
+	lv_value_precise_t pointA[2] = {0, 0}; // <-- intentionaly ordered
+	
+	// The order of subation or addition is determined by quadrent (screen reletivity).
+	lv_value_precise_t mid [2] = {
+		((pointB[0] - pointA[0]) / 2),
+		((pointB[1] - pointA[1]) / 2)
+	};
+
+	int alignX = 40;
+	int alignY = 30;
+
+	int m = (pointC[0] - mid[0]) / (pointC[1] - mid[1]);
+	//int width = pointC[1]; // circumference.
+	int width = (4 * 10) - 1; // circumference.
+	int light = width / 2;
+
+	// A is in Quad A
+	static lv_point_precise_t lineA2f[] = { 
+		//{pointA[0]+light, pointA[1]},
+		//{pointB[0]-light, pointB[1]},
+		{pointA[0], pointA[1]},
+		{pointB[0], pointB[1]},
+	};
+	static lv_point_precise_t lineB2f[] = { 
+		//{pointB[0]-(light/2)-2, pointB[1]-light/2},
+		//{pointC[0]-(light/2)-2, pointC[1]-light/2}, 
+		{pointB[0], pointB[1]},
+		{pointC[0], pointC[1]}, 
+	};
+	static lv_point_precise_t lineC2f[] = { 
+		//{pointC[0]+(light/2)+2, pointC[1]-light/2}, 
+		//{pointA[0]+(light/2)+2, pointA[1]-light/2},
+		{pointC[0], pointC[1]}, 
+		{pointA[0], pointA[1]},
+	};
+
+	
+
+	
+	triangle.tPoints.a[0] = 10;
+	triangle.tPoints.a[1] = 100;
+	triangle.tPoints.b[0] = 10;
+	triangle.tPoints.b[1] = 10;
+	triangle.tPoints.c[0] = 50;
+	triangle.tPoints.c[1] = 50;
+
+	triangle.create(target);
+	triangle.setPoints();
+	triangle.center();
+
+	//lv_obj_t * my_obj = lv_obj_create(lv_screen_active());
+    //lv_obj_center(my_obj);
+    //lv_obj_add_event_cb(my_obj, my_obj_draw_end_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+
+
+	//line.center();
+
 	
 	/*PalcomLabel label;
 	label.create(target);

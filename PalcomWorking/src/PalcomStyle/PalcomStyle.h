@@ -11,7 +11,7 @@ class PalcomStyle{
 		 * */
 		PalcomStyle(void);
 		PalcomStyle(bool useBaseStyle);
-		PalcomStyle(lv_style_t baseStyle);
+		PalcomStyle(lv_style_t *baseStyle);
 	
 		
 		void setStyle(lv_style_t *s);
@@ -101,4 +101,8 @@ class PalcomStyle{
 		void setPaddingGap(int p);
 		void setTranslateY(int y);
 		void setTransition(lv_style_transition_dsc_t *t);
+	
+		/*
+		 * Line Styles
+		 * */
 };

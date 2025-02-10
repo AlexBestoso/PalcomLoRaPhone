@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.0.92 Gamma</code>
+<code>version 1.0.93 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -20,6 +20,7 @@
 <li>Created first usage of the SD storage tasks.</li>
 <li>Extended the PalcomObject class to use the PalcomStyle class. Makes styleing less complex.</li>
 <li>Added PalcomLine Widged.</li>
+<li>Added class for drawing triangles</li>
 </ol>
 
 <h3>TODO:</h3>

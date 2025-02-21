@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <lvgl.h>
 #include <cstdint>
+#include <defines.h>
+
 
 #include <src/error/error.h>
 
@@ -97,21 +99,89 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
         background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
         background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	
+	PalcomLabel title;
 
+        int bWidth = 45;
+        int bHeight = 45;
+
+        meshButton.create(background.getObject());
+        title.create(meshButton.getObject());
+        title.setText("Mesh Mode");
+        title.center();
+        meshButton.setLabel(title);
+        meshButton.setDefaultStyle(this->buttonStyle.getStyle());
+        meshButton.setPressedStyle(this->buttonStyle.getPressedStyle());
+        meshButton.setSize(bWidth, bHeight);
+        meshButton.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0);
+        meshButton.setSimpleCallback(&this->toggleMeshMode);
+	if(palcome_message_mode == 0){
+                meshButton.addState(LV_STATE_CHECKED);
+		meshButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+        }else{
+                meshButton.removeState(LV_STATE_CHECKED);
+		meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+	}
+
+        nodeButton.create(background.getObject());
+        title.create(nodeButton.getObject());
+        title.setText("Node Mode");
+        title.center();
+        nodeButton.setLabel(title);
+        nodeButton.setDefaultStyle(this->buttonStyle.getStyle());
+        nodeButton.setPressedStyle(this->buttonStyle.getPressedStyle());
+        nodeButton.setSize(bWidth, bHeight);
+        nodeButton.setAlignment(LV_ALIGN_BOTTOM_MID, 0, 0);
+        nodeButton.setSimpleCallback(&this->toggleNodeMode);
+	if(palcome_message_mode == 1){
+                nodeButton.addState(LV_STATE_CHECKED);
+		nodeButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+        }else{
+                nodeButton.removeState(LV_STATE_CHECKED);
+		nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+	}
+
+        usbButton.create(background.getObject());
+        title.create(usbButton.getObject());
+        title.setText("USB Mode");
+        title.center();
+        usbButton.setLabel(title);
+        usbButton.setDefaultStyle(this->buttonStyle.getStyle());
+        usbButton.setPressedStyle(this->buttonStyle.getPressedStyle());
+        usbButton.setSize(bWidth, bHeight);
+        usbButton.setAlignment(LV_ALIGN_TOP_RIGHT, 0, 0);
+        usbButton.setSimpleCallback(&this->toggleUsbMode);
+	if(palcome_message_mode == 2){
+                usbButton.addState(LV_STATE_CHECKED);
+		usbButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+        }else{
+                usbButton.removeState(LV_STATE_CHECKED);
+		usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+	}
+	/*int offsetX = 0;
+	int offsetY = 0;
 	meshButton.create(background.getObject());
         //meshButton.setDefaultStyle(this->msgSenderStyle.getStyle4());
-        meshButton.setSize(25, 25);
-        meshButton.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 10, 0);
+        
+	meshButton.setSizeRaw(SCREEN_HOR, SCREEN_VIR);
+	meshButton.setAlignment(LV_ALIGN_CENTER, 0, 0);
+	meshButton.setStyleRotation(0);	
+
 	meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
         meshButton.setSimpleCallback(&this->toggleMeshMode);
+
 	if(palcome_message_mode == 0)
 		meshButton.addState(LV_STATE_CHECKED);
 	else
 		meshButton.removeState(LV_STATE_CHECKED);
 
+	int nodeAdjust = 0;
 	nodeButton.create(background.getObject());
-        nodeButton.setSize(25, 25);
-	nodeButton.setAlignment(LV_ALIGN_BOTTOM_LEFT, 10, 0);
+        
+	nodeButton.setSize(RATIO_X*24, RATIO_Y*24);
+	//nodeButton.setStyleRotation(450);
+	nodeButton.setAlignment(LV_ALIGN_CENTER, RATIO_X*0, RATIO_Y*0);
+	
 	nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
         nodeButton.setSimpleCallback(&this->toggleNodeMode);
 	if(palcome_message_mode == 1)
@@ -120,8 +190,11 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
 		nodeButton.removeState(LV_STATE_CHECKED);
 	
 	usbButton.create(background.getObject());
-        usbButton.setSize(25, 25);
-	usbButton.setAlignment(LV_ALIGN_TOP_LEFT, 10, 0);
+        
+	usbButton.setSize(RATIO_X*24, RATIO_Y*24);
+	usbButton.setAlignment(LV_ALIGN_CENTER, RATIO_X*0, RATIO_Y*0);
+	//usbButton.setStyleRotation(450);
+	
 	usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
         usbButton.setSimpleCallback(&this->toggleUsbMode);
 	if(palcome_message_mode == 2)
@@ -129,68 +202,24 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
 	else
 		usbButton.removeState(LV_STATE_CHECKED);
 
+*/
 
-
-	int screenW = 320;
-	int screenH = 240;
-	lv_value_precise_t pointB[2] = {screenW, 0};
-	lv_value_precise_t pointC[2] = {screenW/2, screenH/2};
-	lv_value_precise_t pointA[2] = {0, 0}; // <-- intentionaly ordered
+	/*triangle.tPoints.a[0] = 0;
+	triangle.tPoints.a[1] = 0;
+	triangle.tPoints.b[0] = SCREEN_HOR;
+	triangle.tPoints.b[1] = 0;
+	triangle.tPoints.c[0] = SCREEN_HOR/2;
+	triangle.tPoints.c[1] = SCREEN_VIR/2;
 	
-	// The order of subation or addition is determined by quadrent (screen reletivity).
-	lv_value_precise_t mid [2] = {
-		((pointB[0] - pointA[0]) / 2),
-		((pointB[1] - pointA[1]) / 2)
-	};
+	triangle.tPoints.color = triangle.colors.make(5, 25, 155);
 
-	int alignX = 40;
-	int alignY = 30;
-
-	int m = (pointC[0] - mid[0]) / (pointC[1] - mid[1]);
-	//int width = pointC[1]; // circumference.
-	int width = (4 * 10) - 1; // circumference.
-	int light = width / 2;
-
-	// A is in Quad A
-	static lv_point_precise_t lineA2f[] = { 
-		//{pointA[0]+light, pointA[1]},
-		//{pointB[0]-light, pointB[1]},
-		{pointA[0], pointA[1]},
-		{pointB[0], pointB[1]},
-	};
-	static lv_point_precise_t lineB2f[] = { 
-		//{pointB[0]-(light/2)-2, pointB[1]-light/2},
-		//{pointC[0]-(light/2)-2, pointC[1]-light/2}, 
-		{pointB[0], pointB[1]},
-		{pointC[0], pointC[1]}, 
-	};
-	static lv_point_precise_t lineC2f[] = { 
-		//{pointC[0]+(light/2)+2, pointC[1]-light/2}, 
-		//{pointA[0]+(light/2)+2, pointA[1]-light/2},
-		{pointC[0], pointC[1]}, 
-		{pointA[0], pointA[1]},
-	};
-
-	
-
-	
-	triangle.tPoints.a[0] = 10;
-	triangle.tPoints.a[1] = 100;
-	triangle.tPoints.b[0] = 10;
-	triangle.tPoints.b[1] = 10;
-	triangle.tPoints.c[0] = 50;
-	triangle.tPoints.c[1] = 50;
-
-	triangle.create(target);
+	triangle.create(background.getObject());
+	triangle.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0);
+	triangle.setStyleBgOpacity(0);
+	triangle.setStyleBorderOpacity(0);
+	triangle.fullScreen();
 	triangle.setPoints();
-	triangle.center();
-
-	//lv_obj_t * my_obj = lv_obj_create(lv_screen_active());
-    //lv_obj_center(my_obj);
-    //lv_obj_add_event_cb(my_obj, my_obj_draw_end_cb, LV_EVENT_DRAW_MAIN_END, NULL);
-
-
-	//line.center();
+	lv_obj_set_style_transform_rotation(triangle.getObject(), 90, 0);*/
 
 	
 	/*PalcomLabel label;
@@ -293,12 +322,24 @@ int PalcomDebugScreen::run(void){
 	if(this->currentMode != palcome_message_mode){
 		this->currentMode = palcome_message_mode;
 		if(this->currentMode == 0){
+			meshButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+			nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+			usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+			
 			nodeButton.removeState(LV_STATE_CHECKED);
 			usbButton.removeState(LV_STATE_CHECKED);
 		}else if(this->currentMode == 1){
+			meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+			nodeButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+			usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+
 	                meshButton.removeState(LV_STATE_CHECKED);
 			usbButton.removeState(LV_STATE_CHECKED);
 		}else if(this->currentMode == 2){
+			meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+			nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
+			usbButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
+
 	                meshButton.removeState(LV_STATE_CHECKED);
 			nodeButton.removeState(LV_STATE_CHECKED);
 		}

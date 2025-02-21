@@ -305,28 +305,44 @@ void PalcomObject::execute(){
 
 
 /*
- * dtaw events:
- 
+ * Draw event callbacks
+ * */
 
-    LV_EVENT_COVER_CHECK: Check if Widget fully covers an area. The event parameter is lv_cover_check_info_t *.
+// LV_EVENT_COVER_CHECK: Check if Widget fully covers an area. The event parameter is lv_cover_check_info_t *.
+void PalcomObject::setDrawCoverCheckCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_COVER_CHECK, input);
+}
+    //LV_EVENT_REFR_EXT_DRAW_SIZE: Get the required extra draw area around Widget (e.g. for shadow). The event parameter is int32_t * to store the size.
+void PalcomObject::setDrawExtSizeCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_REFR_EXT_DRAW_SIZE, input);
+}
+    //LV_EVENT_DRAW_MAIN_BEGIN: Starting the main drawing phase
+void PalcomObject::setDrawMainBeginCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_MAIN_BEGIN, input);
+}
+    //LV_EVENT_DRAW_MAIN: Perform the main drawing
+void PalcomObject::setDrawMainCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_MAIN, input);
+}
 
-    LV_EVENT_REFR_EXT_DRAW_SIZE: Get the required extra draw area around Widget (e.g. for shadow). The event parameter is int32_t * to store the size.
+    //LV_EVENT_DRAW_POST_BEGIN: Starting the post draw phase (when all children are drawn)
+void PalcomObject::setDrawPostBeginCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_POST_BEGIN, input);
+}
+    //LV_EVENT_DRAW_POST: Perform the post draw phase (when all children are drawn)
+void PalcomObject::setDrawPostCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_POST, input);
+}
+    //LV_EVENT_DRAW_POST_END: Finishing the post draw phase (when all children are drawn)
+void PalcomObject::setDrawPostEndCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_POST_END, input);
+}
+    //LV_EVENT_DRAW_TASK_ADDED: Adding a draw task
+void PalcomObject::setDrawTaskAddCallback(void(*func)(lv_event_t*), void *input){
+	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_TASK_ADDED, input);
+}
 
-    LV_EVENT_DRAW_MAIN_BEGIN: Starting the main drawing phase
-
-    LV_EVENT_DRAW_MAIN: Perform the main drawing
-
-    LV_EVENT_DRAW_MAIN_END: Finishing the main drawing phase
-
-    LV_EVENT_DRAW_POST_BEGIN: Starting the post draw phase (when all children are drawn)
-
-    LV_EVENT_DRAW_POST: Perform the post draw phase (when all children are drawn)
-
-    LV_EVENT_DRAW_POST_END: Finishing the post draw phase (when all children are drawn)
-
-    LV_EVENT_DRAW_TASK_ADDED: Adding a draw task
-
-*/
+//LV_EVENT_DRAW_MAIN_END: Finishing the main drawing phase
 void PalcomObject::setDrawMainEndCallback(void(*func)(lv_event_t*), void *input){
 	lv_obj_add_event_cb(this->object, func, LV_EVENT_DRAW_MAIN_END, input);
 }
@@ -368,6 +384,106 @@ void PalcomObject::setStyleBgColor(lv_color_t c){
 	lv_obj_set_style_bg_color(this->object, c, 0);
 }
 
+void PalcomObject::setStyleBgOpacity(int o){
+	switch(o){
+                case 0:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_0, 0);
+                        break;
+                case 1:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_10, 0);
+                        break;
+                case 2:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_20, 0);
+                        break;
+                case 3:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_30, 0);
+                        break;
+                case 4:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_40, 0);
+                        break;
+                case 5:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_50, 0);
+                        break;
+                case 6:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_60, 0);
+                        break;
+                case 7:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_70, 0);
+                        break;
+                case 8:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_80, 0);
+                        break;
+                case 9:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_90, 0);
+                        break;
+                case 10:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_100, 0);
+                        break;
+                case -1:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_TRANSP, 0);
+                        break;
+                default:
+                        lv_obj_set_style_bg_opa(this->object, LV_OPA_COVER, 0);
+                        break;
+        }
+}
+
+lv_opa_t PalcomObject::getStyleBgOpacity(void){
+	return lv_obj_get_style_bg_opa(this->object, 0);
+}
+
+lv_opa_t PalcomObject::getStyleBorderOpacity(void){
+	return lv_obj_get_style_border_opa(this->object, 0);
+}
+void PalcomObject::setStyleBorderOpacity(int o){
+	switch(o){
+                case 0:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_0, 0);
+                        break;
+                case 1:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_10, 0);
+                        break;
+                case 2:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_20, 0);
+                        break;
+                case 3:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_30, 0);
+                        break;
+                case 4:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_40, 0);
+                        break;
+                case 5:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_50, 0);
+                        break;
+                case 6:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_60, 0);
+                        break;
+                case 7:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_70, 0);
+                        break;
+                case 8:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_80, 0);
+                        break;
+                case 9:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_90, 0);
+                        break;
+                case 10:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_100, 0);
+                        break;
+                case -1:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_TRANSP, 0);
+                        break;
+                default:
+                        lv_obj_set_style_border_opa(this->object, LV_OPA_COVER, 0);
+                        break;
+        }
+
+}
+
+
+void PalcomObject::setStyleRotation(int r){
+	lv_obj_set_style_transform_rotation(this->object, r, 0);
+}
 
 void PalcomObject::setStylePaddingHor(int padding, lv_style_selector_t sel){
 	lv_obj_set_style_pad_hor(this->object, padding, sel);	

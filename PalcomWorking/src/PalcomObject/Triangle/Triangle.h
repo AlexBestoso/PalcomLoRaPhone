@@ -1,4 +1,5 @@
 struct palcom_triangle_t{
+	lv_color_t color;
 	int a[2];
 	int b[2];
 	int c[2];

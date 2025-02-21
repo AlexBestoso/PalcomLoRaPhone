@@ -20,7 +20,6 @@ void PalcomTriangle::defaultDraw(lv_event_t * e){
     	lv_draw_triangle_dsc_t dsc;
     	lv_draw_triangle_dsc_init(&dsc);
 	if(triangle == NULL){
-		Serial.printf("Provided Triangle is Null\n");
 		/*dsc.p[0].x = 10;
     		dsc.p[0].y = 10;
     		dsc.p[1].x = 10;
@@ -35,10 +34,10 @@ void PalcomTriangle::defaultDraw(lv_event_t * e){
     		dsc.p[1].y = triangle->b[1];
     		dsc.p[2].x = triangle->c[0];
     		dsc.p[2].y = triangle->c[1];
+    		dsc.bg_color = triangle->color;
 	}
 
-    	dsc.bg_color = lv_palette_main(LV_PALETTE_GREEN);
-    	// dsc.bg_opa = ...;
+    	//dsc.bg_opa = 100;
     	// dsc.bg_grad = ...;
 
     	lv_obj_t * my_obj = lv_event_get_target_obj(e);

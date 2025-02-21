@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.0.93 Gamma</code>
+<code>version 1.0.97 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -21,6 +21,7 @@
 <li>Extended the PalcomObject class to use the PalcomStyle class. Makes styleing less complex.</li>
 <li>Added PalcomLine Widged.</li>
 <li>Added class for drawing triangles</li>
+<li>Completed the mode selection screen. Remvoed triangles</li>
 </ol>
 
 <h3>TODO:</h3>
@@ -31,5 +32,5 @@
 <li>Design logic for when there is and is not a SD card</li>
 <li>Rafactor code to use proper #include syntax</li>
 <li>Move graphics, comms, and storage task handlers into concurrent callbacks</li>
-<li>Implement node mode, usb mode, and the rest of the GUI screens.</li>
+<li>Impleent the settings and about GUI screens.</li>
 </ul>

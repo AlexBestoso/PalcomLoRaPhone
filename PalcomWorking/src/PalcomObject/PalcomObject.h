@@ -64,6 +64,14 @@ class PalcomObject : public PalcomStyle{
 
 		void execute();
 
+		void setDrawCoverCheckCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawExtSizeCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawMainBeginCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawMainCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawPostBeginCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawPostCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawPostEndCallback(void(*func)(lv_event_t*), void *input);
+		void setDrawTaskAddCallback(void(*func)(lv_event_t*), void *input);
 		void setDrawMainEndCallback(void(*func)(lv_event_t*), void*input);
 
 		void setSimpleCallback(void(*func)(lv_event_t*));
@@ -78,6 +86,14 @@ class PalcomObject : public PalcomStyle{
 		lv_color_t getStyleBgColor(void);
 		void setStyleBgColor(lv_color_t c, int v);
 		void setStyleBgColor(lv_color_t c);
+
+		lv_opa_t getStyleBgOpacity(void);
+		void setStyleBgOpacity(int o);
+
+		void setStyleRotation(int r);
+		
+		lv_opa_t getStyleBorderOpacity(void);
+		void setStyleBorderOpacity(int o);
 
 		void setStylePaddingHor(int padding, lv_style_selector_t sel);
 		void setStylePaddingHor(int padding);

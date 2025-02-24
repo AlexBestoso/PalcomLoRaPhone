@@ -48,6 +48,10 @@ bool Graphics::runTask(void){
 			this->activePage = GRAPHICS_INSTR_HOMEPAGE;
 			return true;
 		break;
+		case GRAPHICS_INSTR_PUSH_MSGM:{
+                        Serial.printf("Pushing my sent message to the display...\n");
+                }
+                return true;
         }
         return false;
 }

@@ -88,3 +88,5 @@ SX1262 _radio = new Module(9, 45, 17, 13);
 volatile bool loraSnakeTransmit = false;
 volatile bool loraSnakeReceive = false;
 
+bool sd_card_available = false;
+

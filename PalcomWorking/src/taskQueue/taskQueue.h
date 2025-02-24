@@ -10,10 +10,14 @@
 
 #define GRAPHICS_INSTR_SETUP 1
 #define GRAPHICS_INSTR_HOMEPAGE 2
+#define GRAPHICS_INSTR_PUSH_MSGM 3 // push message mine
+#define GRAPHICS_INSTR_PUSH_MSGO 4 // push message others
 
 #define COMMS_INSTR_SEND 11
 #define COMMS_INSTR_RECV 12
-#define COMMS_INSTR_PUSH_MSG 13
+
+#define STORAGE_INSTR_RECVED 23
+#define STORAGE_INSTR_SENT 24
 
 struct task_queue_task{
 	bool active=false;

@@ -39,6 +39,14 @@ bool Comms::sendMsg(void){
       		Serial.printf("Failed to send message.\n");
     	}else{
       		Serial.printf("Sent : [%d] \n", msgSize);
+		struct task_queue_task tmp;
+                tmp.to = TASK_SPACE_STORAGE;
+                tmp.from = TASK_SPACE_COMMS;
+                tmp.active = true;
+                tmp.instruction = STORAGE_INSTR_SENT;
+                memset(tmp.msg, '\0', 256);
+		taskQueue.push(tmp);
+		
 		ret = true;
     	}
 	
@@ -64,7 +72,7 @@ bool Comms::recvMsg(void){
 		tmp.to = TASK_SPACE_STORAGE;
 		tmp.from = TASK_SPACE_COMMS;
 		tmp.active = true;
-		tmp.instruction = COMMS_INSTR_PUSH_MSG;
+		tmp.instruction = STORAGE_INSTR_RECVED;
 		memset(tmp.msg, '\0', 256);
 		for(int i=0; i<loraSnake.lrsPacket.data_size && i < 256; i++)
 			tmp.msg[i] = loraSnake.lrsPacket.data[i];

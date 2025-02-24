@@ -214,7 +214,7 @@ void setup(void){
 
     initer.lvglInit();
 
-    initer.setupSD();
+    sd_card_available = initer.setupSD();
 
     taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 

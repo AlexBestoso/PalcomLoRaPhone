@@ -158,74 +158,6 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
                 usbButton.removeState(LV_STATE_CHECKED);
 		usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
 	}
-	/*int offsetX = 0;
-	int offsetY = 0;
-	meshButton.create(background.getObject());
-        //meshButton.setDefaultStyle(this->msgSenderStyle.getStyle4());
-        
-	meshButton.setSizeRaw(SCREEN_HOR, SCREEN_VIR);
-	meshButton.setAlignment(LV_ALIGN_CENTER, 0, 0);
-	meshButton.setStyleRotation(0);	
-
-	meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
-        meshButton.setSimpleCallback(&this->toggleMeshMode);
-
-	if(palcome_message_mode == 0)
-		meshButton.addState(LV_STATE_CHECKED);
-	else
-		meshButton.removeState(LV_STATE_CHECKED);
-
-	int nodeAdjust = 0;
-	nodeButton.create(background.getObject());
-        
-	nodeButton.setSize(RATIO_X*24, RATIO_Y*24);
-	//nodeButton.setStyleRotation(450);
-	nodeButton.setAlignment(LV_ALIGN_CENTER, RATIO_X*0, RATIO_Y*0);
-	
-	nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
-        nodeButton.setSimpleCallback(&this->toggleNodeMode);
-	if(palcome_message_mode == 1)
-		nodeButton.addState(LV_STATE_CHECKED);
-	else
-		nodeButton.removeState(LV_STATE_CHECKED);
-	
-	usbButton.create(background.getObject());
-        
-	usbButton.setSize(RATIO_X*24, RATIO_Y*24);
-	usbButton.setAlignment(LV_ALIGN_CENTER, RATIO_X*0, RATIO_Y*0);
-	//usbButton.setStyleRotation(450);
-	
-	usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
-        usbButton.setSimpleCallback(&this->toggleUsbMode);
-	if(palcome_message_mode == 2)
-		usbButton.addState(LV_STATE_CHECKED);
-	else
-		usbButton.removeState(LV_STATE_CHECKED);
-
-*/
-
-	/*triangle.tPoints.a[0] = 0;
-	triangle.tPoints.a[1] = 0;
-	triangle.tPoints.b[0] = SCREEN_HOR;
-	triangle.tPoints.b[1] = 0;
-	triangle.tPoints.c[0] = SCREEN_HOR/2;
-	triangle.tPoints.c[1] = SCREEN_VIR/2;
-	
-	triangle.tPoints.color = triangle.colors.make(5, 25, 155);
-
-	triangle.create(background.getObject());
-	triangle.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0);
-	triangle.setStyleBgOpacity(0);
-	triangle.setStyleBorderOpacity(0);
-	triangle.fullScreen();
-	triangle.setPoints();
-	lv_obj_set_style_transform_rotation(triangle.getObject(), 90, 0);*/
-
-	
-	/*PalcomLabel label;
-	label.create(target);
-        label.setText("Select a nigger");
-        label.center();*/
 }
 
 void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
@@ -321,7 +253,7 @@ int PalcomDebugScreen::run(void){
 	this->execute();
 	if(this->currentMode != palcome_message_mode){
 		this->currentMode = palcome_message_mode;
-		if(this->currentMode == 0){
+		if(this->currentMode == 0){ // Mesh mode.
 			meshButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
 			nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
 			usbButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
@@ -345,6 +277,8 @@ int PalcomDebugScreen::run(void){
 		}
 
 		
+	}else{
+		// Handl message display logic...
 	}
 	return 0;
 }

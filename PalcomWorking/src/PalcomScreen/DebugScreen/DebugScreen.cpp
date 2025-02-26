@@ -32,6 +32,8 @@ extern TaskQueue taskQueue;
 extern uint8_t userBuffer[USER_BUF_SIZE];
 extern size_t userBufferSize;
 extern lv_obj_t *keyboardFocusedObj;
+extern char displayed_messages[10][257];
+extern int displayed_page;
 
 #include "./DebugScreen.h"
 
@@ -163,6 +165,7 @@ void PalcomDebugScreen::buildModeSelect(lv_obj_t *target){
 void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	PalcomObject msgContainer;
 	PalcomObject msgLogContainer;
+	PalcomObject message;
 	PalcomTextarea textarea;
 	PalcomButton button;
 	PalcomLabel label;
@@ -177,6 +180,19 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	msgLogContainer.setScrollMode(LV_SCROLLBAR_MODE_OFF);
 	msgLogContainer.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 
+	/*
+	 * Draw Messages
+	 * */
+	for(int i=0; i<10; i++){
+		if(displayed_messages[i][0] != 0 && displayed_messages[i][0] != 1){
+			continue;
+		}
+		Serial.printf("Drawing message %d\n", i);
+		message.generate(target, pal_base);
+		message.setSize(30, 30);
+		message.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0);
+		
+	}
 
 	/*
 	 * Message sender box

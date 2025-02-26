@@ -45,6 +45,8 @@ bool Comms::sendMsg(void){
                 tmp.active = true;
                 tmp.instruction = STORAGE_INSTR_SENT;
                 memset(tmp.msg, '\0', 256);
+		for(int i=0; i<msgSize; i++)
+			tmp.msg[i] = this->task.msg[i];
 		taskQueue.push(tmp);
 		
 		ret = true;

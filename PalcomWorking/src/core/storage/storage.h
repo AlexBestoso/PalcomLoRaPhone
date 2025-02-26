@@ -6,6 +6,10 @@ class Storage{
 		bool pop();
 		bool storeMessage(bool mine);
 		void relayMsgToDisplay(bool mine);
+		bool refreshMsg(void);
+
+		int getMsgCount(void);
+		int getCacheSize(void);
 
 		File _fd; // This variable should be swapped with a pointer to an initalized file management class.
 	public:

@@ -6,7 +6,7 @@ class Graphics{
 		int activePage;
 
                 bool pop();
-
+	
 		PalcomDebugScreen pds;
 		SetMsgModeScreen setMsgModeScreen;
 

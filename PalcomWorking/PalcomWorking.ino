@@ -216,6 +216,7 @@ void setup(void){
 
     sd_card_available = initer.setupSD();
 
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_REFRESH_MSG));
     taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 
    /* if(xSemaphore == NULL || xSemaphore == nullptr)

@@ -90,3 +90,6 @@ volatile bool loraSnakeReceive = false;
 
 bool sd_card_available = false;
 
+char displayed_messages[10][257];
+int displayed_page = 0;
+

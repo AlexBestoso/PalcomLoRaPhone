@@ -18,6 +18,7 @@
 
 #define STORAGE_INSTR_RECVED 23
 #define STORAGE_INSTR_SENT 24
+#define STORAGE_INSTR_REFRESH_MSG 25
 
 struct task_queue_task{
 	bool active=false;

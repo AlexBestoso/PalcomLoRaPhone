@@ -23,12 +23,13 @@
 <li>Added class for drawing triangles</li>
 <li>Completed the mode selection screen. Remvoed triangles</li>
 <li>Implemented bassic mesh mode message storage.</li>
+<li>Implemented stored message retreival and implemented a system for orienting displayable messages.</li>
 </ol>
 
 <h3>TODO:</h3>
 <hr/>
 <ul>
-<li>Create code to display available messages...</li>
+<li>Use available display_messages to populate message boxes.</li>
 <li>Design logic for when there is and is not a SD card</li>
 <li>Rafactor code to use proper #include syntax</li>
 <li>Move graphics, comms, and storage task handlers into concurrent callbacks</li>

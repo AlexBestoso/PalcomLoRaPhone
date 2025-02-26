@@ -25,6 +25,7 @@ class PalcomDebugScreen : public PalcomScreen{
 		void buildHomepage(lv_obj_t *target);
 		void buildModeSelect(lv_obj_t *target);
 
+
 		bool debugBool = false;
 		int currentMode = 0;
         public:

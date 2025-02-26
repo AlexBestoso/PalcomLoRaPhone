@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.0.98 Gamma</code>
+<code>version 1.0.99 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>

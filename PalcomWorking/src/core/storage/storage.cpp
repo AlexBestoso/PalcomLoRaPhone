@@ -112,8 +112,8 @@ bool Storage::storeMessage(bool mine){
 
 bool Storage::refreshMsg(void){
 	int msgCount = this->getMsgCount();
+	for(int i=0; i<10; i++) displayed_messages[i][0] = 2;
 	if(msgCount <= 0) {
-		for(int i=0; i<10; i++) displayed_messages[i][0] = 3;
 		return false;
 	}else if(msgCount <= 10){
 		this->_fd = SD.open("/msgCache", FILE_READ);

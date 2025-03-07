@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.0.99 Gamma</code>
+<code>version 1.0.100 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -24,12 +24,13 @@
 <li>Completed the mode selection screen. Remvoed triangles</li>
 <li>Implemented bassic mesh mode message storage.</li>
 <li>Implemented stored message retreival and implemented a system for orienting displayable messages.</li>
+<li>Sent messages can now be displayed</li>
 </ol>
 
 <h3>TODO:</h3>
 <hr/>
 <ul>
-<li>Use available display_messages to populate message boxes.</li>
+<li>finish the message display code</li>
 <li>Design logic for when there is and is not a SD card</li>
 <li>Rafactor code to use proper #include syntax</li>
 <li>Move graphics, comms, and storage task handlers into concurrent callbacks</li>

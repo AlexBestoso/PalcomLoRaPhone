@@ -52,3 +52,6 @@
 #define SCREEN_VIR 240
 #define RATIO_X 3
 #define RATIO_Y 4
+
+#define MSG_DISPLAY_MAX 10
+#define MSG_BUFFER_MAX 257

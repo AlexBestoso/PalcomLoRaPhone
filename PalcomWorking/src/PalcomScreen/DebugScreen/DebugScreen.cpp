@@ -184,13 +184,17 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	 * Draw Messages
 	 * */
 	for(int i=0; i<10; i++){
-		if(displayed_messages[i][0] != 0 && displayed_messages[i][0] != 1){
+		if(displayed_messages[i][0] >= 2){
 			continue;
 		}
-		Serial.printf("Drawing message %d\n", i);
-		message.generate(target, pal_base);
-		message.setSize(30, 30);
-		message.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0);
+		message.generate(msgLogContainer.getObject(), pal_base);
+		message.setSize(90, 30);
+		message.setAlignment(LV_ALIGN_TOP_RIGHT, 0, (60*i)+(10*i));
+		
+		label.create(message.getObject());
+		String msg = displayed_messages[i]+1;
+		label.setText(msg.c_str());
+		Serial.printf("Drawing message %d : %s\n", i, msg.c_str());
 		
 	}
 

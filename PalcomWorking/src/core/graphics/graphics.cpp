@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <cstdint>
 #include <lvgl.h>
+#include <defines.h>
 #include <src/taskQueue/taskQueue.h>
 
 #include <src/PalcomStyle/PalcomStyle.h>
@@ -17,6 +18,8 @@
 #include "./graphics.h"
 
 extern TaskQueue taskQueue;
+extern char displayed_messages[MSG_DISPLAY_MAX][MSG_BUFFER_MAX];
+extern int displayed_page;
 //Private
 bool Graphics::pop(void){
         struct task_queue_task t = taskQueue.pop(this->spaceType);
@@ -50,6 +53,13 @@ bool Graphics::runTask(void){
 		break;
 		case GRAPHICS_INSTR_PUSH_MSGM:{
                         Serial.printf("Pushing my sent message to the display...\n");
+			for(int i=0; i<MSG_DISPLAY_MAX-1; i++){  
+				for(int j=0; j<MSG_BUFFER_MAX; j++) displayed_messages[i+1][j] = displayed_messages[i][j];
+			}
+			
+			for(int i=1; i<MSG_BUFFER_MAX; i++) displayed_messages[0][i] = this->task.msg[i-1];
+			displayed_messages[0][0] = 1;
+
                 }
                 return true;
         }

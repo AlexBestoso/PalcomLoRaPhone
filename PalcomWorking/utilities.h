@@ -90,6 +90,7 @@ volatile bool loraSnakeReceive = false;
 
 bool sd_card_available = false;
 
-char displayed_messages[10][257];
+
+char displayed_messages[MSG_DISPLAY_MAX][MSG_BUFFER_MAX];
 int displayed_page = 0;
 

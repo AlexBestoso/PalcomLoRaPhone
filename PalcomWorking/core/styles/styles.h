@@ -1,4 +1,4 @@
-#include "./palcomStyle.h"
+//#include "./palcomStyle.h"
 
 #include "./defaultButtonStyle.h"
 #include "./defaultTextareaStyle.h"

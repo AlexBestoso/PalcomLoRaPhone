@@ -221,7 +221,7 @@ class PalcomMessage : public PalcomObject{
       			object = globalGuiObjects[id];
     		}
 
-		void setRelativeAlignment(int ref, int x, int y){
+		void setRelativeAlignment(lv_align_t ref, int x, int y){
       			lv_obj_align_to(this->object, this->pLabel.getObj(), ref, x,  y);
     		}
 		

@@ -1,9 +1,7 @@
 /**
- * @file      UnitTest.ino
- * @author    Lewis He (lewishe@outlook.com)
- * @license   MIT
- * @copyright Copyright (c) 2023  Shenzhen Xin Yuan Electronic Technology Co., Ltd
- * @date      2023-04-11
+ * @file      PalcomWorking.ino
+ * @author    Morning Star
+ * @license   Morning Star Usage License
  * @note      Arduino Setting
  *            Tools ->
  *                  Board:"ESP32S3 Dev Module"
@@ -18,432 +16,419 @@
  *
  *      https://lvgl.io/tools/imageconverter
  */
-
-#define DEBUG_OUTPUT 1
 #include <Arduino.h>
 #include <SPI.h>
+
+
+#include <TFT_eSPI.h>
 #include <RadioLib.h>
-
 #include <lvgl.h>
+#include <string>
+#include <cstdint>
 
-#if LV_USE_TFT_ESPI
-  #include <TFT_eSPI.h>
+#include "USB.h"
+
+#if !ARDUINO_USB_CDC_ON_BOOT
+USBCDC USBSerial;
 #endif
 
+
+
 #include <SD.h>
-#include "es7210.h"
-#include <Audio.h>
-#include <driver/i2s.h>
-#include <esp_vad.h>
-#include <WiFi.h>
 
 #define TOUCH_MODULES_GT911
 #include "TouchLib.h"
-#include "utilities.h"
 #include <AceButton.h>
-
-
-
 using namespace ace_button;
+using namespace std;
 
-#define USING_SX1262
+#include "utilities.h"
+#include "./core/structs/structs.h"
+#include "./core/tools/PalcomFS.h"
+#include <src/error/error.h>
 
-#define VAD_SAMPLE_RATE_HZ              16000
-#define VAD_FRAME_LENGTH_MS             30
-#define VAD_BUFFER_LENGTH               (VAD_FRAME_LENGTH_MS * VAD_SAMPLE_RATE_HZ / 1000)
-#define I2S_CH                          I2S_NUM_1
+#include <src/taskQueue/taskQueue.h>
+TaskQueue taskQueue;
 
-LV_IMG_DECLARE(palcomLogo)
-/*LV_IMG_DECLARE(LockIcon);
-LV_IMG_DECLARE(SettingsIcon);
-LV_IMG_DECLARE(Messagesymbol);
-LV_IMG_DECLARE(Keysharesymbol);
-LV_IMG_DECLARE(encryptionImage);
-*/
-LV_IMG_DECLARE(BackIcon);
-LV_IMG_DECLARE(mousePointerPng); /*Declare the image file.*/
-
-TouchLib *touch = NULL;
+#include <src/LoRaSnake/LoRaSnake.class.h>
+LoRaSnake loraSnake;
 
 
 
-#ifdef USING_SX1262
-#define RADIO_FREQ          868.0
-SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
-#else
-#define RADIO_FREQ          433.0
-SX1268 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
-#endif
 
-void handleEvent(AceButton * /* button */, uint8_t eventType,
-                 uint8_t /* buttonState */);
+/*
+ * These may be refactored to be less dependant on each other.
+ */
 
-TFT_eSPI        tft;
-Audio           audio;
-size_t          bytes_read;
-uint8_t         status;
-int16_t         *vad_buff;
-vad_handle_t    vad_inst;
-TaskHandle_t    playHandle = NULL;
-TaskHandle_t    radioHandle = NULL;
 
-AceButton   button;
-bool        clicked = false;
-bool        txFlag =  true;
-bool        rxFlag = false;
-bool        transmissionFlag = true;
-bool        enableInterrupt = true;
-bool        transmitting = false;
-int         transmissionState ;
-bool        hasRadio = false;
-bool        touchDected = false;
-bool        kbDected = false;
-bool        sender = true;
-uint32_t    sendCount = 0;
-uint32_t    runningMillis = 0;
-uint8_t     touchAddress = GT911_SLAVE_ADDRESS2;
+#include <src/PalcomEvent/PalcomEvent.h>
+//#include "./src/PalcomColors/PalcomColors.h"
+#include "./core/partition/partition.h"
+#include <src/PalcomStyle/PalcomStyle.h>
+#include <src/PalcomStyle/styles/styles.h>
+#include "./core/styles/styles.h"
 
-lv_indev_t  *kb_indev = NULL;
-lv_indev_t  *mouse_indev = NULL;
-lv_indev_t  *touch_indev = NULL;
-lv_group_t  *kb_indev_group;
-lv_obj_t    *hw_ta;
-lv_obj_t    *radio_ta;
-lv_obj_t    *tv ;
-SemaphoreHandle_t xSemaphore = NULL;
+#include <src/PalcomObject/PalcomObject.h>
+#include <src/PalcomObject/Label/Label.h>
+#include <src/PalcomObject/Button/Button.h>
+#include <src/PalcomObject/Image/Image.h>
+#include <src/PalcomObject/Textarea/Textarea.h>
+#include <src/PalcomObject/Line/Line.h>
+#include <src/PalcomObject/Triangle/Triangle.h>
 
-#define GLOBAL_GUI_OBJECT_COUNT 1
-lv_obj_t *globalGuiObjects[GLOBAL_GUI_OBJECT_COUNT] = {NULL};
+#include "./core/initalizer/initalizer.h"
 
-bool screenLockConditionSpace = false;
-bool screenLockConditionBall = false;
+#include <src/PalcomScreen/PalcomScreen.h>
+#include <src/PalcomScreen/DebugScreen/DebugScreen.h>
+#include <src/PalcomScreen/setMsgMode/setMsgMode.h>
+#include "./core/objects/objects.h"
+//#include "./core/screens/screens.h"
 
-// Palcom includes
-#include "./PalcomWorking.h"
-//#include "palcomCore.class.h"
 
-bool setupCoder()
-{
-    uint32_t ret_val = ESP_OK;
 
-    Wire.beginTransmission(ES7210_ADDR);
-    uint8_t error = Wire.endTransmission();
-    if (error != 0) {
-        Serial.println("ES7210 address not found"); return false;
+#include "./src/core/storage/storage.h"
+Storage storage;
+
+#include <src/core/graphics/graphics.h>
+Graphics graphics;
+
+#include <src/core/comms/comms.h>
+Comms comms;
+
+static void GraphicsTask(void *parm);
+static void CommsTask(void *parm);
+static void StorageTask(void *parm);
+static void UserInputTask(void *parm);
+
+
+bool getInput(void){
+  
+  if(userBufferIdx >= 0 && userBufferIdx < USER_BUF_SIZE){
+    int v = keypad_get_key();
+   
+    if(v == 0x00){
+      return false;
+    }else if (v == 8){
+      userBuffer[userBufferIdx] = 0x0;
+      userBufferIdx = userBufferIdx == 0 ? 0 : userBufferIdx-1;
+      userBufferSize = userBufferIdx;
+    }else{
+      userBuffer[userBufferIdx] = v;
+      userBufferIdx++;
+      userBufferSize = userBufferIdx;
     }
+    return true;
+  }
+  return false;
+}
 
-    audio_hal_codec_config_t cfg = {
-        .adc_input = AUDIO_HAL_ADC_INPUT_ALL,
-        .codec_mode = AUDIO_HAL_CODEC_MODE_ENCODE,
-        .i2s_iface =
+void clearInput(void){
+  for(int i=0; i<USER_BUF_SIZE; i++)
+    userBuffer[i] = 0;
+  userBufferSize = 0;
+  userBufferIdx = 0;
+}
+bool processInput(void){
+  if(userBufferSize <= 0)
+    return false;
+  if(userBuffer[userBufferSize-1] == 0xd)
+    return true;
+  return false;
+}
+
+
+
+static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+  if (event_base == ARDUINO_USB_EVENTS) {
+    arduino_usb_event_data_t *data = (arduino_usb_event_data_t *)event_data;
+    switch (event_id) {
+      case ARDUINO_USB_STARTED_EVENT: Serial.println("USB PLUGGED"); break;
+      case ARDUINO_USB_STOPPED_EVENT: Serial.println("USB UNPLUGGED"); break;
+      case ARDUINO_USB_SUSPEND_EVENT: Serial.printf("USB SUSPENDED: remote_wakeup_en: %u\n", data->suspend.remote_wakeup_en); break;
+      case ARDUINO_USB_RESUME_EVENT:  Serial.println("USB RESUMED"); break;
+
+      default: break;
+    }
+  } else if (event_base == ARDUINO_USB_CDC_EVENTS) {
+    arduino_usb_cdc_event_data_t *data = (arduino_usb_cdc_event_data_t *)event_data;
+    switch (event_id) {
+      case ARDUINO_USB_CDC_CONNECTED_EVENT:    Serial.println("CDC CONNECTED"); break;
+      case ARDUINO_USB_CDC_DISCONNECTED_EVENT: Serial.println("CDC DISCONNECTED"); break;
+      case ARDUINO_USB_CDC_LINE_STATE_EVENT:   Serial.printf("CDC LINE STATE: dtr: %u, rts: %u\n", data->line_state.dtr, data->line_state.rts); break;
+      case ARDUINO_USB_CDC_LINE_CODING_EVENT:
+        Serial.printf(
+          "CDC LINE CODING: bit_rate: %lu, data_bits: %u, stop_bits: %u, parity: %u\n", data->line_coding.bit_rate, data->line_coding.data_bits,
+          data->line_coding.stop_bits, data->line_coding.parity
+        );
+        break;
+      case ARDUINO_USB_CDC_RX_EVENT:
+        Serial.printf("Processing Serial Command...\n");
         {
-            .mode = AUDIO_HAL_MODE_SLAVE,
-            .fmt = AUDIO_HAL_I2S_NORMAL,
-            .samples = AUDIO_HAL_16K_SAMPLES,
-            .bits = AUDIO_HAL_BIT_LENGTH_16BITS,
-        },
-    };
-
-    ret_val |= es7210_adc_init(&Wire, &cfg);
-    ret_val |= es7210_adc_config_i2s(cfg.codec_mode, &cfg.i2s_iface);
-    ret_val |= es7210_adc_set_gain(
-                   (es7210_input_mics_t)(ES7210_INPUT_MIC1 | ES7210_INPUT_MIC2),
-                   (es7210_gain_value_t)GAIN_0DB);
-    ret_val |= es7210_adc_set_gain(
-                   (es7210_input_mics_t)(ES7210_INPUT_MIC3 | ES7210_INPUT_MIC4),
-                   (es7210_gain_value_t)GAIN_37_5DB);
-    ret_val |= es7210_adc_ctrl_state(cfg.codec_mode, AUDIO_HAL_CTRL_START);
-    return ret_val == ESP_OK;
-
-}
-
-void taskplaySong(void *p)
-{
-    while (1) {
-        if ( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ) {
-            if (SD.exists("/key.mp3")) {
-                const char *path = "key.mp3";
-                audio.setPinout(BOARD_I2S_BCK, BOARD_I2S_WS, BOARD_I2S_DOUT);
-                audio.setVolume(12);
-                audio.connecttoFS(SD, path);
-                Serial.printf("play %s\r\n", path);
-                while (audio.isRunning()) {
-                    audio.loop();
-                }
-                audio.stopSong();
+            uint8_t buffer[data->rx.len] = {0};
+            size_t len = USBSerial.read(buffer, data->rx.len);
+            if(len <= 4){
+              return;
             }
-            xSemaphoreGive( xSemaphore );
+            String test = "";
+            for(int i=0; i<len; i++)
+              test+=(char)buffer[i];
+            Serial.printf("USB : %s\n", test.c_str());
+           
         }
-        vTaskSuspend(NULL);
-    }
-}
-
-void addMessage(const char *str)
-{
-    lv_textarea_add_text(hw_ta, str);
-    uint32_t run = millis() + 200;
-    while (millis() < run) {
-        lv_task_handler();
-        delay(5);
-    }
-}
-static void event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t *obj = (lv_obj_t *)lv_event_get_target(e);
-    if (code == LV_EVENT_VALUE_CHANGED) {
-        Serial.printf("State: %s\n", lv_obj_has_state(obj, LV_STATE_CHECKED) ? "On" : "Off");
-        if (hasRadio) {
-            if (lv_obj_has_state(obj, LV_STATE_CHECKED)) {
-                // RX
-                lv_textarea_set_text(radio_ta, "");
-                Serial.print(F("[Radio] Starting to listen ... "));
-                int state = radio.startReceive();
-                if (state == RADIOLIB_ERR_NONE) {
-                    Serial.println(F("success!"));
-                } else {
-                    Serial.print(F("failed, code "));
-                    Serial.println(state);
-                }
-                sender = !sender;
-            } else {
-                // TX
-                lv_textarea_set_text(radio_ta, "");
-                // send the first packet on this node
-                Serial.print(F("[Radio] Sending first packet ... "));
-                transmissionState = radio.startTransmit("Hello World!");
-                sender = !sender;
-            }
-        } else {
-            lv_textarea_set_text(radio_ta, "Radio is not online");
-        }
-    }
-
-}
-
-
-static bool getTouch(int16_t &x, int16_t &y);
-
-
-
-void disp_inver_event(lv_event_t *e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED)return;
-    uint8_t *index =  (uint8_t *) lv_event_get_user_data(e);
-    if (!index)return;
-    switch (*index) {
-    case 0:
-    case 1:
-        tft.invertDisplay(*index);
         break;
-    case 2:
-        clicked = true;
-        break;
-    default:
-        break;
+      case ARDUINO_USB_CDC_RX_OVERFLOW_EVENT: Serial.printf("CDC RX Overflow of %d bytes", data->rx_overflow.dropped_bytes); break;
+
+      default: break;
     }
-}
-
-
-void initBoard(){
-    /*clicked = false;
-    while (!clicked) {
-        lv_task_handler(); delay(5);
-    }*/
-
-    //lv_obj_del(cont);
-
-    /*// test image
-    const lv_img_dsc_t *img_src[4] = {&image1, &image2, &image3, &image4};
-    lv_obj_t *img = lv_img_create(lv_scr_act());
-    label = lv_label_create(lv_scr_act());
-    lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL);
-    lv_obj_set_width(label, 320);
-    lv_label_set_text(label, "Press the key of the trackball in the middle of the board to enter the next picture");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 0, 0);
-
-    clicked = false;
-    int i = 3;
-    while (i > 0) {
-        lv_img_set_src(img, (void *)(img_src[i]));
-        while (!clicked) {
-            lv_task_handler(); delay(5);
-            button.check();
-        }
-        i--;
-        clicked = false;
-    }
-
-    lv_obj_del(label);
-    lv_obj_del(img);
-
-
-    factory_ui(lv_scr_act());
-
-
-    char buf[256];
-    Serial.print("Touch:"); Serial.println(ret);
-    snprintf(buf, 256, "%s:%s\n", "Touch", ret == true ? "Successed" : "Failed");
-    addMessage(buf);
-
-    ret = setupSD();
-    Serial.print("SDCard:"); Serial.println(ret);
-    snprintf(buf, 256, "%s:%s\n", "SDCard", ret == true ? "Successed" : "Failed");
-    addMessage(buf);
-
-    ret = setupRadio();
-    Serial.print("Radio:"); Serial.println(ret);
-    snprintf(buf, 256, "%s:%s\n", "Radio", ret == true ? "Successed" : "Failed");
-    addMessage(buf);
-
-    ret = setupCoder();
-    Serial.print("Decoder:"); Serial.println(ret);
-    snprintf(buf, 256, "%s:%s\n", "Decoder", ret == true ? "Successed" : "Failed");
-    addMessage(buf);
-
-    Serial.print("Keyboard:"); Serial.println(kbDected);
-    snprintf(buf, 256, "%s:%s\n", "Keyboard", kbDected == true ? "Successed" : "Failed");
-    addMessage(buf);
-
-
-    if (SD.exists("/winxp.mp3")) {
-        const char *path = "winxp.mp3";
-        audio.setPinout(BOARD_I2S_BCK, BOARD_I2S_WS, BOARD_I2S_DOUT);
-        audio.setVolume(12);
-        audio.connecttoFS(SD, path);
-        Serial.printf("play %s\r\n", path);
-        while (audio.isRunning()) {
-            audio.loop();
-        }
-    }
-
-    i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-        .sample_rate = 16000,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ALL_LEFT,
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 8,
-        .dma_buf_len = 64,
-        .use_apll = false,
-        .tx_desc_auto_clear = true,
-        .fixed_mclk = 0,
-        .mclk_multiple = I2S_MCLK_MULTIPLE_256,
-        .bits_per_chan = I2S_BITS_PER_CHAN_16BIT,
-        .chan_mask =
-        (i2s_channel_t)(I2S_TDM_ACTIVE_CH0 | I2S_TDM_ACTIVE_CH1 |
-                        I2S_TDM_ACTIVE_CH2 | I2S_TDM_ACTIVE_CH3),
-        .total_chan = 4,
-    };
-
-    i2s_pin_config_t pin_config = {
-        .mck_io_num = BOARD_ES7210_MCLK,
-        .bck_io_num = BOARD_ES7210_SCK,
-        .ws_io_num = BOARD_ES7210_LRCK,
-        .data_in_num = BOARD_ES7210_DIN,
-    };
-    i2s_driver_install(I2S_CH, &i2s_config, 0, NULL);
-    i2s_set_pin(I2S_CH, &pin_config);
-    i2s_zero_dma_buffer(I2S_CH);
-
-
-    vad_inst = vad_create(VAD_MODE_0);
-    vad_buff = (int16_t *)malloc(VAD_BUFFER_LENGTH * sizeof(short));
-    if (vad_buff == NULL) {
-        while (1) {
-            Serial.println("Memory allocation failed!");
-            delay(1000);
-        }
-    }
-
-    // Wait until sound is detected before continuing
-    uint32_t c = 0;
-    while (1) {
-        i2s_read(I2S_CH, (char *)vad_buff, VAD_BUFFER_LENGTH * sizeof(short), &bytes_read, portMAX_DELAY);
-        // Feed samples to the VAD process and get the result
-        vad_state_t vad_state = vad_process(vad_inst, vad_buff, VAD_SAMPLE_RATE_HZ, VAD_FRAME_LENGTH_MS);
-        if (vad_state == VAD_SPEECH) {
-            Serial.print(millis());
-            Serial.println("Speech detected");
-            c++;
-            snprintf(buf, 256, "%s:%d\n", "Speech detected", c);
-            addMessage(buf);
-        }
-        if (c >= 5)break;
-        lv_task_handler();
-        delay(5);
-    }
-
-    i2s_driver_uninstall(I2S_CH);
-
-    pinMode(BOARD_BOOT_PIN, INPUT);
-
-    while (!digitalRead(BOARD_BOOT_PIN)) {
-        Serial.println("BOOT HAS PRESSED!!!"); delay(500);
-    }
-
-    if ( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ) {
-        if (hasRadio) {
-            if (sender) {
-                transmissionState = radio.startTransmit("0");
-                sendCount = 0;
-                Serial.println("startTransmit!!!!");
-            } else {
-                int state = radio.startReceive();
-                if (state == RADIOLIB_ERR_NONE) {
-                    Serial.println(F("success!"));
-                } else {
-                    Serial.print(F("failed, code "));
-                    Serial.println(state);
-                }
-            }
-        }
-        xSemaphoreGive( xSemaphore );
-    }
-
-    xTaskCreate(taskplaySong, "play", 1024 * 4, NULL, 10, &playHandle);*/
-
-}
-
-
-void setup(){
-    //palcomCore.contextSwitch();
-    //palcomCore.debug();
-}
-
-
-void loop(){
-  try{
-    palcomCore.contextSwitch(); 
-  }catch(CoreException e){
-    e.log("loop");
   }
 }
 
 
+bool coreOne = false;
+bool coreTwo = false;
+bool coreThree = false;
 
+String loraListenRes = "";
+void setup(void){
+  Serial.begin(115200);
+  delay(2000);
+  Serial.printf("[Palcoms L1.0] \n");
+  try{
+    xSemaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(xSemaphore);
 
+    initer.pinInit();
+    initer.lcdInit();
 
+    tft.deInitDMA();
+    SPI.end();
+    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+      initer.setupRadio();
+    SPI.end();
+    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    tft.initDMA();
 
+    initer.aceButtonInit();
+    initer.touchscreenInit();
+    
 
+    initer.lvglInit();
 
+    sd_card_available = initer.setupSD();
 
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_REFRESH_MSG));
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
 
+   /* if(xSemaphore == NULL || xSemaphore == nullptr)
+      throw CoreException("Failed to create Semaphore.", ERR_TASK_SEMAPHORE);
 
+    if(xTaskCreatePinnedToCore(GraphicsTask, "graphics", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create Graphics Task", ERR_TASK_CREATE);
+    }
 
+    if(xTaskCreatePinnedToCore(CommsTask, "communication", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
+    }
 
+    if(xTaskCreatePinnedToCore(UserInputTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
+    }
 
+    if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
+    }*/
 
+    //while(!coreOne || !coreTwo || !coreThree){delay(100);}
+    USBSerial.onEvent(usbEventCallback);
+    USB.onEvent(usbEventCallback);
 
+    USBSerial.begin();
+    USB.begin();
 
+    
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
+  }catch(CoreException &ce){
+      ce.halt();
+  }
+}
 
+static void GraphicsTask(void *parm){
+  while(!coreTwo){delay(1000);}
+  //initer.semaphoreInit();
 
+  
+  
 
+  
+  coreOne = true;
+  
+  while (1) {
+    //if(xSemaphoreTake(xSemaphore, 0) == pdTRUE){
 
+      
+      
+      //vTaskDelay(pdMS_TO_TICKS(10));
+      //Serial.printf("%d Comms Task\n", xPortGetCoreID());
+      //xSemaphoreGive(xSemaphore);
+   // }else{
+    //  Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
+    //}
+  }
+}
 
+static void StorageTask(void *parm){  
+  Serial.printf("Setting up Storage\n");
+  /*if(!initer.setupSD()){
+    while(1){
+        Serial.printf("SD FAILURE.\n");
+        delay(2000);
+    }
+  }*/
+  coreThree = true;
+  while(1){
+      if(storage.fetchTask()){
+        storage.runTask();
+      }
+    delay(150);
+  }
+}
 
+static void CommsTask(void *parm){
+  
+  
+  coreTwo = true;
 
+  while(1){
+    //if(comms.fetchTask()){
+    //  comms.runTask();
+    //}
+   // if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+      
+     /*
+      if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
+        Serial.printf("Received the message : [%d] ", loraSnake.lrsPacket.data_size);
+      }*/
+      //vTaskDelay(pdMS_TO_TICKS(10));
+      //Serial.printf("%d Comms Task\n", xPortGetCoreID());
+     /* xSemaphoreGive(xSemaphore);
+    }else{
+      Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
+    }*/
+    delay(2000);
+  }
+}
 
+static void UserInputTask(void *parm){
+  Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+  //initer.touchscreenInit();
+  
+  
+  kbDected = checkKb();
+  if(kbDected){
+    Serial.printf("Keyboard initalized...\n");
+  }else{
+    Serial.printf("No Keyboard found.\n");
+  }
+  
+  while(1){
+  /*getInput();
+  /*if(userBufferSize > 0){
+    if(keyboardFocusedObj != NULL){
+      Serial.printf("input : ");
+      for(int i=0;  i<userBufferSize; i++)
+        Serial.printf("%c", userBuffer[i]);
+      Serial.printf("\n");
+      PalcomTextarea textarea;
+      textarea.setObject(keyboardFocusedObj);
+      textarea.setText((const char *)userBuffer);
+    }
+  }
+  if(processInput()){
+    clearInput();
+  }*/
+    
+    
+    /*if(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) == pdTRUE){
+      vTaskDelay(pdMS_TO_TICKS(10));
+      //Serial.printf("%d Storage Task\n", xPortGetCoreID());
+      xSemaphoreGive(xSemaphore);
+    }else{
+      Serial.printf("%d semaphore failed\n", xPortGetCoreID());
+    }*/
+    delay(20);
+  }
+}
 
+void loop(){
+  
+    
+      if(graphics.fetchTask()){
+        graphics.runTask();
+        graphics.exec(true);
+      }else{
+        graphics.exec(false);
+      }
+      lv_tick_inc(5);
 
+      
+      if(comms.fetchTask()){
+        tft.deInitDMA();
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
+        Serial.printf("Running Comms Task\n");
+        comms.runTask();
+
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+        tft.initDMA();
+      }
+
+      if(storage.fetchTask()){
+        tft.deInitDMA();
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
+        Serial.printf("Running Storage Task\n");
+        storage.runTask();
+
+        SPI.end();
+        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+        tft.initDMA();
+      }
+   /* if(comms.fetchTask()){
+      comms.runTask();
+    }*/
+      //pds.run();
+ /* getInput();
+  if(userBufferSize > 0){
+    Serial.printf("input : ");
+    for(int i=0;  i<userBufferSize; i++)
+      Serial.printf("%c", userBuffer[i]);
+    Serial.printf("\n");
+  }
+  if(processInput()){
+    if(!loraSnake.send(userBuffer, userBufferSize-1)){
+      Serial.printf("Failed to send message.\n");
+    }else{
+      Serial.printf("Sent : [%d] \n", userBufferSize-1);
+    }
+    loraSnake.listenStart();
+    
+    clearInput();
+  }
+  if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
+    Serial.printf("Received the message : [%d] ", 
+                  loraSnake.lrsPacket.data_size);
+
+    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
+      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
+    }
+    Serial.printf("\n");
+    for(int i=0; i<256; i++)
+      loraSnake.lrsPacket.data[i] = 0;
+    loraSnake.lrsPacket.data_size = 0;
+  }*/
+
+  delay(5);
+}

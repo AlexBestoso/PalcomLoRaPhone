@@ -18,7 +18,7 @@ class PalcomLabel : public PalcomObject{
     		 * LV_LABEL_LONG_EXPAND, LV_LABEL_LONG_BREAK, LV_LABEL_LONG_DOT,
     		 * LV_LABEL_LONG_SCROLL, LV_LABEL_LONG_SCROLL_CIRC, LV_LABEL_LONG_CROP
     		 */
-    		void setLongMode(int mode){
+    		void setLongMode(lv_label_long_mode_t mode){
       			lv_label_set_long_mode(this->getObject(), mode);
     		}
 

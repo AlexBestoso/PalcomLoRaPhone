@@ -1,25 +1,38 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 0.2.8 Beta</code>
+<code>version 1.0.100 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
-<li>New setup page for first time logins.</li>
-<li>New storage system for confidential data and public data.</li>
-<li>New login page is in place</li>
-<li>New main menu is in place</li>
-<li>Added the 'About' page.</li>
-<li>Upgraded LVGL from 8.3 to 9.1</li>
-<li>Implemented working menu class</li>
-<li>Fixed Texareas failing to inject keyboard input</li>
-<li>Added factory reset to settings page</li>
-<li>Added change passcode to settings page</li>
-<li>Minor bug fixes in setup page</li>
-<li>Added brightness slider to settings page</li>
-<li>Implemented Paranoia Mode</li>
-<li>Implemented failed login lockout</li>
-<li>Implemented AES encryption and decryption.</li>
-<li>Refactored setup page's crypto system.</li>
-<li>Corrected graphics fragments in the setup page.</li>
-<li>Added phone number generation and storage.</li>
+<li>Major changes to entire system archetecture</li>
+<li>Phone currently can only send messages using the serial interface</li>
+<li>Uses updated RadioLib library; implemented as the LoRaSnake class, library refinement</li>
+<li>Device initaliziation successfully implemented.</li>
+<li>SPI Bugs fixed. Core slave devices seperated by CPU Core</li>
+<li>ROS Tasks implemented</li>
+<li>Major Code Refactor</li>
+<li>Added new tile system</li>
+<li>updated all code libraries in use</li>
+<li>added secret picture of my penis</li>
+<li>added gitignore</li>
+<li>Fixed bug that prevented TFT and RADIOLIB libraries from working togeather.</li>
+<li>Implemented simulated transiver mode for the lora chip. lora send/recv now wroks more reliably.</li>
+<li>Created first usage of the SD storage tasks.</li>
+<li>Extended the PalcomObject class to use the PalcomStyle class. Makes styleing less complex.</li>
+<li>Added PalcomLine Widged.</li>
+<li>Added class for drawing triangles</li>
+<li>Completed the mode selection screen. Remvoed triangles</li>
+<li>Implemented bassic mesh mode message storage.</li>
+<li>Implemented stored message retreival and implemented a system for orienting displayable messages.</li>
+<li>Sent messages can now be displayed</li>
 </ol>
+
+<h3>TODO:</h3>
+<hr/>
+<ul>
+<li>finish the message display code</li>
+<li>Design logic for when there is and is not a SD card</li>
+<li>Rafactor code to use proper #include syntax</li>
+<li>Move graphics, comms, and storage task handlers into concurrent callbacks</li>
+<li>Impleent the settings and about GUI screens.</li>
+</ul>

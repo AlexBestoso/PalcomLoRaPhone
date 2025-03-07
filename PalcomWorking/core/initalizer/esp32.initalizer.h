@@ -1,3 +1,6 @@
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
 static void Setup_setRxFlag(void){
       	rxFlag = true;
 }
@@ -8,6 +11,20 @@ static void Setup_setTxFlag(void){
         transmissionFlag = false;
 }
 
+static uint32_t keypad_get_key(void){
+                        char key_ch = 0;
+                        Wire.requestFrom(0x55, 1);
+                        while(Wire.available() > 0){
+                                key_ch = Wire.read();
+                                if(key_ch != (char)0x00){
+                                        if(playHandle){
+                                                vTaskResume(playHandle);
+                                        }
+                                }
+                        }
+                        return key_ch;
+                }
+
 class ESP32Initalizer{
 	private:
 		lv_timer_t *timer = NULL;
@@ -16,6 +33,9 @@ class ESP32Initalizer{
 		lv_indev_t *indev_keypad = NULL;
 		lv_indev_t *indev_mouse = NULL;
 		lv_obj_t *cursorImg = NULL;
+
+		
+
 		/*
 		 * Private functions
 		 * */
@@ -34,6 +54,7 @@ class ESP32Initalizer{
 			
 			pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
 			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+			//vvpi.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
 		}
 
 		void miscInit(void){
@@ -42,6 +63,8 @@ class ESP32Initalizer{
                         pinMode(BOARD_TBOX_G01, INPUT_PULLUP);
                         pinMode(BOARD_TBOX_G04, INPUT_PULLUP);
                         pinMode(BOARD_TBOX_G03, INPUT_PULLUP);
+			pinMode(42, OUTPUT); // TFT BACKLIGHT
+			digitalWrite(42, HIGH); // Force backlight to stay on.
 		}
 
 		void wakupTouchInit(void){
@@ -112,8 +135,7 @@ class ESP32Initalizer{
                 }
 
 		static uint32_t callback_calcTick(void){
-			lv_tick_inc(5);
-			return esp_timer_get_time() / 1000;
+			return millis();
 		}
 
 		static void disp_flush( lv_display_t *disp, const lv_area_t *area, unsigned char *color_p ){
@@ -125,13 +147,12 @@ class ESP32Initalizer{
                                 Serial.printf("Semaphore is null\n");
                                 return;
                         }
-
                         if( xSemaphoreTake( xSemaphore, portMAX_DELAY ) == pdTRUE ){
-				lv_draw_sw_rgb565_swap((void *)color_p, s);
-
+				//tft.begin();
+				//lv_draw_sw_rgb565_swap((void *)color_p, s);
                                 tft.startWrite();
                                 tft.setAddrWindow( area->x1, area->y1, w, h );
-				tft.pushPixels((void *)color_p, w*h);
+				tft.pushPixelsDMA((uint16_t *)color_p, w*h);
                                 tft.endWrite();
                                 lv_disp_flush_ready( disp );
                                 xSemaphoreGive( xSemaphore );
@@ -189,10 +210,11 @@ class ESP32Initalizer{
 					PalcomTextarea kfo;
 					kfo.setObject(keyboardFocusedObj);
 					if(kfo.stateInUse(LV_STATE_FOCUSED)){
-						if(last_key == LV_KEY_BACKSPACE)
+						if(last_key == LV_KEY_BACKSPACE){
 							kfo.popCharLeft();
-						else
+						}else{
 							kfo.pushChar(last_key);
+						}
 					}
 
 				}
@@ -202,19 +224,7 @@ class ESP32Initalizer{
                         data->key = last_key;
                 }
 
-		static uint32_t keypad_get_key(void){
-                        char key_ch = 0;
-                        Wire.requestFrom(0x55, 1);
-                        while(Wire.available() > 0){
-                                key_ch = Wire.read();
-                                if(key_ch != (char)0x00){
-                                        if(playHandle){
-                                                vTaskResume(playHandle);
-                                        }
-                                }
-                        }
-                        return key_ch;
-                }
+		
 
 		static void mouse_read(lv_indev_t *indev, lv_indev_data_t *data){
                         static  int16_t last_x;
@@ -278,7 +288,10 @@ class ESP32Initalizer{
 		void setupKeyboardDevice(void){
 			indev_keypad = lv_indev_create();
                         if(indev_keypad == NULL){
-                                throw CoreException("ESP32Initalizer::lvglInit() - Failed to create keypad input device.", 0x04);
+                                while(1){
+					Serial.printf("ESP32Initalizer::lvglInit() - Failed to create keypad input device.\n");
+					delay(1000);
+				}
                         }
                         lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
                         lv_indev_set_read_cb(indev_keypad, &keypad_read);
@@ -299,14 +312,19 @@ class ESP32Initalizer{
 		}
 	public:	
 		void pinInit(void){
-			Serial.begin(115200);
 			this->powerInit();
+			delay(20);
 			this->spiInit();
+			delay(20);
 			this->miscInit();
+			delay(20);
 			this->wakupTouchInit();
+			delay(20);
 		}
 		
 		void aceButtonInit(void){
+                        Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+			delay(20);
 			button.init();
 			ButtonConfig *buttonConfig = button.getButtonConfig();
                         buttonConfig->setEventHandler(callback_acebutton);
@@ -322,10 +340,12 @@ class ESP32Initalizer{
 		}
 
 		void lcdInit(void){
+			delay(20);
 			tft.begin();
                         tft.setRotation( 1 );
+			tft.setSwapBytes(false);
                         tft.fillScreen(TFT_BLACK);
-                        Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+			tft.initDMA();
 		}
 
 		void touchscreenInit(void){
@@ -339,24 +359,21 @@ class ESP32Initalizer{
 		}
 
 		void lvglInit(void){
-			lv_tick_set_cb(&callback_calcTick);
 			lv_init();
-			Serial.printf("Creating display...\n");
+			lv_tick_set_cb(&callback_calcTick);
+			draw_buf = (lv_color_t *)ps_malloc(LVGL_BUFFER_SIZE);
+			if(draw_buf == NULL){
+				throw CoreException("ESP32Initalizer::lvglInit() - Failed to allowcate draw buffer in PSRAM.", 0x02);
+			}
 			display = lv_display_create(TFT_WIDTH, TFT_HEIGHT);
 			if(display == NULL){
 				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create Display", 0x01);
 			}
 			lv_display_set_resolution(display, SCREEN_HOR, SCREEN_VIR);
 			lv_display_set_color_format(display, LV_COLOR_FORMAT_RGB565);
-			Serial.printf("Creating draw buffer...\n");
-			draw_buf = (lv_color_t *)ps_malloc(LVGL_BUFFER_SIZE);
-			if(draw_buf == NULL){
-				throw CoreException("ESP32Initalizer::lvglInit() - Failed to allowcate draw buffer in PSRAM.", 0x02);
-			}
 			lv_display_set_buffers(display, draw_buf, NULL, sizeof(draw_buf)*LVGL_BUFFER_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
 			lv_display_set_flush_cb(display, &disp_flush);
 
-			Serial.printf("Creating touchpad input device.\n");
 			indev_touchpad = lv_indev_create();
 			if(indev_touchpad == NULL){
 				throw CoreException("ESP32Initalizer::lvglInit() - Failed to create touchpad input device.", 0x03);
@@ -364,21 +381,28 @@ class ESP32Initalizer{
 			lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
 			lv_indev_set_read_cb(indev_touchpad, &touchpad_read);
 
-			Serial.printf("Creating keyboard input device.\n");
 			this->setupKeyboardDevice();
 
-			Serial.printf("Creating mouse input device.\n");
-			this->setupMouseDevice();
+			//this->setupMouseDevice();
 		}
 
 		bool setupSD(){
-                        digitalWrite(BOARD_SDCARD_CS, HIGH);
-                        digitalWrite(RADIO_CS_PIN, HIGH);
-                        digitalWrite(BOARD_TFT_CS, HIGH);
-
-                        if(SD.begin(BOARD_SDCARD_CS, SPI, 800000U)){
+			while(xSemaphoreTake(xSemaphore, 2000*portTICK_PERIOD_MS) != pdTRUE){delay(100);}
+			tft.deInitDMA();
+			SPI.end();
+			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+			delay(2000);
+                        if(SD.begin(BOARD_SDCARD_CS)){
+				xSemaphoreGive(xSemaphore);
                                 uint8_t cardType = SD.cardType();
+                                uint32_t cardSize = SD.cardSize() / (1024 * 1024);
+                                uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
+                                uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
+
                                 if(cardType == CARD_NONE){
+					SPI.end();
+					SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+					tft.initDMA();
                                         Serial.println("No SD_MMC card attached");
                                         return false;
                                 }else{
@@ -392,107 +416,36 @@ class ESP32Initalizer{
                                         }else{
                                                 Serial.println("UNKNOWN");
                                         }
-                                        uint32_t cardSize = SD.cardSize() / (1024 * 1024);
-                                        uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
-                                        uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
                                         Serial.printf("SD Card Size: %lu MB\n", cardSize);
                                         Serial.printf("Total space: %lu MB\n",  cardTotal);
                                         Serial.printf("Used space: %lu MB\n",   cardUsed);
+					SPI.end();
+					SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+					tft.initDMA();
                                         return true;
                                 }
-                        }
+                        }else{
+				Serial.printf("Failed to start SD card.\n");
+			}
+			xSemaphoreGive(xSemaphore);
+			SPI.end();
+			SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);	
+			tft.initDMA();
                         return false;
                 }
 
 		bool setupRadio(){
-                        digitalWrite(BOARD_SDCARD_CS, HIGH);
-                        digitalWrite(RADIO_CS_PIN, HIGH);
-                        digitalWrite(BOARD_TFT_CS, HIGH);
-                        SPI.end();
-                        SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI); //SD
-
-                        int state = radio.begin(RADIO_FREQ);
-                        if(state == RADIOLIB_ERR_NONE){
-                                Serial.println("Start Radio success!");
-                        }else{
-                                Serial.print("Start Radio failed,code:");
-                                Serial.println(state);
-                                return false;
-                        }
-
-                        hasRadio = true;
-
-                        // set carrier frequency to 868.0 MHz
-                        if(radio.setFrequency(RADIO_FREQ) == RADIOLIB_ERR_INVALID_FREQUENCY){
-                                Serial.println(F("Selected frequency is invalid for this module!"));
-                                return false;
-                        }
-
-                        // set bandwidth to 250 kHz
-                        if(radio.setBandwidth(250.0) == RADIOLIB_ERR_INVALID_BANDWIDTH){
-                                Serial.println(F("Selected bandwidth is invalid for this module!"));
-                                return false;
-                        }
-
-                        // set spreading factor to 10
-                        if(radio.setSpreadingFactor(10) == RADIOLIB_ERR_INVALID_SPREADING_FACTOR){
-                                Serial.println(F("Selected spreading factor is invalid for this module!"));
-                                return false;
-                        }
-
-                        // set coding rate to 6
-                        if(radio.setCodingRate(6) == RADIOLIB_ERR_INVALID_CODING_RATE){
-                                Serial.println(F("Selected coding rate is invalid for this module!"));
-                                return false;
-                        }
-
-			// set LoRa sync word to 0xAB
-                        if(radio.setSyncWord(0xAB) != RADIOLIB_ERR_NONE){
-                                Serial.println(F("Unable to set sync word!"));
-                                return false;
-                        }
-
-                        // set output power to 10 dBm (accepted range is -17 - 22 dBm)
-                        if(radio.setOutputPower(17) == RADIOLIB_ERR_INVALID_OUTPUT_POWER){
-                                Serial.println(F("Selected output power is invalid for this module!"));
-                                return false;
-                        }
-
-                        // set over current protection limit to 140 mA (accepted range is 45 - 140 mA)
-                        // NOTE: set value to 0 to disable overcurrent protection
-                        if(radio.setCurrentLimit(140) == RADIOLIB_ERR_INVALID_CURRENT_LIMIT){
-                                Serial.println(F("Selected current limit is invalid for this module!"));
-                                return false;
-                        }
-
-                        // set LoRa preamble length to 15 symbols (accepted range is 0 - 65535)
-                        if(radio.setPreambleLength(15) == RADIOLIB_ERR_INVALID_PREAMBLE_LENGTH){
-                                Serial.println(F("Selected preamble length is invalid for this module!"));
-                                return false;
-                        }
-
-                        // disable CRC
-                        if(radio.setCRC(false) == RADIOLIB_ERR_INVALID_CRC_CONFIGURATION){
-                                Serial.println(F("Selected CRC is invalid for this module!"));
-                                return false;
-                        }
-
-			// set the function that will be called
-                        // when new packet is received
-                        //radio.setDio1Action(Setup_setTxFlag);
-                        //radio.setPacketSentAction(Setup_setTxFlag);
-                        radio.setPacketReceivedAction(Setup_setRxFlag);
-
-                        int err = radio.startReceive();
-                        if(state == RADIOLIB_ERR_NONE){
-                                Serial.println(F("success!"));
-                        }else{
-                                Serial.print(F("failed, code "));
-                                Serial.println(state);
-                                while (true);
-                        }
-                        // Run listen mode by default
-                        return true;
+			Serial.printf("Starting lora snake.\n");
+   			bool err = loraSnake.init();
+			if(err == false){
+    				while(1){
+      					Serial.printf("Failed to initalize LoRa system.\n");
+      					delay(1000);
+    				}
+  			}else{
+				Serial.printf("Setup Victorious.\n");
+			}
+			return true;
                 }
 
 		lv_group_t *getKeyboardGroup(void){

@@ -72,6 +72,9 @@ class PalcomScreen{
     		}
 
     		void setFullScreen(void){
+			if(this->screen == NULL){
+				while(1){Serial.printf("FUCKL\n");delay(1000);}
+			}
       			lv_obj_set_size(this->screen, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
     		}
 
@@ -85,7 +88,7 @@ class PalcomScreen{
     		 * LV_DIR_VER,
     		 * LV_DIR_ALL
     		 */
-    		void setScreenScrollDirection(int direction){
+    		void setScreenScrollDirection(lv_dir_t direction){
       			lv_obj_set_scroll_dir(this->screen, direction);
     		}
 		/*
@@ -117,10 +120,14 @@ class PalcomScreen{
                         lv_img_set_offset_y(this->bgImage, offset);
                 }
     
-		void execute(){
+		void execute(void){
+			//Serial.printf("Task handler.\n");
 			lv_task_handler();
-			lv_timer_handler();
+			//lv_timer_handler();
 			lv_tick_inc(5);
+		}
+		void e(void){
+			execute();
 		}
 
 		virtual void generateObjects(){
@@ -134,4 +141,23 @@ class PalcomScreen{
                 void unsetFlag(lv_obj_flag_t f){
                         lv_obj_clear_flag(this->screen, f);
                 }
+		
+		bool buildCheck(void){
+			if(this->getBuildRequired()){
+                                this->setBuildRequired(false);
+                                this->load();
+				return true;
+                        }
+			return false;
+		}
+
+		lv_obj_t *genScreen(void){
+			lv_obj_t *screen = this->getScreen();
+                        if(screen == NULL){
+                                this->globalDestroy();
+                                this->create();
+                                screen = this->getScreen();
+                        }
+			return screen;
+		}
 };

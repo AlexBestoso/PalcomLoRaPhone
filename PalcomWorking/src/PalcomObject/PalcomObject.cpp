@@ -504,3 +504,11 @@ int PalcomObject::getStylePaddingLeft(void){
 void PalcomObject::setFlexGrow(int v){
 	lv_obj_set_flex_grow(this->getObject(), v);
 }
+
+int32_t PalcomObject::getHeight(void){
+	//return lv_obj_get_height(this->getObject());
+	return lv_obj_get_self_height(this->getObject());
+}
+void PalcomObject::setHeight(uint32_t height){
+	lv_obj_set_height(this->getObject(), height);
+}

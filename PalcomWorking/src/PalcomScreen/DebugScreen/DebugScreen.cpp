@@ -192,8 +192,12 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 		message.generate(msgLogContainer.getObject(), pal_base);
 		message.setSize(90, 30);
 		message.setAlignment(LV_ALIGN_TOP_RIGHT, 0, (60*i)+(10*i));
+		message.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+		//message.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 		
 		label.create(message.getObject());
+		label.setLongMode(LV_LABEL_LONG_WRAP);
+		label.setWidth(90*3);
 		String msg = displayed_messages[i]+1;
 		label.setText(msg.c_str());
 		

@@ -52,12 +52,21 @@ bool Graphics::runTask(void){
 			return true;
 		break;
 		case GRAPHICS_INSTR_PUSH_MSGM:{
+			for(int i=0; i<MSG_DISPLAY_MAX; i++){
+				if(displayed_messages[i][0] >= 2){
+					for(int j=1; j<MSG_BUFFER_MAX; j++) displayed_messages[i][j] = this->task.msg[j-1];
+					displayed_messages[i][0] = 1;
+					return true;
+				}
+			}
+
+			// All spaces were filled, remove and shift down.
                         Serial.printf("Pushing my sent message to the display...\n");
 			for(int i=0; i<MSG_DISPLAY_MAX-1; i++){  
-				for(int j=0; j<MSG_BUFFER_MAX; j++) displayed_messages[i+1][j] = displayed_messages[i][j];
+				for(int j=0; j<MSG_BUFFER_MAX; j++) displayed_messages[i][j] = displayed_messages[i+1][j];
 			}
 			
-			for(int i=1; i<MSG_BUFFER_MAX; i++) displayed_messages[0][i] = this->task.msg[i-1];
+			for(int i=1; i<MSG_BUFFER_MAX; i++) displayed_messages[9][i] = this->task.msg[i-1];
 			displayed_messages[0][0] = 1;
 
                 }

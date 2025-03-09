@@ -117,7 +117,6 @@ bool Storage::refreshMsg(void){
 		return false;
 	}else if(msgCount <= 10){
 		this->_fd = SD.open("/msgCache", FILE_READ);
-			Serial.printf("Opened cache %ld bytes (%d messages)\n", (long)this->_fd.size(), msgCount);
 			int track = 0;
 			for(int i=0; i<this->_fd.size() && track < 10; i+=257){
 				
@@ -135,6 +134,29 @@ bool Storage::refreshMsg(void){
 				}
 				Serial.printf("\n");
 				track++;
+			}
+		this->_fd.close();
+	}else{ // msg count is > 10
+		Serial.printf("fetching paginated results.\n");	
+		this->_fd = SD.open("/msgCache", FILE_READ);
+			int track = 9;
+			size_t fdSize = this->_fd.size();
+			for(int i=(fdSize-1)-257; i>-1 && track > -1; i-=257){
+				if(this->_fd.seek(i) == 0){
+					Serial.printf("[E] Storage read seek error.\n");
+				}
+				Serial.printf("Positiion : %d\t", this->_fd.position());
+				char buf[257];
+				if(this->_fd.read((uint8_t*)buf, 257) == -1){
+                                        Serial.printf("[E] Storage Read error.\n");
+                                }
+
+				for(int j=0; j<257; j++){
+					displayed_messages[track][j] = buf[j];
+					Serial.printf("%c", buf[j]);
+				}
+				Serial.printf("\n");
+                                track--;
 			}
 		this->_fd.close();
 	}

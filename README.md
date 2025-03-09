@@ -1,10 +1,11 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.1.0 Gamma</code>
+<code>version 1.1.1 Gamma</code>
 
 <h2>Change Log</h2>
 <ol>
 <li>Updated version to 1.1.x</li>
+<li>Fixed fetch messages code so that it can display beyond an interation count of 10.</li>
 </ol>
 
 <h3>TODO:</h3>

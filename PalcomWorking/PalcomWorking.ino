@@ -246,7 +246,7 @@ void setup(void){
     USB.begin();
 
     
-    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
+    //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
   }catch(CoreException &ce){
       ce.halt();
   }

@@ -178,25 +178,41 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	msgLogContainer.setSize(100, 100);
 	msgLogContainer.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);	
 	msgLogContainer.setScrollMode(LV_SCROLLBAR_MODE_OFF);
-	msgLogContainer.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	msgLogContainer.setFlag(LV_OBJ_FLAG_SCROLLABLE);
 
 	/*
 	 * Draw Messages
 	 * */
+	int lastSpot = 0;
 	for(int i=0; i<10; i++){
 		if(displayed_messages[i][0] >= 2){
 			continue;
 		}
+		lastSpot = i;
 		message.generate(msgLogContainer.getObject(), pal_base);
-		message.setSize(90, 30);
-		message.setAlignment(LV_ALIGN_TOP_RIGHT, 0, (60*i)+(10*i));
+		message.setSize(80, 30);
+		message.setAlignment((displayed_messages[i][0] == 1) ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT, 0, (60*i)+(10*i));
+		message.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+		//message.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 		
 		label.create(message.getObject());
-		String msg = displayed_messages[i]+1;
+		label.setLongMode(LV_LABEL_LONG_WRAP);
+		label.setWidth(75*3);
+		String msg = "";
+		for(int j=0; j<256; j++){
+			if(j < 2 && displayed_messages[i][j] < 2)
+				continue;
+			msg += displayed_messages[i][j];
+			
+		}
 		label.setText(msg.c_str());
-		Serial.printf("Drawing message %d : %s\n", i, msg.c_str());
 		
 	}
+	message.generate(msgLogContainer.getObject(), pal_base);
+        message.setSize(90, 30);
+        message.setAlignment(LV_ALIGN_TOP_RIGHT, 0, (60*(lastSpot+1))+(10*(lastSpot+1)));
+	message.setStyleBgOpacity(-1);
+	lv_obj_scroll_to_view(message.getObject(), (lv_anim_enable_t)false);
 
 	/*
 	 * Message sender box

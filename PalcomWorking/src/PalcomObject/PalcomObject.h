@@ -22,6 +22,9 @@ class PalcomObject : public PalcomStyle{
 		int getObjectId(void);
 		void setObjectId(int id);
 
+		int32_t getHeight(void);
+		void setHeight(uint32_t height);
+
 		void destroy(void);
 		void create(lv_obj_t *parent);
                 void createGlobal(lv_obj_t *parent, uint id);

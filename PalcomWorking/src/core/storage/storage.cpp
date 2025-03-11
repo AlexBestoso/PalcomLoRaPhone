@@ -54,28 +54,8 @@ bool Storage::storeMessage(bool mine){
 	
 	// debugging
 	size_t cacheSize = this->getCacheSize();
-	if(SD.exists("/msgCache")){
-		//this->_fd = SD.open("/msgCache", FILE_READ);
-			//cacheSize = this->_fd.size();
-//		this->_fd.close();
-	}
 	Serial.printf("Message Cache Size %ld \t %ld\n", cacheSize, cacheSize/257);
 	
-	/*size_t msgCount = 0;
-	char msgCountBuffer[7];
-	if(SD.exists("/msgCount")){
-		memset(msgCountBuffer, '\0', 7);
-		this->_fd = SD.open("/msgCount", FILE_READ);
-			size_t fSize = this->_fd.size();
-			fSize = fSize >= 8 ? 7 : fSize;
-			this->_fd.read((uint8_t*)msgCountBuffer, fSize);
-		this->_fd.close();
-		String conv = (const char *)msgCountBuffer;
-		msgCount = conv.toInt();
-
-		Serial.printf("Detected %d messages\n", (int)msgCount);	
-	}*/
-
 	char msgCacheBuffer[257];
 	memset(msgCacheBuffer, 'a', 257);
 	msgCacheBuffer[0] = mine ? 1 : 0;
@@ -84,28 +64,11 @@ bool Storage::storeMessage(bool mine){
 		msgCacheBuffer[i+1] = this->task.msg[i];
 	}
 
-	Serial.printf("Store Debug: ");
-	for(int i=0; i<257; i++){
-		Serial.printf("%c", msgCacheBuffer[i]);
-	}
-	Serial.printf("\n");
 	this->_fd = SD.open("/msgCache", FILE_WRITE);
 		this->_fd.seek(cacheSize);
 		if(this->_fd.write((uint8_t *)msgCacheBuffer, 257) != 257)
 			Serial.printf("[E] Partial data storage\n");
-		else
-			Serial.printf("Message stored.\n");
 	this->_fd.close();
-//	cacheSize+=257;
-	
-//	msgCount = cacheSize/257;
-//	String conv = String(msgCount);
-
-//	SD.remove("/msgCount");
-//	this->_fd = SD.open("/msgCount", FILE_WRITE);
-//		this->_fd.write((uint8_t*)conv.c_str(), conv.length());
-//	this->_fd.close();
-
 	this->relayMsgToDisplay(mine);
 	return true;
 }
@@ -117,24 +80,40 @@ bool Storage::refreshMsg(void){
 		return false;
 	}else if(msgCount <= 10){
 		this->_fd = SD.open("/msgCache", FILE_READ);
-			Serial.printf("Opened cache %ld bytes (%d messages)\n", (long)this->_fd.size(), msgCount);
 			int track = 0;
 			for(int i=0; i<this->_fd.size() && track < 10; i+=257){
 				
-				if(this->_fd.seek(i) == 0){
+				if(this->_fd.seek(i+1) == 0){
 					Serial.printf("[E] Storage Read Seek Error.\n");
 				}
-				Serial.printf("Positiion : %d\t", this->_fd.position());
 				char buf[257];
 				if(this->_fd.read((uint8_t*)buf, 257) == -1){
 					Serial.printf("[E] Storage Read error.\n");
 				}
 				for(int j=0; j<257; j++){
 					displayed_messages[track][j] = buf[j];
-					Serial.printf("%c", buf[j]);
 				}
-				Serial.printf("\n");
 				track++;
+			}
+		this->_fd.close();
+	}else{ // msg count is > 10
+		Serial.printf("fetching paginated results.\n");	
+		this->_fd = SD.open("/msgCache", FILE_READ);
+			int track = 9;
+			size_t fdSize = this->_fd.size();
+			for(int i=(fdSize-1)-257; i>-1 && track > -1; i-=257){
+				if(this->_fd.seek(i+1) == 0){
+					Serial.printf("[E] Storage read seek error.\n");
+				}
+				char buf[257];
+				if(this->_fd.read((uint8_t*)buf, 257) == -1){
+                                        Serial.printf("[E] Storage Read error.\n");
+                                }
+
+				for(int j=0; j<257; j++){
+					displayed_messages[track][j] = buf[j];
+				}
+                                track--;
 			}
 		this->_fd.close();
 	}

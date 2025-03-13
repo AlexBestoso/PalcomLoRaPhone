@@ -1,4 +1,5 @@
 #include "./ButtonStyle.h"
+#include <src/PalcomObject/Tileview/Tileview.h>
 
 #define PALMSG_MODE_MESH 0
 #define PALMSG_MODE_NODE 1
@@ -17,6 +18,10 @@ class PalcomDebugScreen : public PalcomScreen{
 		
 		PalcomTriangle triangle;
 
+		
+		PalcomTileview tileView;
+		lv_obj_t *tile1, *tile2, *tile3, *tile4;
+
 		static void toggleMeshMode(lv_event_t *e);
 		static void toggleNodeMode(lv_event_t *e);
 		static void toggleUsbMode(lv_event_t *e);
@@ -24,6 +29,7 @@ class PalcomDebugScreen : public PalcomScreen{
 
 		void buildHomepage(lv_obj_t *target);
 		void buildModeSelect(lv_obj_t *target);
+		void buildSettingspage(lv_obj_t *target);
 
 
 		bool debugBool = false;

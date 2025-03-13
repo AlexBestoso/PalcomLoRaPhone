@@ -192,7 +192,7 @@ String loraListenRes = "";
 void setup(void){
   Serial.begin(115200);
   delay(2000);
-  Serial.printf("[Palcoms L1.0] \n");
+  Serial.printf("[Palcoms 1.1.3 Alpha] \n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);

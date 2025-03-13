@@ -23,6 +23,11 @@ bool Comms::pop(void){
         return true;
 }
 
+bool Comms::sendMsgNode(void){
+	Serial.printf("Comms::sendMsg - Node not Configured!\n");
+	return true;
+}
+
 bool Comms::sendMsg(void){
 	if(xSemaphore == NULL){
        		Serial.printf("Comms::sendMsg - Semaphore is null\n");
@@ -108,6 +113,9 @@ bool Comms::runTask(void){
                 break;
 		case COMMS_INSTR_RECV:
 			return this->recvMsg();
+		break;
+		case COMMS_INSTR_SEND_NODE:
+			return this->sendMsgNode();
 		break;
         }
         return false;

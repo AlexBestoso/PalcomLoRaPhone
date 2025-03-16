@@ -30,6 +30,7 @@ class PalcomDebugScreen : public PalcomScreen{
 		void buildHomepage(lv_obj_t *target);
 		void buildModeSelect(lv_obj_t *target);
 		void buildSettingspage(lv_obj_t *target);
+		void buildAboutpage(lv_obj_t *target);
 
 
 		bool debugBool = false;

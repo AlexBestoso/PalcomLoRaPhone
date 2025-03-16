@@ -396,39 +396,6 @@ void loop(){
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
         tft.initDMA();
       }
-   /* if(comms.fetchTask()){
-      comms.runTask();
-    }*/
-      //pds.run();
- /* getInput();
-  if(userBufferSize > 0){
-    Serial.printf("input : ");
-    for(int i=0;  i<userBufferSize; i++)
-      Serial.printf("%c", userBuffer[i]);
-    Serial.printf("\n");
-  }
-  if(processInput()){
-    if(!loraSnake.send(userBuffer, userBufferSize-1)){
-      Serial.printf("Failed to send message.\n");
-    }else{
-      Serial.printf("Sent : [%d] \n", userBufferSize-1);
-    }
-    loraSnake.listenStart();
-    
-    clearInput();
-  }
-  if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
-    Serial.printf("Received the message : [%d] ", 
-                  loraSnake.lrsPacket.data_size);
-
-    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
-      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
-    }
-    Serial.printf("\n");
-    for(int i=0; i<256; i++)
-      loraSnake.lrsPacket.data[i] = 0;
-    loraSnake.lrsPacket.data_size = 0;
-  }*/
 
   delay(5);
 }

@@ -73,7 +73,6 @@ bool Comms::recvMsg(void){
                 return false;
         }
 	bool ret = false;
-	Serial.printf("Processing recv task.\n");
 	if(loraSnake.readRecv() == 1){
 		struct task_queue_task tmp;
 		tmp.to = TASK_SPACE_STORAGE;
@@ -84,9 +83,7 @@ bool Comms::recvMsg(void){
 		for(int i=0; i<loraSnake.lrsPacket.data_size && i < 256; i++)
 			tmp.msg[i] = loraSnake.lrsPacket.data[i];
 		
-		Serial.printf("Pushing storage task...\n");
 		taskQueue.push(tmp);
-		Serial.printf("Message storage queued. - ");		
 
 		Serial.printf("%ld bytes : \n\t", loraSnake.lrsPacket.data_size);
 	}

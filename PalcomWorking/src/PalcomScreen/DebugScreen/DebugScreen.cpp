@@ -54,9 +54,23 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 		t.from = TASK_SPACE_GRAPHICS;
 		t.instruction = palcome_message_mode == 1 ? COMMS_INSTR_SEND_NODE : COMMS_INSTR_SEND;
 		const char *msg = textarea.getText();
-		for(int i=0; i<256 && i<textarea.getTextSize(); i++){
-			t.msg[i] = msg[i];
+
+		switch(palcome_message_mode){
+			case 1:{ // Node Mode
+				Serial.printf("Sending Message to Node.\n");
+			}
+			break;
+			case 2:{
+			}
+			break;
+			default:{
+				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
+					t.msg[i] = msg[i];
+				}
+			}
+			break;
 		}
+		
 		taskQueue.push(&t);
 	
 		textarea.setText("");
@@ -239,31 +253,58 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	label.center();
 	label.setText(LV_SYMBOL_RIGHT);
 }
+
+void PalcomDebugScreen::buildAboutpage(lv_obj_t *target){
+	PalcomObject background;
+	PalcomLabel label;
+
+	background.generate(target, pal_base);
+	background.setDefaultStyle(this->msgSenderStyle.getStyle2());
+	background.setSize(100, 100);
+	background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
+	background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+	background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
+	String text = "BT Palcom Messenger\nVersion: ";
+	text += SYS_VERSION;
+	label.create(background.getObject());
+    	label.setText(text.c_str());
+    	label.center();
+
+	
+}
 	
 void PalcomDebugScreen::buildSettingspage(lv_obj_t *target){
 	 PalcomLabel label;
-switch(palcome_message_mode){
-case 1:{
-	label.create(target);
-    	label.setText("Node Settings");
-    	label.center();
+	PalcomObject background;
 
-}
-break;
-case 2:{
-	label.create(target);
-    	label.setText("USB Settings");
-    	label.center();
+        background.generate(target, pal_base);
+        background.setDefaultStyle(this->msgSenderStyle.getStyle2());
+        background.setSize(100, 100);
+        background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
+        background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 
-}
-break;
-default:{
-	label.create(target);
-    	label.setText("LoRa Settings");
-    	label.center();
-}
-break;
-}
+	switch(palcome_message_mode){
+		case 1:{
+			label.create(background.getObject());
+		    	label.setText("Node Settings");
+		    	label.center();
+		}
+		break;
+		case 2:{
+			label.create(background.getObject());
+		    	label.setText("USB Settings");
+		    	label.center();	
+		}
+		break;
+		default:{
+			label.create(background.getObject());
+		    	label.setText("LoRa Settings");
+		    	label.center();
+		}
+		break;
+	}
 }
 
 void PalcomDebugScreen::reset(void){
@@ -294,10 +335,8 @@ void PalcomDebugScreen::generateObjects(void){
 	this->buildModeSelect(tile2);
 
 	tile3 = tileView.newTile(0, 0, LV_DIR_RIGHT);
-	label.create(tile3);
-    	label.setText("About");
-    	label.center();
-
+	this->buildAboutpage(tile3);
+	
 	tile4 = tileView.newTile(2, 0, LV_DIR_LEFT);
 	this->buildSettingspage(tile4);
 	

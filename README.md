@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code>version 1.1.3 Alpha</code>
+<code> version 1.1.5 Alpha</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -9,6 +9,10 @@
 <li>Implemented version 1 of message overflow management.</li>
 <li>Messaging between devices established.</li>
 <li>Version Evolved to Alpha</li>
+<li>New system layout, makes scrolling to pages less cumbersome.</li>
+<li>Created core infrastructure for the settings page.</li>
+<li>Created about page.</li>
+<li>Added node encryption and node relay access.</li>
 </ol>
 
 <h3>TODO:</h3>

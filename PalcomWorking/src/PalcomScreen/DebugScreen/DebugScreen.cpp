@@ -15,7 +15,6 @@
 #include <src/PalcomObject/Label/Label.h>
 #include <src/PalcomObject/Button/Button.h>
 #include <src/PalcomObject/Textarea/Textarea.h>
-#include <src/PalcomObject/Tileview/Tileview.h>
 #include <src/PalcomObject/Image/Image.h>
 #include <src/PalcomObject/Line/Line.h>
 #include <src/PalcomObject/Triangle/Triangle.h>
@@ -53,11 +52,30 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 		t.active = true;
 		t.to = TASK_SPACE_COMMS;
 		t.from = TASK_SPACE_GRAPHICS;
-		t.instruction = COMMS_INSTR_SEND;
+		t.instruction = palcome_message_mode == 1 ? COMMS_INSTR_SEND_NODE : COMMS_INSTR_SEND;
 		const char *msg = textarea.getText();
-		for(int i=0; i<256 && i<textarea.getTextSize(); i++){
-			t.msg[i] = msg[i];
+
+		switch(palcome_message_mode){
+			case 1:{ // Node Mode
+				t.msg[0] = 'P';
+				t.msg[1] = 'A';
+				t.msg[2] = 'L';
+				for(int i=3; i<256 && i-3<textarea.getTextSize(); i++){
+                                        t.msg[i] = msg[i-3];
+                                }
+			}
+			break;
+			case 2:{
+			}
+			break;
+			default:{
+				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
+					t.msg[i] = msg[i];
+				}
+			}
+			break;
 		}
+		
 		taskQueue.push(&t);
 	
 		textarea.setText("");
@@ -241,6 +259,59 @@ void PalcomDebugScreen::buildHomepage(lv_obj_t *target){
 	label.setText(LV_SYMBOL_RIGHT);
 }
 
+void PalcomDebugScreen::buildAboutpage(lv_obj_t *target){
+	PalcomObject background;
+	PalcomLabel label;
+
+	background.generate(target, pal_base);
+	background.setDefaultStyle(this->msgSenderStyle.getStyle2());
+	background.setSize(100, 100);
+	background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
+	background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+	background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
+	String text = "BT Palcom Messenger\nVersion: ";
+	text += SYS_VERSION;
+	label.create(background.getObject());
+    	label.setText(text.c_str());
+    	label.center();
+
+	
+}
+	
+void PalcomDebugScreen::buildSettingspage(lv_obj_t *target){
+	 PalcomLabel label;
+	PalcomObject background;
+
+        background.generate(target, pal_base);
+        background.setDefaultStyle(this->msgSenderStyle.getStyle2());
+        background.setSize(100, 100);
+        background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
+        background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
+	switch(palcome_message_mode){
+		case 1:{
+			label.create(background.getObject());
+		    	label.setText("Node Settings");
+		    	label.center();
+		}
+		break;
+		case 2:{
+			label.create(background.getObject());
+		    	label.setText("USB Settings");
+		    	label.center();	
+		}
+		break;
+		default:{
+			label.create(background.getObject());
+		    	label.setText("LoRa Settings");
+		    	label.center();
+		}
+		break;
+	}
+}
+
 void PalcomDebugScreen::reset(void){
 	this->setBuildRequired(true);
 	this->globalDestroy();
@@ -254,7 +325,6 @@ void PalcomDebugScreen::generateObjects(void){
 	this->unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 
 	PalcomLabel label;
-	PalcomTileview tileView;
 	
 	const lv_img_dsc_t *img_src[1] = {&spaceAI2};
         this->setBgImage(img_src);
@@ -263,23 +333,19 @@ void PalcomDebugScreen::generateObjects(void){
 	tileView.setDefaultStyle(this->tileStyle.getStyle());
 	tileView.setScrollMode(LV_SCROLLBAR_MODE_OFF);
 	
-	lv_obj_t *tile1 = tileView.newTile(1, 1, LV_DIR_TOP | LV_DIR_LEFT | LV_DIR_RIGHT);
+	tile1 = tileView.newTile(1, 0, LV_DIR_BOTTOM | LV_DIR_LEFT | LV_DIR_RIGHT);
 	this->buildHomepage(tile1);
 
-	lv_obj_t *tile2 = tileView.newTile(1, 0, LV_DIR_BOTTOM);
+	tile2 = tileView.newTile(1, 1, LV_DIR_TOP);
 	this->buildModeSelect(tile2);
 
-	lv_obj_t *tile3 = tileView.newTile(0, 1, LV_DIR_RIGHT);
-	label.create(tile3);
-    	label.setText("About");
-    	label.center();
-
-	lv_obj_t *tile4 = tileView.newTile(2, 1, LV_DIR_LEFT);
-	label.create(tile4);
-    	label.setText("Settings");
-    	label.center();
-
-	tileView.setTile(1, 1, false);
+	tile3 = tileView.newTile(0, 0, LV_DIR_RIGHT);
+	this->buildAboutpage(tile3);
+	
+	tile4 = tileView.newTile(2, 0, LV_DIR_LEFT);
+	this->buildSettingspage(tile4);
+	
+	tileView.setTile(1, 0, false);
 
 	this->currentMode = palcome_message_mode;
 }
@@ -296,6 +362,10 @@ int PalcomDebugScreen::run(void){
 			
 			nodeButton.removeState(LV_STATE_CHECKED);
 			usbButton.removeState(LV_STATE_CHECKED);
+			this->reset();
+			this->buildCheck();
+			tileView.setTile(1, 1, false);
+			this->execute();
 		}else if(this->currentMode == 1){
 			meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
 			nodeButton.unsetFlag(LV_OBJ_FLAG_CHECKABLE);
@@ -303,6 +373,10 @@ int PalcomDebugScreen::run(void){
 
 	                meshButton.removeState(LV_STATE_CHECKED);
 			usbButton.removeState(LV_STATE_CHECKED);
+			this->reset();
+			this->buildCheck();
+			tileView.setTile(1, 1, false);
+			this->execute();
 		}else if(this->currentMode == 2){
 			meshButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
 			nodeButton.setFlag(LV_OBJ_FLAG_CHECKABLE);
@@ -310,6 +384,10 @@ int PalcomDebugScreen::run(void){
 
 	                meshButton.removeState(LV_STATE_CHECKED);
 			nodeButton.removeState(LV_STATE_CHECKED);
+			this->reset();
+			this->buildCheck();
+			tileView.setTile(1, 1, false);
+			this->execute();
 		}
 
 		

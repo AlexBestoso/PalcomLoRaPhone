@@ -14,10 +14,19 @@ class CoreException : public std::exception{
 	private:
 		String errorMessage;
 		uint32_t _errorCode;
+		String className;
+                String functionName;
+                String from;
 	public:
 		CoreException(String msg, uint8_t errorCode);
+		CoreException(const CoreException& e, String fName, String msg, uint8_t errorCode);
+		CoreException(String fName, String msg, uint8_t errorCode);
+                CoreException(String msg, String classN, String funcN, uint8_t errorCode);
 	
+		void setClassName(const char *name);
+
 		String what(void);
+		String where(void);
 	
 		uint32_t errorCode(void);
 	
@@ -25,4 +34,5 @@ class CoreException : public std::exception{
 
 		void out(void);
   		void halt(void);
+		void log(void);
 };

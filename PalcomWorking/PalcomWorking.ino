@@ -26,6 +26,14 @@
 #include <string>
 #include <cstdint>
 
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
+
 #include "USB.h"
 
 #if !ARDUINO_USB_CDC_ON_BOOT
@@ -53,8 +61,8 @@ TaskQueue taskQueue;
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
 
-
-
+#include <src/cryptography/cryptography.h>
+Cryptography cryptography;
 
 /*
  * These may be refactored to be less dependant on each other.
@@ -192,7 +200,7 @@ String loraListenRes = "";
 void setup(void){
   Serial.begin(115200);
   delay(2000);
-  Serial.printf("[Palcoms L1.0] \n");
+  Serial.printf("[Palcoms 1.1.3 Alpha] \n");
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
@@ -245,6 +253,7 @@ void setup(void){
     USBSerial.begin();
     USB.begin();
 
+    comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
     
     //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
   }catch(CoreException &ce){
@@ -396,39 +405,6 @@ void loop(){
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
         tft.initDMA();
       }
-   /* if(comms.fetchTask()){
-      comms.runTask();
-    }*/
-      //pds.run();
- /* getInput();
-  if(userBufferSize > 0){
-    Serial.printf("input : ");
-    for(int i=0;  i<userBufferSize; i++)
-      Serial.printf("%c", userBuffer[i]);
-    Serial.printf("\n");
-  }
-  if(processInput()){
-    if(!loraSnake.send(userBuffer, userBufferSize-1)){
-      Serial.printf("Failed to send message.\n");
-    }else{
-      Serial.printf("Sent : [%d] \n", userBufferSize-1);
-    }
-    loraSnake.listenStart();
-    
-    clearInput();
-  }
-  if(loraSnake.readRecv() && loraSnake.lrsPacket.data_size > 0){
-    Serial.printf("Received the message : [%d] ", 
-                  loraSnake.lrsPacket.data_size);
-
-    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
-      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
-    }
-    Serial.printf("\n");
-    for(int i=0; i<256; i++)
-      loraSnake.lrsPacket.data[i] = 0;
-    loraSnake.lrsPacket.data_size = 0;
-  }*/
 
   delay(5);
 }

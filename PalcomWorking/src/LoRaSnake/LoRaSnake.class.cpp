@@ -5,6 +5,7 @@ extern bool loraSnakeTransmit;
 extern bool loraSnakeReceive;
 extern SX1262 _radio;
 extern TaskQueue taskQueue;
+extern int palcome_message_mode;
 
 static void loraSnakeSetTxFlag(void){
   	loraSnakeTransmit = true;
@@ -12,7 +13,7 @@ static void loraSnakeSetTxFlag(void){
 
 static void loraSnakeSetRxFlag(void){
   	loraSnakeReceive = true;
-	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_COMMS, COMMS_INSTR_RECV));
+	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_GOD, palcome_message_mode == 1 ? COMMS_INSTR_RECV_NODE : COMMS_INSTR_RECV));
 }
 
 // Private

@@ -56,4 +56,6 @@
 #define MSG_DISPLAY_MAX 10
 #define MSG_BUFFER_MAX 257
 
-#define SYS_VERSION "1.1.4 Alpha"
+#define SYS_VERSION "1.1.5 Alpha"
+
+#define CORE_ROUTING_KEY_SIZE 32

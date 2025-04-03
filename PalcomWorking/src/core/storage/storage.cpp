@@ -27,7 +27,6 @@ void Storage::relayMsgToDisplay(bool mine){
         tmp.instruction = mine ? GRAPHICS_INSTR_PUSH_MSGM : GRAPHICS_INSTR_PUSH_MSGO;
 	for(int i=0; i<256; i++)
 		tmp.msg[i] = this->task.msg[i];
-	Serial.printf("Pushing to graphics task...\n");
         taskQueue.push(tmp);
 }
 
@@ -52,9 +51,7 @@ bool Storage::storeMessage(bool mine){
 		return false;
 	}
 	
-	// debugging
 	size_t cacheSize = this->getCacheSize();
-	Serial.printf("Message Cache Size %ld \t %ld\n", cacheSize, cacheSize/257);
 	
 	char msgCacheBuffer[257];
 	memset(msgCacheBuffer, 'a', 257);

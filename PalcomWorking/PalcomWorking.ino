@@ -26,6 +26,14 @@
 #include <string>
 #include <cstdint>
 
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
+
 #include "USB.h"
 
 #if !ARDUINO_USB_CDC_ON_BOOT
@@ -53,8 +61,8 @@ TaskQueue taskQueue;
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
 
-
-
+#include <src/cryptography/cryptography.h>
+Cryptography cryptography;
 
 /*
  * These may be refactored to be less dependant on each other.
@@ -245,6 +253,7 @@ void setup(void){
     USBSerial.begin();
     USB.begin();
 
+    comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
     
     //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
   }catch(CoreException &ce){

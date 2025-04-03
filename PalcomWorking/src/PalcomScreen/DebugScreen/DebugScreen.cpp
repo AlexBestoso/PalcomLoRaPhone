@@ -57,7 +57,12 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 
 		switch(palcome_message_mode){
 			case 1:{ // Node Mode
-				Serial.printf("Sending Message to Node.\n");
+				t.msg[0] = 'P';
+				t.msg[1] = 'A';
+				t.msg[2] = 'L';
+				for(int i=3; i<256 && i-3<textarea.getTextSize(); i++){
+                                        t.msg[i] = msg[i-3];
+                                }
 			}
 			break;
 			case 2:{

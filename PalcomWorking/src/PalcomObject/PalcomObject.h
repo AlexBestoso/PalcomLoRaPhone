@@ -2,7 +2,25 @@
 
 #define GLOBAL_GUI_OBJECT_COUNT 1
 
-enum PalcomObjectType{pal_label, pal_textarea, pal_button, pal_imgbutton, pal_base, pal_menu, pal_msgbox, pal_checkbox, pal_menusect, pal_menupage, pal_slider, pal_switch, pal_tileview, pal_image, pal_line, pal_triangle};
+enum PalcomObjectType{
+	pal_label, 
+	pal_textarea, 
+	pal_button, 
+	pal_imgbutton, 
+	pal_base, 
+	pal_menu, 
+	pal_msgbox, 
+	pal_checkbox, 
+	pal_menusect, 
+	pal_menupage, 
+	pal_slider, 
+	pal_switch, 
+	pal_tileview, 
+	pal_image, 
+	pal_line, 
+	pal_triangle,
+	pal_dropdown
+};
 
 class PalcomObject : public PalcomStyle{
 	private:

@@ -24,6 +24,8 @@
 #define STORAGE_INSTR_SENT 24
 #define STORAGE_INSTR_REFRESH_MSG 25
 
+#define USB_INSTR_SETUP 31
+
 struct task_queue_task{
 	bool active=false;
 	uint8_t to=0;

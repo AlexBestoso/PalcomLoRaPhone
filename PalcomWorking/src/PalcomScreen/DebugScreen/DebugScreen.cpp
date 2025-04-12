@@ -18,9 +18,12 @@
 #include <src/PalcomObject/Image/Image.h>
 #include <src/PalcomObject/Line/Line.h>
 #include <src/PalcomObject/Triangle/Triangle.h>
+#include <src/PalcomObject/Dropdown/Dropdown.h>
 
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/taskQueue/taskQueue.h>
+
+#include <src/PalcomSettings/settings.h>
 
 #define USER_BUF_SIZE 256
 
@@ -52,7 +55,7 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 		t.active = true;
 		t.to = TASK_SPACE_COMMS;
 		t.from = TASK_SPACE_GRAPHICS;
-		t.instruction = palcome_message_mode == 1 ? COMMS_INSTR_SEND_NODE : COMMS_INSTR_SEND;
+		t.instruction = palcome_message_mode == 1 ? COMMS_INSTR_SEND_NODE : palcome_message_mode == 2 ? COMMS_INSTR_SEND_USB: COMMS_INSTR_SEND;
 		const char *msg = textarea.getText();
 
 		switch(palcome_message_mode){
@@ -65,10 +68,13 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
                                 }
 			}
 			break;
-			case 2:{
+			case 2:{ // USB Mode
+				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
+                                        t.msg[i] = msg[i];
+                                }
 			}
 			break;
-			default:{
+			default:{ // Direct Mesh
 				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
 					t.msg[i] = msg[i];
 				}
@@ -107,6 +113,99 @@ PalcomDebugScreen::PalcomDebugScreen(void){
 }
 
 PalcomDebugScreen::~PalcomDebugScreen(){
+
+}
+
+
+void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
+	PalcomSettings settings;
+	PalcomLabel title;
+	PalcomDropdown dropdown;
+	PalcomObject base;
+	PalcomTextarea textarea;
+
+	settings.load();
+
+	title.create(target);
+	title.setText("USB Settings");
+	title.setAlignment(LV_ALIGN_TOP_MID, 0, 0);
+
+	int fieldOffset = 27*2+2;
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*0));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Encryption: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("Disabled\nAES-XTS\nAES-OFB\nAES-CTR\nAES-ECB\nAES-CBC");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*1));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Encoding: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("Disabled\nBase64");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*2));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Send Route: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("Usb\nLoRa\nWiFi");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*3));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Recv Route: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("Usb\nLoRa\nWiFi");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*4));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Prepend: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	textarea.create(base.getObject());
+	textarea.setMaxLength(16);
+	textarea.setOneLine(true);
+	textarea.setSize(150, 36);
+	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*5));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	title.create(base.getObject());
+	title.setText("Append: ");
+	title.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	textarea.create(base.getObject());
+	textarea.setMaxLength(16);
+	textarea.setOneLine(true);
+	textarea.setSize(150, 36);
+	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
 
 }
 
@@ -287,23 +386,25 @@ void PalcomDebugScreen::buildSettingspage(lv_obj_t *target){
         background.setDefaultStyle(this->msgSenderStyle.getStyle2());
         background.setSize(100, 100);
         background.setAlignment(LV_ALIGN_TOP_LEFT, -1, -1);
-        background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
-        background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
-
+        
 	switch(palcome_message_mode){
 		case 1:{
+			background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        		background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
 			label.create(background.getObject());
 		    	label.setText("Node Settings");
 		    	label.center();
 		}
 		break;
 		case 2:{
-			label.create(background.getObject());
-		    	label.setText("USB Settings");
-		    	label.center();	
+			this->buildUsbSettings(background.getObject());
 		}
 		break;
 		default:{
+			background.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        		background.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+
 			label.create(background.getObject());
 		    	label.setText("LoRa Settings");
 		    	label.center();

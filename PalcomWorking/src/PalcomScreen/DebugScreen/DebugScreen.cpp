@@ -37,6 +37,8 @@ extern lv_obj_t *keyboardFocusedObj;
 extern char displayed_messages[10][257];
 extern int displayed_page;
 
+static lv_obj_t *settings_objs[6];
+
 #include "./DebugScreen.h"
 
 void PalcomDebugScreen::sendMessage(lv_event_t *e){
@@ -107,6 +109,56 @@ void PalcomDebugScreen::toggleUsbMode(lv_event_t *e){
 	if(event.getCode() == LV_EVENT_VALUE_CHANGED)
 		palcome_message_mode = 2;
 }
+
+void PalcomDebugScreen::applySettings(lv_event_t *e){
+	char buf[32];
+	PalcomEvent event(e);
+	PalcomDropdown dropdown;
+	PalcomTextarea textarea;
+
+	if(event.getCode() != LV_EVENT_PRESSED)
+		return;
+	lv_obj_t *grabber = (lv_obj_t *)event.getUserData();
+	if(grabber == NULL){
+		Serial.printf("Data is null, not applying settings.\n");
+		return;
+	}
+
+	PalcomSettings settings;	
+
+	dropdown.setObject(settings_objs[0]);
+	dropdown.getSelection(buf, 32);
+	const char *encryption = buf;
+
+
+	dropdown.setObject(settings_objs[1]);
+	dropdown.getSelection(buf, 32);
+	const char *encoding = buf;
+
+	dropdown.setObject(settings_objs[2]);
+	dropdown.getSelection(buf, 32);
+	const char *sendRoute = buf;
+
+	dropdown.setObject(settings_objs[3]);
+	dropdown.getSelection(buf, 32);
+	const char *recvRoute = buf;
+	
+	textarea.setObject(settings_objs[4]);
+	const char *prepend = textarea.getText();
+		
+	textarea.setObject(settings_objs[5]);
+	const char *append = textarea.getText();
+
+	settings.setEncryption(encryption);
+        settings.setEncoding(encoding);
+        settings.setSendRoute(sendRoute);
+        settings.setRecvRoute(recvRoute);
+        settings.setPrepend(prepend);
+        settings.setAppend(append);
+	
+	settings.update();
+}
+
 PalcomDebugScreen::PalcomDebugScreen(void){
 	this->buttonStyle.initStyle();
 	PalcomScreenError = 0;
@@ -123,6 +175,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	PalcomDropdown dropdown;
 	PalcomObject base;
 	PalcomTextarea textarea;
+	PalcomButton button;
 
 	settings.load();
 
@@ -142,6 +195,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Disabled\nAES-XTS\nAES-OFB\nAES-CTR\nAES-ECB\nAES-CBC");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[0] = dropdown.getObject();
 	
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -154,6 +208,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Disabled\nBase64");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[1] = dropdown.getObject();
 
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -166,6 +221,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Usb\nLoRa\nWiFi");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[2] = dropdown.getObject();
 
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -178,6 +234,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Usb\nLoRa\nWiFi");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[3] = dropdown.getObject();
 
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -192,6 +249,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setOneLine(true);
 	textarea.setSize(150, 36);
 	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[4] = textarea.getObject();
 
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -206,6 +264,25 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setOneLine(true);
 	textarea.setSize(150, 36);
 	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	settings_objs[5] = textarea.getObject();
+	
+	base.generate(target, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*6));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	button.create(base.getObject());
+        title.create(button.getObject());
+        title.setText("Apply");
+        title.center();
+        button.setLabel(title);
+        button.setDefaultStyle(this->buttonStyle.getStyle());
+        button.setPressedStyle(this->buttonStyle.getPressedStyle());
+        button.setSize(45, 72+27*2);
+        button.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+	Serial.printf("Button data addr %p\n", settings_objs);
+        button.setParamCallback(&this->applySettings, (void *)settings_objs);
+
 
 }
 

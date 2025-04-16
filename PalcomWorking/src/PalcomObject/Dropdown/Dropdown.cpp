@@ -31,3 +31,8 @@ const char *PalcomDropdown::getList(void){
 	return this->listOptions.c_str();
 }
 
+void PalcomDropdown::getSelection(char *out, size_t size){
+	if(out == NULL)
+		return;
+	lv_dropdown_get_selected_str(this->getObject(), out, size);
+}

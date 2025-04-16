@@ -25,6 +25,7 @@ class PalcomPartition{
 		bool writePartition(const esp_partition_t *partition, size_t offset, const void *src, size_t srcSize);
 		bool writeData(const esp_partition_t *partition, palcom_partition_t data);
 		bool write(palcom_partition_t data);
+		bool write(uint8_t *data, size_t size);
 		bool read(palcom_partition_t *ret);
 		bool fetchPartitionByName(String name);
 		bool readData(const esp_partition_t *partition, palcom_partition_t *ret);

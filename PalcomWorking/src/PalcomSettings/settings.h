@@ -9,4 +9,12 @@ class PalcomSettings{
 		~PalcomSettings();
 
 		void load(void);
+		void update(void);
+	
+		void setEncryption(const char *);
+		void setEncoding(const char *);
+		void setSendRoute(const char *);
+		void setRecvRoute(const char *);
+		void setPrepend(const char *);
+		void setAppend(const char *);
 };

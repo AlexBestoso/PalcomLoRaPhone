@@ -9,4 +9,5 @@ class PalcomDropdown : public PalcomObject{
 
 		void setList(const char *opts);
 		const char *getList(void);
+		void getSelection(char *out, size_t size);
 };

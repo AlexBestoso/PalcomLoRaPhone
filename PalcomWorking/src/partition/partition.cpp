@@ -94,6 +94,17 @@ bool PalcomPartition::write(palcom_partition_t data){
 	return ret;
 }
 
+bool PalcomPartition::write(uint8_t *data, size_t size){
+	if(!fetchPartitionByName(defualtPartition)){
+		return false;
+	}
+	
+	if(!this->eraseRange((const esp_partition_t *)partition, 0, partition->size))
+		return false;
+	bool ret = this->writePartition(partition, 0, (const void *)&data, size);
+	freePartitions();
+	return ret;
+}
 bool PalcomPartition::read(palcom_partition_t *ret){
 	if(!fetchPartitionByName(defualtPartition)){
 		return false;

@@ -36,3 +36,8 @@ void PalcomDropdown::getSelection(char *out, size_t size){
 		return;
 	lv_dropdown_get_selected_str(this->getObject(), out, size);
 }
+
+void PalcomDropdown::setSelection(int id){
+	if(id < 0) return;
+	lv_dropdown_set_selected(this->getObject(), id);
+}

@@ -19,20 +19,10 @@ void PalcomSettings::load(void){
 	bool good = partition.read(&this->data);
 	if(!good){
 		Serial.printf("Failed to load parition data.\n");
-	}else{
-		Serial.printf("Parition Loaded.\n");
 	}
-
 }
 
 void PalcomSettings::update(void){
-        uint8_t encryption = 0; 
-        uint8_t encoding = 0;
-        uint8_t send_route = 0;
-        uint8_t recv_route = 0;
-        uint8_t pre[8];
-        uint8_t app[8]; 
-	
 	uint8_t buffer[20];
 	buffer[0] = data.encryption;
 	buffer[1] = data.encoding;
@@ -44,12 +34,18 @@ void PalcomSettings::update(void){
 	}
 
 	if(!this->partition.write(buffer, 20)){
-		Serial.printf("Failed to write to partition.\n");
 	}else{
-		Serial.printf("Partition write successful.\n");
+	}
+        for(int i=0; i<8; i++){
+                buffer[4+i] = data.pre[i];
+                buffer[4+8+i] = data.app[i];
 	}
 }
 
+palcom_partition_t PalcomSettings::getPartition(bool reload){
+	if(reload) this->load();
+	return this->data;
+}
 void PalcomSettings::setEncryption(const char *encMode){
 	if(encMode == NULL) return;
 
@@ -61,6 +57,7 @@ void PalcomSettings::setEncryption(const char *encMode){
 	else if(m == "AES-CTR") this->data.encryption = 3;
 	else if(m == "AES-ECB") this->data.encryption = 4;
 	else if(m == "AES-CBC") this->data.encryption = 5;
+	else this->data.encryption = 0;
 }
 void PalcomSettings::setEncoding(const char * encMode){
 	if(encMode == NULL) return;

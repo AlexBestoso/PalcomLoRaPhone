@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code> version 1.1.7 Alpha</code>
+<code> version 1.1.8 Alpha</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -15,6 +15,7 @@
 <li>Added node encryption and node relay access.</li>
 <li>USB mode settings page</li>
 <li>Settings page writes to partition</li>
+<li>Partition successfully loads stored data.</li>
 </ol>
 
 <h3>TODO:</h3>

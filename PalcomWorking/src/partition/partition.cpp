@@ -52,6 +52,7 @@ bool PalcomPartition::readPartition(const esp_partition_t *partition, size_t off
 		return false;
 	
 	esp_err_t err = esp_partition_read(partition, offset, outBuf, outBufSize);
+	
 	if(err == ESP_OK){
 		return true;
 	}else if(err == ESP_ERR_INVALID_ARG){
@@ -67,6 +68,21 @@ bool PalcomPartition::writePartition(const esp_partition_t *partition, size_t of
 	if(partition == NULL)
 		return false;
 	esp_err_t err = esp_partition_write(partition, offset, src, srcSize);
+	if(err == ESP_OK){
+		return true;
+	}else if(err == ESP_ERR_INVALID_ARG){
+		return false;
+	}else if(err == ESP_ERR_INVALID_SIZE){
+		return false;
+	}else{
+		return false;
+	}
+}
+
+bool PalcomPartition::writePartition(const esp_partition_t *partition, size_t offset, uint8_t *src, size_t srcSize){
+	if(partition == NULL)
+		return false;
+	esp_err_t err = esp_partition_write(partition, offset, (const void *)src, srcSize);
 	if(err == ESP_OK){
 		return true;
 	}else if(err == ESP_ERR_INVALID_ARG){
@@ -101,7 +117,7 @@ bool PalcomPartition::write(uint8_t *data, size_t size){
 	
 	if(!this->eraseRange((const esp_partition_t *)partition, 0, partition->size))
 		return false;
-	bool ret = this->writePartition(partition, 0, (const void *)&data, size);
+	bool ret = this->writePartition(partition, 0, data, size);
 	freePartitions();
 	return ret;
 }
@@ -132,5 +148,17 @@ bool PalcomPartition::fetchPartitionByName(String name){
 }
 
 bool PalcomPartition::readData(const esp_partition_t *partition, palcom_partition_t *ret){
-	return this->readPartition(partition, 0, (void *)ret, sizeof(palcom_partition_t));
+	uint8_t buff[20];
+	bool retu = this->readPartition(partition, 0, (void *)buff, 20);
+	if(!retu) return false;
+
+	ret->encryption = buff[0];
+        ret->encoding = buff[1];
+        ret->send_route = buff[2];
+        ret->recv_route = buff[3]; 
+        for(int i=0; i<8; i++){                                           
+                ret->pre[i] = buff[4+i];
+                ret->app[i] = buff[4+8+i];
+        }
+	return true;
 }

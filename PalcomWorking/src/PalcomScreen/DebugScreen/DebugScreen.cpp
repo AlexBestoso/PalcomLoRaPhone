@@ -129,31 +129,30 @@ void PalcomDebugScreen::applySettings(lv_event_t *e){
 	dropdown.setObject(settings_objs[0]);
 	dropdown.getSelection(buf, 32);
 	const char *encryption = buf;
+	settings.setEncryption(encryption);
 
 
 	dropdown.setObject(settings_objs[1]);
 	dropdown.getSelection(buf, 32);
 	const char *encoding = buf;
+        settings.setEncoding(encoding);
 
 	dropdown.setObject(settings_objs[2]);
 	dropdown.getSelection(buf, 32);
 	const char *sendRoute = buf;
+        settings.setSendRoute(sendRoute);
 
 	dropdown.setObject(settings_objs[3]);
 	dropdown.getSelection(buf, 32);
 	const char *recvRoute = buf;
+        settings.setRecvRoute(recvRoute);
 	
 	textarea.setObject(settings_objs[4]);
 	const char *prepend = textarea.getText();
+        settings.setPrepend(prepend);
 		
 	textarea.setObject(settings_objs[5]);
 	const char *append = textarea.getText();
-
-	settings.setEncryption(encryption);
-        settings.setEncoding(encoding);
-        settings.setSendRoute(sendRoute);
-        settings.setRecvRoute(recvRoute);
-        settings.setPrepend(prepend);
         settings.setAppend(append);
 	
 	settings.update();
@@ -171,13 +170,14 @@ PalcomDebugScreen::~PalcomDebugScreen(){
 
 void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	PalcomSettings settings;
+	palcom_partition_t settings_data;
 	PalcomLabel title;
 	PalcomDropdown dropdown;
 	PalcomObject base;
 	PalcomTextarea textarea;
 	PalcomButton button;
 
-	settings.load();
+	settings_data = settings.getPartition(true);
 
 	title.create(target);
 	title.setText("USB Settings");
@@ -195,7 +195,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Disabled\nAES-XTS\nAES-OFB\nAES-CTR\nAES-ECB\nAES-CBC");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	dropdown.setSelection(settings_data.encryption);
 	settings_objs[0] = dropdown.getObject();
+	
 	
 	base.generate(target, pal_base);
 	base.setSize(100, 27);
@@ -208,6 +210,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Disabled\nBase64");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	dropdown.setSelection(settings_data.encoding);
 	settings_objs[1] = dropdown.getObject();
 
 	base.generate(target, pal_base);
@@ -221,6 +224,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Usb\nLoRa\nWiFi");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	dropdown.setSelection(settings_data.send_route);
 	settings_objs[2] = dropdown.getObject();
 
 	base.generate(target, pal_base);
@@ -234,6 +238,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.create(base.getObject());
 	dropdown.setList("Usb\nLoRa\nWiFi");
 	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	dropdown.setSelection(settings_data.recv_route);
 	settings_objs[3] = dropdown.getObject();
 
 	base.generate(target, pal_base);
@@ -249,6 +254,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setOneLine(true);
 	textarea.setSize(150, 36);
 	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	textarea.setText((const char *)settings_data.pre);
 	settings_objs[4] = textarea.getObject();
 
 	base.generate(target, pal_base);
@@ -264,6 +270,7 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setOneLine(true);
 	textarea.setSize(150, 36);
 	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+	textarea.setText((const char *)settings_data.app);
 	settings_objs[5] = textarea.getObject();
 	
 	base.generate(target, pal_base);
@@ -280,7 +287,6 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
         button.setPressedStyle(this->buttonStyle.getPressedStyle());
         button.setSize(45, 72+27*2);
         button.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 0, 0);
-	Serial.printf("Button data addr %p\n", settings_objs);
         button.setParamCallback(&this->applySettings, (void *)settings_objs);
 
 

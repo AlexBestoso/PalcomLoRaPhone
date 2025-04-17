@@ -23,6 +23,7 @@ class PalcomPartition{
 		bool eraseRange(const esp_partition_t *partition, size_t offset, size_t eraseRange);
 		bool readPartition(const esp_partition_t *partition, size_t offset, void *outBuf, size_t outBufSize);
 		bool writePartition(const esp_partition_t *partition, size_t offset, const void *src, size_t srcSize);
+		bool writePartition(const esp_partition_t *partition, size_t offset, uint8_t *src, size_t srcSize);
 		bool writeData(const esp_partition_t *partition, palcom_partition_t data);
 		bool write(palcom_partition_t data);
 		bool write(uint8_t *data, size_t size);

@@ -11,6 +11,7 @@ class PalcomSettings{
 		void load(void);
 		void update(void);
 	
+		palcom_partition_t getPartition(bool);
 		void setEncryption(const char *);
 		void setEncoding(const char *);
 		void setSendRoute(const char *);

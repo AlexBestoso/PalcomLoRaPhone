@@ -264,3 +264,8 @@ void Comms::init(Cryptography *c, unsigned char*core_routing_key, size_t core_ro
         this->deriveRoutingSendKey();
         this->deriveRoutingPadding();
 }
+
+
+bool Comms::recv(void){
+	
+}

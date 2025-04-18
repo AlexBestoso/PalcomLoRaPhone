@@ -64,14 +64,11 @@ LoRaSnake loraSnake;
 #include <src/cryptography/cryptography.h>
 Cryptography cryptography;
 
-/*
- * These may be refactored to be less dependant on each other.
- */
-
+#include <src/PalcomSettings/settings.h>
 
 #include <src/PalcomEvent/PalcomEvent.h>
 //#include "./src/PalcomColors/PalcomColors.h"
-#include "./core/partition/partition.h"
+//#include "./core/partition/partition.h"
 #include <src/PalcomStyle/PalcomStyle.h>
 #include <src/PalcomStyle/styles/styles.h>
 #include "./core/styles/styles.h"
@@ -83,13 +80,14 @@ Cryptography cryptography;
 #include <src/PalcomObject/Textarea/Textarea.h>
 #include <src/PalcomObject/Line/Line.h>
 #include <src/PalcomObject/Triangle/Triangle.h>
+#include <src/PalcomObject/Dropdown/Dropdown.h>
 
 #include "./core/initalizer/initalizer.h"
 
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/PalcomScreen/DebugScreen/DebugScreen.h>
 #include <src/PalcomScreen/setMsgMode/setMsgMode.h>
-#include "./core/objects/objects.h"
+//#include "./core/objects/objects.h"
 //#include "./core/screens/screens.h"
 
 
@@ -102,6 +100,9 @@ Graphics graphics;
 
 #include <src/core/comms/comms.h>
 Comms comms;
+
+#include <src/core/usb/usb.h>
+Usb usb;
 
 static void GraphicsTask(void *parm);
 static void CommsTask(void *parm);
@@ -142,53 +143,6 @@ bool processInput(void){
   if(userBuffer[userBufferSize-1] == 0xd)
     return true;
   return false;
-}
-
-
-
-static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-  if (event_base == ARDUINO_USB_EVENTS) {
-    arduino_usb_event_data_t *data = (arduino_usb_event_data_t *)event_data;
-    switch (event_id) {
-      case ARDUINO_USB_STARTED_EVENT: Serial.println("USB PLUGGED"); break;
-      case ARDUINO_USB_STOPPED_EVENT: Serial.println("USB UNPLUGGED"); break;
-      case ARDUINO_USB_SUSPEND_EVENT: Serial.printf("USB SUSPENDED: remote_wakeup_en: %u\n", data->suspend.remote_wakeup_en); break;
-      case ARDUINO_USB_RESUME_EVENT:  Serial.println("USB RESUMED"); break;
-
-      default: break;
-    }
-  } else if (event_base == ARDUINO_USB_CDC_EVENTS) {
-    arduino_usb_cdc_event_data_t *data = (arduino_usb_cdc_event_data_t *)event_data;
-    switch (event_id) {
-      case ARDUINO_USB_CDC_CONNECTED_EVENT:    Serial.println("CDC CONNECTED"); break;
-      case ARDUINO_USB_CDC_DISCONNECTED_EVENT: Serial.println("CDC DISCONNECTED"); break;
-      case ARDUINO_USB_CDC_LINE_STATE_EVENT:   Serial.printf("CDC LINE STATE: dtr: %u, rts: %u\n", data->line_state.dtr, data->line_state.rts); break;
-      case ARDUINO_USB_CDC_LINE_CODING_EVENT:
-        Serial.printf(
-          "CDC LINE CODING: bit_rate: %lu, data_bits: %u, stop_bits: %u, parity: %u\n", data->line_coding.bit_rate, data->line_coding.data_bits,
-          data->line_coding.stop_bits, data->line_coding.parity
-        );
-        break;
-      case ARDUINO_USB_CDC_RX_EVENT:
-        Serial.printf("Processing Serial Command...\n");
-        {
-            uint8_t buffer[data->rx.len] = {0};
-            size_t len = USBSerial.read(buffer, data->rx.len);
-            if(len <= 4){
-              return;
-            }
-            String test = "";
-            for(int i=0; i<len; i++)
-              test+=(char)buffer[i];
-            Serial.printf("USB : %s\n", test.c_str());
-           
-        }
-        break;
-      case ARDUINO_USB_CDC_RX_OVERFLOW_EVENT: Serial.printf("CDC RX Overflow of %d bytes", data->rx_overflow.dropped_bytes); break;
-
-      default: break;
-    }
-  }
 }
 
 
@@ -247,12 +201,8 @@ void setup(void){
     }*/
 
     //while(!coreOne || !coreTwo || !coreThree){delay(100);}
-    USBSerial.onEvent(usbEventCallback);
-    USB.onEvent(usbEventCallback);
-
-    USBSerial.begin();
-    USB.begin();
-
+    
+    usb.init();
     comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
     
     //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));

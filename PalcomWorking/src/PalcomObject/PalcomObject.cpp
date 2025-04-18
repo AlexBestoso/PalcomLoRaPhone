@@ -130,6 +130,9 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 		case pal_triangle:
 			this->object = lv_obj_create(parent);
 			break;
+		case pal_dropdown:
+			this->object = lv_dropdown_create(parent);
+			break;
 	}
 }
 

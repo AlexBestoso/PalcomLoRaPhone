@@ -1,6 +1,6 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code> version 1.1.5 Alpha</code>
+<code> version 1.1.9 Alpha</code>
 
 <h2>Change Log</h2>
 <ol>
@@ -13,6 +13,10 @@
 <li>Created core infrastructure for the settings page.</li>
 <li>Created about page.</li>
 <li>Added node encryption and node relay access.</li>
+<li>USB mode settings page</li>
+<li>Settings page writes to partition</li>
+<li>Partition successfully loads stored data.</li>
+<li>began updating comms core.</li>
 </ol>
 
 <h3>TODO:</h3>

@@ -148,6 +148,17 @@ bool Comms::sendMsg(void){
 	return ret;
 }
 
+bool Comms::sendMsgUsb(void){
+	Serial.printf("SEND USB\n");
+	bool ret = false;
+	return ret;
+}
+bool Comms::recvMsgUsb(void){
+	Serial.printf("Recv USB\n");
+	bool ret = false;
+	return ret;
+
+}
 bool Comms::recvMsgNode(void){
 	if(xSemaphore == NULL){
                 Serial.printf("Comms::recvMsgNode - Semaphore is null\n");
@@ -233,6 +244,12 @@ bool Comms::runTask(void){
 		case COMMS_INSTR_RECV_NODE:
 			return this->recvMsgNode();
 		break;
+		case COMMS_INSTR_SEND_USB:
+			return this->sendMsgUsb();
+		break;
+		case COMMS_INSTR_RECV_USB:
+			return this->recvMsgUsb();
+		break;
         }
         return false;
 }
@@ -246,4 +263,9 @@ void Comms::init(Cryptography *c, unsigned char*core_routing_key, size_t core_ro
         this->deriveRoutingRecvKey();
         this->deriveRoutingSendKey();
         this->deriveRoutingPadding();
+}
+
+
+bool Comms::recv(void){
+	
 }

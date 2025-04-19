@@ -19,6 +19,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <WiFi.h>
 
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
@@ -64,6 +65,9 @@ LoRaSnake loraSnake;
 #include <src/cryptography/cryptography.h>
 Cryptography cryptography;
 
+
+#include <src/wifi/wifi.h>
+PalcomWifi wifi;
 #include <src/PalcomSettings/settings.h>
 palcom_partition_t COMMS_SETTINGS;
 

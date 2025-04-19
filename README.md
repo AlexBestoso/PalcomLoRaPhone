@@ -1,10 +1,11 @@
 # PalcomLoRaPhone
 <h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
-<code> version 2.0.0 Alpha</code>
+<code> version 2.0.1 Alpha</code>
 
 <h2>Change Log</h2>
 <ol>
 <li>Implemented new GodCore initalization process.</li>
+<li>Implemented WIFI class</li>
 </ol>
 
 <h3>TODO:</h3>

@@ -6,10 +6,19 @@
 #include <Wire.h>
 #define TOUCH_MODULES_GT911
 #include <TouchLib.h>
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
 
 #include <defines.h>
 #include <src/error/error.h>
 #include <src/LoRaSnake/LoRaSnake.class.h>
+#include <src/cryptography/cryptography.h>
+#include <src/wifi/wifi.h>
 
 #include <src/PalcomStyle/PalcomStyle.h>
 #include <src/PalcomObject/PalcomObject.h>
@@ -23,6 +32,7 @@
 extern LoRaSnake loraSnake;
 extern Usb usb;
 extern TaskQueue taskQueue;
+extern PalcomWifi wifi;
 
 extern TFT_eSPI tft;
 
@@ -76,8 +86,12 @@ void GodCore::run_denitUsb(void){
 	usb.denit();
 }
 
-void GodCore::run_initWifi(void){}
-void GodCore::run_denitWifi(void){}
+void GodCore::run_initWifi(void){
+	wifi.init();
+}
+void GodCore::run_denitWifi(void){
+	wifi.denit();
+}
 
 void GodCore::run_initPins(void){
 	this->setupCount++;

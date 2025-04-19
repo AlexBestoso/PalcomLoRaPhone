@@ -18,7 +18,7 @@
  */
 #include <Arduino.h>
 #include <SPI.h>
-
+#include <Wire.h>
 
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
@@ -45,7 +45,7 @@ USBCDC USBSerial;
 #include <SD.h>
 
 #define TOUCH_MODULES_GT911
-#include "TouchLib.h"
+#include <TouchLib.h>
 #include <AceButton.h>
 using namespace ace_button;
 using namespace std;
@@ -65,6 +65,7 @@ LoRaSnake loraSnake;
 Cryptography cryptography;
 
 #include <src/PalcomSettings/settings.h>
+palcom_partition_t COMMS_SETTINGS;
 
 #include <src/PalcomEvent/PalcomEvent.h>
 //#include "./src/PalcomColors/PalcomColors.h"
@@ -90,9 +91,10 @@ Cryptography cryptography;
 //#include "./core/objects/objects.h"
 //#include "./core/screens/screens.h"
 
+#include <src/core/core.h>
+GodCore core;
 
-
-#include "./src/core/storage/storage.h"
+#include <src/core/storage/storage.h>
 Storage storage;
 
 #include <src/core/graphics/graphics.h>
@@ -109,7 +111,7 @@ static void CommsTask(void *parm);
 static void StorageTask(void *parm);
 static void UserInputTask(void *parm);
 
-
+/*
 bool getInput(void){
   
   if(userBufferIdx >= 0 && userBufferIdx < USER_BUF_SIZE){
@@ -144,72 +146,14 @@ bool processInput(void){
     return true;
   return false;
 }
-
+*/
 
 bool coreOne = false;
 bool coreTwo = false;
 bool coreThree = false;
 
 String loraListenRes = "";
-void setup(void){
-  Serial.begin(115200);
-  delay(2000);
-  Serial.printf("[Palcoms 1.1.3 Alpha] \n");
-  try{
-    xSemaphore = xSemaphoreCreateBinary();
-    xSemaphoreGive(xSemaphore);
 
-    initer.pinInit();
-    initer.lcdInit();
-
-    tft.deInitDMA();
-    SPI.end();
-    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-      initer.setupRadio();
-    SPI.end();
-    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-    tft.initDMA();
-
-    initer.aceButtonInit();
-    initer.touchscreenInit();
-    
-
-    initer.lvglInit();
-
-    sd_card_available = initer.setupSD();
-
-    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_REFRESH_MSG));
-    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
-
-   /* if(xSemaphore == NULL || xSemaphore == nullptr)
-      throw CoreException("Failed to create Semaphore.", ERR_TASK_SEMAPHORE);
-
-    if(xTaskCreatePinnedToCore(GraphicsTask, "graphics", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create Graphics Task", ERR_TASK_CREATE);
-    }
-
-    if(xTaskCreatePinnedToCore(CommsTask, "communication", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
-    }
-
-    if(xTaskCreatePinnedToCore(UserInputTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
-    }
-
-    if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
-      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
-    }*/
-
-    //while(!coreOne || !coreTwo || !coreThree){delay(100);}
-    
-    usb.init();
-    comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
-    
-    //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
-  }catch(CoreException &ce){
-      ce.halt();
-  }
-}
 
 static void GraphicsTask(void *parm){
   while(!coreTwo){delay(1000);}
@@ -318,17 +262,84 @@ static void UserInputTask(void *parm){
   }
 }
 
-void loop(){
-  
-    
-      if(graphics.fetchTask()){
-        graphics.runTask();
-        graphics.exec(true);
-      }else{
-        graphics.exec(false);
-      }
-      lv_tick_inc(5);
+void setup(void){
+  Serial.begin(115200);
+  delay(2000);
+  Serial.printf("[Palcoms 2.x.y Alpha]\n");
+  try{
+    xSemaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(xSemaphore);
+    core.initPins();
+    core.initLcd();
+    core.initTouch();
+    core.initLvgl();
+    core.initSd();
 
+    //initer.pinInit();
+    //initer.lcdInit();
+
+    //tft.deInitDMA();
+    //SPI.end();
+    //SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    //  initer.setupRadio();
+    //SPI.end();
+    //SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    //tft.initDMA();
+
+    //initer.aceButtonInit();
+    //initer.touchscreenInit();
+    
+
+    //initer.lvglInit();
+
+    //sd_card_available = initer.setupSD();
+
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_GOD, STORAGE_INSTR_REFRESH_MSG));
+    taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
+
+   /* if(xSemaphore == NULL || xSemaphore == nullptr)
+      throw CoreException("Failed to create Semaphore.", ERR_TASK_SEMAPHORE);
+
+    if(xTaskCreatePinnedToCore(GraphicsTask, "graphics", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create Graphics Task", ERR_TASK_CREATE);
+    }
+
+    if(xTaskCreatePinnedToCore(CommsTask, "communication", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create Comms Task", ERR_TASK_CREATE);
+    }
+
+    if(xTaskCreatePinnedToCore(UserInputTask, "user", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Input Task", ERR_TASK_CREATE);
+    }
+
+    if(xTaskCreatePinnedToCore(StorageTask, "storage", 4096*2, NULL, 5, NULL, 1) != pdPASS){
+      throw CoreException("Failed to create User Task", ERR_TASK_CREATE);
+    }*/
+
+    //while(!coreOne || !coreTwo || !coreThree){delay(100);}
+    
+    usb.init();
+    //comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
+    
+    //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
+  }catch(CoreException &ce){
+      ce.halt();
+  }
+}
+
+void loop(){
+      
+      core.process();
+      if(core.ready()){
+       
+        if(graphics.fetchTask()){
+          graphics.runTask();
+          graphics.exec(true);
+        }else{
+          graphics.exec(false);
+        }
+        lv_tick_inc(5);
+      }
       
       if(comms.fetchTask()){
         tft.deInitDMA();
@@ -355,6 +366,5 @@ void loop(){
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
         tft.initDMA();
       }
-
   delay(5);
 }

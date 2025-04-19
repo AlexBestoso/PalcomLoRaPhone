@@ -105,6 +105,10 @@ void Usb::init(void){
     	USBSerial.begin();
     	USB.begin();
 }
+
+void Usb::denit(void){
+	USBSerial.end();
+}
 bool Usb::fetchTask(void){
 	return this->pop();
 }

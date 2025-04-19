@@ -41,6 +41,7 @@ class LoRaSnake{
     		struct LoRaSnakePacket lrsPacket;
 
     		bool init(void);
+		void denit(void);
     		bool listenStart(void);
 
     		int readRecv(void);

@@ -13,7 +13,7 @@ static void loraSnakeSetTxFlag(void){
 
 static void loraSnakeSetRxFlag(void){
   	loraSnakeReceive = true;
-	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_GOD, palcome_message_mode == 1 ? COMMS_INSTR_RECV_NODE : COMMS_INSTR_RECV));
+	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_GOD, palcome_message_mode == 1 ? COMMS_INSTR_RECV_LORA : COMMS_INSTR_RECV));
 }
 
 // Private
@@ -48,6 +48,13 @@ LoRaSnake::~LoRaSnake(){
 
 }
 
+void LoRaSnake::denit(void){
+	this->sendStop();
+	this->listenStop();
+	_radio.clearPacketReceivedAction();
+	_radio.clearPacketSentAction();
+	
+}
 bool LoRaSnake::init(void){ 
 	float freq = 868.0;
   	int err = _radio.begin(freq);

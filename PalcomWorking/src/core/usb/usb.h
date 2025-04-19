@@ -11,6 +11,7 @@ class Usb{
 		~Usb();
 
 		void init(void);
+		void denit(void);
 		bool fetchTask(void);
 		bool runTask(void);
 };

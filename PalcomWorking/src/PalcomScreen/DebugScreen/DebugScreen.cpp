@@ -36,6 +36,7 @@ extern size_t userBufferSize;
 extern lv_obj_t *keyboardFocusedObj;
 extern char displayed_messages[10][257];
 extern int displayed_page;
+extern palcom_partition_t COMMS_SETTINGS;
 
 static lv_obj_t *settings_objs[6];
 
@@ -57,33 +58,14 @@ void PalcomDebugScreen::sendMessage(lv_event_t *e){
 		t.active = true;
 		t.to = TASK_SPACE_COMMS;
 		t.from = TASK_SPACE_GRAPHICS;
-		t.instruction = palcome_message_mode == 1 ? COMMS_INSTR_SEND_NODE : palcome_message_mode == 2 ? COMMS_INSTR_SEND_USB: COMMS_INSTR_SEND;
+		t.instruction = palcome_message_mode == 0 ? COMMS_INSTR_SEND_USB : palcome_message_mode == 1 ? COMMS_INSTR_SEND_LORA: COMMS_INSTR_SEND_WIFI;
 		const char *msg = textarea.getText();
+		int onset = strlen((const char *)COMMS_SETTINGS.pre), endset=256-strlen((const char *)COMMS_SETTINGS.app);
+	
+		for(int i=onset; i<endset && i<textarea.getTextSize(); i++){
+                	t.msg[i] = msg[i];
+                }
 
-		switch(palcome_message_mode){
-			case 1:{ // Node Mode
-				t.msg[0] = 'P';
-				t.msg[1] = 'A';
-				t.msg[2] = 'L';
-				for(int i=3; i<256 && i-3<textarea.getTextSize(); i++){
-                                        t.msg[i] = msg[i-3];
-                                }
-			}
-			break;
-			case 2:{ // USB Mode
-				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
-                                        t.msg[i] = msg[i];
-                                }
-			}
-			break;
-			default:{ // Direct Mesh
-				for(int i=0; i<256 && i<textarea.getTextSize(); i++){
-					t.msg[i] = msg[i];
-				}
-			}
-			break;
-		}
-		
 		taskQueue.push(&t);
 	
 		textarea.setText("");
@@ -156,6 +138,7 @@ void PalcomDebugScreen::applySettings(lv_event_t *e){
         settings.setAppend(append);
 	
 	settings.update();
+	COMMS_SETTINGS = settings.getPartition(true);
 }
 
 PalcomDebugScreen::PalcomDebugScreen(void){

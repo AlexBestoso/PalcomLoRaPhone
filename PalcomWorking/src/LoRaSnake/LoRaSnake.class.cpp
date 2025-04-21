@@ -174,3 +174,44 @@ bool LoRaSnake::send(uint8_t *d, size_t s){
 void LoRaSnake::sendStop(void){
   	_radio.finishTransmit();
 }
+
+
+void LoRaSnake::setBandwidth(float v){
+	if(v != 7.8   && v != 10.4  && v != 15.6 && 
+	   v != 20.8  && v != 31.25 && v != 41.7 && 
+	   v != 62.5  && v != 125.0 && v != 250.0
+	&& v != 500.0){
+		Serial.printf("bandwidth must be one of the following : 7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125.0, 250.0 and 500.0\n");
+		return;
+	}
+
+	_radio.setBandwidth(v);
+}
+
+void LoRaSnake::setSpreadFactor(int v){
+	if(v <= 4 || v >= 13){
+		Serial.printf("Spread factor must be between 5 and 12.\n");
+		return;
+	}
+	_radio.setSpreadingFactor(v);
+}
+
+void LoRaSnake::setCodingRate(int v){
+	if(v <= 4 || v >=9){
+		Serial.printf("Coding rate must be between 5 and 8");
+		return;
+	}
+	_radio.setCodingRate(v);
+}
+				  // 0x44
+void LoRaSnake::setSyncWord(int s, int ctrl){
+	_radio.setSyncWord(s, ctrl);
+}
+
+void LoRaSnake::setPreambleLength(size_t v){
+	if(!(v >= 1 && v <= 65535)){
+		Serial.printf("Value must be between 1 and 65535\n");
+		return;
+	}
+	_radio.setPreambleLength(v);
+}

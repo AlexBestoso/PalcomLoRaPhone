@@ -19,6 +19,7 @@
 #include <src/PalcomObject/Line/Line.h>
 #include <src/PalcomObject/Triangle/Triangle.h>
 #include <src/PalcomObject/Dropdown/Dropdown.h>
+#include <src/PalcomObject/tabview/tabview.h>
 
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/taskQueue/taskQueue.h>
@@ -151,7 +152,104 @@ PalcomDebugScreen::~PalcomDebugScreen(){
 }
 
 
-void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
+void PalcomDebugScreen::buildLoRaSettings(lv_obj_t *mainSettings){
+	//void setBandwidth(float v);
+        //void setSpreadFactor(int v);                       
+        //void setCodingRate(int v);
+        //void setSyncWord(int s, int ctrl);                 
+        //void setPreambleLength(size_t v);
+	PalcomObject base;
+	PalcomTextarea textarea;
+	PalcomLabel label;
+	PalcomDropdown dropdown;
+	PalcomButton button;
+
+	int fieldOffset = 27*2+2;
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*0));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Bandwidth: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("7.8\n10.4\n15.6\n20.8\n31.25\n41.7\n62.5\n125.0\n250.0\n500.0");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*1));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Spread Factor: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("5\n6\n7\n8\n9\n10\n11\n12");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*2));
+        base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Coding Rate: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	dropdown.create(base.getObject());
+	dropdown.setList("5\n6\n7\n8");
+	dropdown.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*3));
+	base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Sync Word: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	textarea.create(base.getObject());
+	textarea.setMaxLength(16);
+	textarea.setOneLine(true);
+	textarea.setSize(150, 36);
+	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*4));
+	base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Control Bit: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	textarea.create(base.getObject());
+	textarea.setMaxLength(16);
+	textarea.setOneLine(true);
+	textarea.setSize(150, 36);
+	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+	
+	base.generate(mainSettings, pal_base);
+	base.setSize(100, 27);
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*5));
+	base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+        base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	label.create(base.getObject());
+	label.setText("Preamble Len: ");
+	label.setAlignment(LV_ALIGN_TOP_LEFT, 0, 10-3);
+	textarea.create(base.getObject());
+	textarea.setMaxLength(16);
+	textarea.setOneLine(true);
+	textarea.setSize(150, 36);
+	textarea.setAlignment(LV_ALIGN_TOP_RIGHT, 0, -3);
+
+}
+void PalcomDebugScreen::buildMainSettings(lv_obj_t *mainSettings){
 	PalcomSettings settings;
 	palcom_partition_t settings_data;
 	PalcomLabel title;
@@ -162,14 +260,14 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 
 	settings_data = settings.getPartition(true);
 
-	title.create(target);
+	title.create(mainSettings);
 	title.setText("USB Settings");
 	title.setAlignment(LV_ALIGN_TOP_MID, 0, 0);
 
 	int fieldOffset = 27*2+2;
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*0));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*0));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -182,9 +280,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	settings_objs[0] = dropdown.getObject();
 	
 	
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*1));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*1));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -196,9 +294,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.setSelection(settings_data.encoding);
 	settings_objs[1] = dropdown.getObject();
 
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*2));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*2));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -210,9 +308,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.setSelection(settings_data.send_route);
 	settings_objs[2] = dropdown.getObject();
 
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*3));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*3));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -224,9 +322,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	dropdown.setSelection(settings_data.recv_route);
 	settings_objs[3] = dropdown.getObject();
 
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*4));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*4));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -240,9 +338,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setText((const char *)settings_data.pre);
 	settings_objs[4] = textarea.getObject();
 
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*5));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*5));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	title.create(base.getObject());
@@ -256,9 +354,9 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
 	textarea.setText((const char *)settings_data.app);
 	settings_objs[5] = textarea.getObject();
 	
-	base.generate(target, pal_base);
+	base.generate(mainSettings, pal_base);
 	base.setSize(100, 27);
-	base.setAlignment(LV_ALIGN_TOP_LEFT, 0, 0+(fieldOffset*6));
+	base.setAlignment(LV_ALIGN_TOP_LEFT, -5, 0+(fieldOffset*6));
         base.setScrollMode(LV_SCROLLBAR_MODE_OFF);
         base.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
 	button.create(base.getObject());
@@ -272,6 +370,24 @@ void PalcomDebugScreen::buildUsbSettings(lv_obj_t *target){
         button.setAlignment(LV_ALIGN_BOTTOM_RIGHT, 0, 0);
         button.setParamCallback(&this->applySettings, (void *)settings_objs);
 
+}
+void PalcomDebugScreen::buildUsbSettings(lv_obj_t *Target){
+	PalcomTabview tabview;
+	
+	lv_obj_remove_flag(Target, LV_OBJ_FLAG_SCROLLABLE);
+	tabview.create(Target);
+	tabview.center();
+	tabview.fullScreen();
+	tabview.tabBarPositionTop();
+	tabview.setTabBarSize(35);
+	tabview.unsetFlag(LV_OBJ_FLAG_SCROLLABLE);
+	tabview.setScrollMode(LV_SCROLLBAR_MODE_OFF);
+	
+	lv_obj_t *mainSettings = tabview.newTab("Main");
+	lv_obj_t *loraSettings = tabview.newTab("LoRa");
+
+	this->buildMainSettings(mainSettings);
+	this->buildLoRaSettings(loraSettings);
 
 }
 

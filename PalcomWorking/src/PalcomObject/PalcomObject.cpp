@@ -133,6 +133,12 @@ void PalcomObject::generate(lv_obj_t *parent, PalcomObjectType objtype){
 		case pal_dropdown:
 			this->object = lv_dropdown_create(parent);
 			break;
+		case pal_spinner:
+			this->object = lv_spinner_create(parent);
+			break;
+		case pal_tabview:
+			this->object = lv_tabview_create(parent);
+			break;
 	}
 }
 

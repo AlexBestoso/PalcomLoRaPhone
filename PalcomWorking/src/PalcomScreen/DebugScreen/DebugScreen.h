@@ -29,6 +29,8 @@ class PalcomDebugScreen : public PalcomScreen{
 		static void applySettings(lv_event_t *e);
 
 		void buildUsbSettings(lv_obj_t *target);
+		void buildLoRaSettings(lv_obj_t *tabTarget);
+		void buildMainSettings(lv_obj_t *tabTarget);
 
 		void buildHomepage(lv_obj_t *target);
 		void buildModeSelect(lv_obj_t *target);

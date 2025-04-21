@@ -57,4 +57,10 @@ class LoRaSnake{
 
 		void modeSend(void);
 		void modeRecv(void);
+
+		void setBandwidth(float v);
+		void setSpreadFactor(int v);
+		void setCodingRate(int v);
+		void setSyncWord(int s, int ctrl);
+		void setPreambleLength(size_t v);
 };

@@ -86,6 +86,8 @@ palcom_partition_t COMMS_SETTINGS;
 #include <src/PalcomObject/Line/Line.h>
 #include <src/PalcomObject/Triangle/Triangle.h>
 #include <src/PalcomObject/Dropdown/Dropdown.h>
+#include <src/PalcomObject/spinner/spinner.h>
+#include <src/PalcomObject/tabview/tabview.h>
 
 #include "./core/initalizer/initalizer.h"
 

@@ -1,5 +1,4 @@
 # PalcomLoRaPhone
-<h1><b>This Project is confidential and only Authorized persons are to view this repository.</b></h1>
 <code> version 2.0.2 Alpha</code>
 
 <h2>Change Log</h2>

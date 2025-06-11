@@ -11,8 +11,8 @@
  *                  Flash Mode"QIO 80MHz
  *                  Partition Scheme:"16M Flash(3M APP/9.9MB FATFS)"
  *                  PSRAM:"OPI PSRAM"
- *                  Upload Mode:"UART0/Hardware CDC"
- *                  USB Mode:"Hardware CDC and JTAG"
+ *                  Upload Mode:"USB-OTG CDC (tiny usb)"
+ *                  USB Mode:"USB-OTG (tiny usb)"
  *
  *      https://lvgl.io/tools/imageconverter
  */

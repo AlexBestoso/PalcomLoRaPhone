@@ -7,10 +7,19 @@ class Comms{
                 bool pop();
 		bool sendMsg(void);
 		bool recvMsg(void);	
+		bool recv(void);
+		
 		bool sendMsgNode(void);
 		bool recvMsgNode(void);
+		
 		bool sendMsgUsb(void);
 		bool recvMsgUsb(void);
+		
+		bool sendMsgLora(void);
+		bool recvMsgLora(void);
+
+		bool sendMsgWifi(void);
+		bool recvMsgWifi(void);
 	
 		LoRaSnake *lsnake;
 

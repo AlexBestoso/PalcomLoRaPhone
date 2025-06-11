@@ -19,7 +19,9 @@ enum PalcomObjectType{
 	pal_image, 
 	pal_line, 
 	pal_triangle,
-	pal_dropdown
+	pal_dropdown,
+	pal_spinner,
+	pal_tabview
 };
 
 class PalcomObject : public PalcomStyle{

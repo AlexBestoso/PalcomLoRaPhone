@@ -16,6 +16,7 @@
 #include <src/PalcomObject/PalcomObject.h>
 #include <src/LoRaSnake/LoRaSnake.class.h>
 #include <src/cryptography/cryptography.h>
+#include <src/PalcomSettings/settings.h>
 
 #include "./comms.h"
 
@@ -157,7 +158,28 @@ bool Comms::recvMsgUsb(void){
 	Serial.printf("Recv USB\n");
 	bool ret = false;
 	return ret;
+}
 
+bool Comms::sendMsgWifi(void){
+	Serial.printf("SEND WIFI\n");
+	bool ret = false;
+	return ret;
+}
+bool Comms::recvMsgWifi(void){
+	Serial.printf("Recv WIFI\n");
+	bool ret = false;
+	return ret;
+}
+
+bool Comms::sendMsgLora(void){
+	Serial.printf("SEND LORA\n");
+	bool ret = false;
+	return ret;
+}
+bool Comms::recvMsgLora(void){
+	Serial.printf("Recv LORA\n");
+	bool ret = false;
+	return ret;
 }
 bool Comms::recvMsgNode(void){
 	if(xSemaphore == NULL){
@@ -238,18 +260,25 @@ bool Comms::runTask(void){
 		case COMMS_INSTR_RECV:
 			return this->recvMsg();
 		break;
-		case COMMS_INSTR_SEND_NODE:
-			return this->sendMsgNode();
-		break;
-		case COMMS_INSTR_RECV_NODE:
-			return this->recvMsgNode();
-		break;
 		case COMMS_INSTR_SEND_USB:
 			return this->sendMsgUsb();
 		break;
 		case COMMS_INSTR_RECV_USB:
 			return this->recvMsgUsb();
 		break;
+		case COMMS_INSTR_SEND_LORA:
+			return this->sendMsgLora();
+		break;
+		case COMMS_INSTR_RECV_LORA:
+			return this->recvMsgLora();
+		break;
+		case COMMS_INSTR_SEND_WIFI:
+			return this->sendMsgWifi();
+		break;
+		case COMMS_INSTR_RECV_WIFI:
+			return this->recvMsgWifi();
+		break;
+
         }
         return false;
 }
@@ -268,4 +297,5 @@ void Comms::init(Cryptography *c, unsigned char*core_routing_key, size_t core_ro
 
 bool Comms::recv(void){
 	
+	return false;
 }

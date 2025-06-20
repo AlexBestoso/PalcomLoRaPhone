@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <lvgl.h>
 #include <src/taskQueue/taskQueue.h>
-#include "USB.h"
+#include <USB.h>
 
 #if !ARDUINO_USB_CDC_ON_BOOT
 USBCDC USBSerial;

@@ -109,7 +109,7 @@ Graphics graphics;
 #include <src/core/comms/comms.h>
 Comms comms;
 
-#include <src/core/usb/usb.h>
+#include <src/core/_usb/_usb.h>
 Usb usb;
 
 static void GraphicsTask(void *parm);

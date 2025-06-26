@@ -8,7 +8,7 @@
 USBCDC USBSerial;
 #endif
 
-#include "./usb.h"
+#include "./_usb.h"
 
 extern SemaphoreHandle_t xSemaphore;
 extern TaskQueue taskQueue;

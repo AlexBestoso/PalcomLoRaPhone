@@ -26,7 +26,7 @@
 
 #include <src/taskQueue/taskQueue.h>
 
-#include <src/core/usb/usb.h>
+#include <src/core/_usb/_usb.h>
 
 
 extern LoRaSnake loraSnake;

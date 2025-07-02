@@ -275,11 +275,21 @@ void setup(void){
   try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
+
+    Serial.printf("Jaun Teat\n");
     core.initPins();
+    Serial.printf("Init pins good\n");
     core.initLcd();
+    Serial.printf("Init Lcd goos\n");
     core.initTouch();
+    Serial.printf("Touch Good :D\n");
     core.initLvgl();
+    Serial.printf("Lvgl Good\n");
     core.initSd();
+    Serial.printf("SD good\n");
+
+    int juan = 1;
+    while(juan) delay(300);
 
     //initer.pinInit();
     //initer.lcdInit();

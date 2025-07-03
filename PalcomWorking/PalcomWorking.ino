@@ -20,7 +20,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <WiFi.h>
-
+/*
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
 #include <lvgl.h>
@@ -153,7 +153,7 @@ bool processInput(void){
   return false;
 }
 */
-
+/*
 bool coreOne = false;
 bool coreTwo = false;
 bool coreThree = false;
@@ -193,7 +193,7 @@ static void StorageTask(void *parm){
         delay(2000);
     }
   }*/
-  coreThree = true;
+  /*coreThree = true;
   while(1){
       if(storage.fetchTask()){
         storage.runTask();
@@ -223,7 +223,7 @@ static void CommsTask(void *parm){
     }else{
       Serial.printf("%d Xsemaphore failed\n", xPortGetCoreID());
     }*/
-    delay(2000);
+    /*delay(2000);
   }
 }
 
@@ -264,15 +264,15 @@ static void UserInputTask(void *parm){
     }else{
       Serial.printf("%d semaphore failed\n", xPortGetCoreID());
     }*/
-    delay(20);
+    /*delay(20);
   }
 }
-
+*/
 void setup(void){
   Serial.begin(115200);
   delay(2000);
   Serial.printf("[Palcoms 2.x.y Alpha]\n");
-  try{
+  /*try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
 
@@ -334,19 +334,19 @@ while(1);
     }*/
 
     //while(!coreOne || !coreTwo || !coreThree){delay(100);}
-    
+    /*
     usb.init();
     //comms.init(&cryptography, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
     
     //taskQueue.push(taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_GOD, GRAPHICS_INSTR_SETUP));
-  }catch(CoreException &ce){
+ /* }catch(CoreException &ce){
       ce.halt();
-  }
+  }*/
 }
 
 void loop(){
-      
-      core.process();
+      Serial.printf("niggers\n");
+      /*core.process();
       if(core.ready()){
        
         if(graphics.fetchTask()){
@@ -382,6 +382,6 @@ void loop(){
         SPI.end();
         SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
         tft.initDMA();
-      }
-  delay(5);
+      }*/
+  delay(50);
 }

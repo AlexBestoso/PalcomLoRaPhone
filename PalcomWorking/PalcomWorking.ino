@@ -41,7 +41,7 @@
 USBCDC USBSerial;
 #endif
 
-/*
+
 
 #include <SD.h>
 
@@ -55,7 +55,7 @@ using namespace std;
 #include "./core/structs/structs.h"
 #include "./core/tools/PalcomFS.h"
 #include <src/error/error.h>
-
+/*
 #include <src/taskQueue/taskQueue.h>
 TaskQueue taskQueue;
 
@@ -272,6 +272,7 @@ void setup(void){
   Serial.begin(115200);
   delay(2000);
   Serial.printf("[Palcoms 2.x.y Alpha]\n");
+  
   /*try{
     xSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(xSemaphore);
@@ -345,7 +346,7 @@ while(1);
 }
 
 void loop(){
-      Serial.printf("niggers\n");
+      Serial.printf("faggot\n");
       /*core.process();
       if(core.ready()){
        

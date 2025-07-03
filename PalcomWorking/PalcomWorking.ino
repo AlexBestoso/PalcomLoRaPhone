@@ -55,13 +55,13 @@ using namespace std;
 #include "./core/structs/structs.h"
 #include "./core/tools/PalcomFS.h"
 #include <src/error/error.h>
-/*
+
 #include <src/taskQueue/taskQueue.h>
 TaskQueue taskQueue;
 
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
-
+/*
 #include <src/cryptography/cryptography.h>
 Cryptography cryptography;
 
@@ -346,7 +346,7 @@ while(1);
 }
 
 void loop(){
-      Serial.printf("faggot\n");
+      Serial.printf("IslammaJew\n");
       /*core.process();
       if(core.ready()){
        

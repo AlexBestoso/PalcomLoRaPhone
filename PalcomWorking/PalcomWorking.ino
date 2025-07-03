@@ -70,7 +70,7 @@ Cryptography cryptography;
 PalcomWifi wifi;
 #include <src/PalcomSettings/settings.h>
 palcom_partition_t COMMS_SETTINGS;
-/*
+
 #include <src/PalcomEvent/PalcomEvent.h>
 //#include "./src/PalcomColors/PalcomColors.h"
 //#include "./core/partition/partition.h"
@@ -90,7 +90,7 @@ palcom_partition_t COMMS_SETTINGS;
 #include <src/PalcomObject/tabview/tabview.h>
 
 #include "./core/initalizer/initalizer.h"
-
+/*
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/PalcomScreen/DebugScreen/DebugScreen.h>
 #include <src/PalcomScreen/setMsgMode/setMsgMode.h>
@@ -346,7 +346,7 @@ while(1);
 }
 
 void loop(){
-      Serial.printf("The meth is 3 miles east\n");
+      Serial.printf("Thanks for the c4, i won't tell my po\n");
       /*core.process();
       if(core.ready()){
        

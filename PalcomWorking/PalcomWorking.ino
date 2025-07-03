@@ -278,6 +278,7 @@ void setup(void){
 
     Serial.printf("Jaun Teat\n");
     core.initPins();
+while(1);
     Serial.printf("Init pins good\n");
     core.initLcd();
     Serial.printf("Init Lcd goos\n");

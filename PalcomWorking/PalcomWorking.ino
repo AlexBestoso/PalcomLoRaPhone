@@ -61,7 +61,7 @@ TaskQueue taskQueue;
 
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
-/*
+
 #include <src/cryptography/cryptography.h>
 Cryptography cryptography;
 
@@ -70,7 +70,7 @@ Cryptography cryptography;
 PalcomWifi wifi;
 #include <src/PalcomSettings/settings.h>
 palcom_partition_t COMMS_SETTINGS;
-
+/*
 #include <src/PalcomEvent/PalcomEvent.h>
 //#include "./src/PalcomColors/PalcomColors.h"
 //#include "./core/partition/partition.h"
@@ -346,7 +346,7 @@ while(1);
 }
 
 void loop(){
-      Serial.printf("IslammaJew\n");
+      Serial.printf("The meth is 3 miles east\n");
       /*core.process();
       if(core.ready()){
        

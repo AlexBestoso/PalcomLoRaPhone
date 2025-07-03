@@ -90,7 +90,7 @@ palcom_partition_t COMMS_SETTINGS;
 #include <src/PalcomObject/tabview/tabview.h>
 
 #include "./core/initalizer/initalizer.h"
-/*
+
 #include <src/PalcomScreen/PalcomScreen.h>
 #include <src/PalcomScreen/DebugScreen/DebugScreen.h>
 #include <src/PalcomScreen/setMsgMode/setMsgMode.h>
@@ -111,7 +111,7 @@ Comms comms;
 
 #include <src/core/_usb/_usb.h>
 Usb usb;
-
+/*
 static void GraphicsTask(void *parm);
 static void CommsTask(void *parm);
 static void StorageTask(void *parm);

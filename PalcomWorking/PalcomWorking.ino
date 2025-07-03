@@ -346,7 +346,7 @@ while(1);
 }
 
 void loop(){
-      Serial.printf("Thanks for the c4, i won't tell my po\n");
+      Serial.printf("Mom, my ball sack itches, why don't you ever help?!\n");
       /*core.process();
       if(core.ready()){
        
